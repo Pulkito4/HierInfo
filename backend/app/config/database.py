@@ -1,8 +1,10 @@
+from .settings import settings
 from supabase import create_client, Client
 import logging
-from .config import settings
+
 
 # Set up logging
+# set up file based logs for debugging - logger utility | file logs + console logs
 logger = logging.getLogger(__name__)
 
 class SupabaseClient:
@@ -68,3 +70,25 @@ supabase_client = SupabaseClient()
 def get_supabase_client() -> Client:
     """Get the configured Supabase client instance"""
     return supabase_client.client
+
+def test_connection() -> bool:
+    """Simple function to test Supabase connection"""
+    return supabase_client.test_connection()
+
+def get_connection_status():
+    """Get detailed connection status information"""
+    try:
+        client = get_supabase_client()
+        # Test with a simple auth check
+        response = client.auth.get_session()
+        return {
+            "connected": True,
+            "message": "Supabase connection successful",
+            "client_available": True
+        }
+    except Exception as e:
+        return {
+            "connected": False,
+            "message": f"Supabase connection failed: {str(e)}",
+            "client_available": False
+        }
