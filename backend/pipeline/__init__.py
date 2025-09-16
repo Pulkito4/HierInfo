@@ -1,1 +1,0 @@
-"""Pipeline module for news aggregation and processing."""
