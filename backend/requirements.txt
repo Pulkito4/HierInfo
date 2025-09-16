@@ -1,33 +1,35 @@
-annotated-types==0.7.0
-anyio==4.10.0
-APScheduler==3.11.0
+# Core Python packages
+python-dotenv==1.0.0
+requests==2.31.0
+schedule==1.2.0
+
+# Web scraping and content extraction
+newspaper3k==0.2.8
 beautifulsoup4==4.13.5
-blis==1.3.0
-breadability==0.1.20
-catalogue==2.0.10
-certifi==2025.8.3
-chardet==5.2.0
-charset-normalizer==3.4.3
-click==8.2.1
-cloudpathlib==0.22.0
-colorama==0.4.6
-confection==0.1.5
-cssselect==1.3.0
-cymem==2.0.11
-deprecation==2.1.0
-docopt==0.6.2
-dotenv==0.9.9
-en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
-fastapi==0.116.1
-feedfinder2==0.0.4
 feedparser==6.0.12
-filelock==3.19.1
-fsspec==2025.9.0
-h11==0.16.0
-h2==4.3.0
-hf-xet==1.1.9
-hpack==4.1.0
-httpcore==1.0.9
+feedfinder2==0.0.4
+
+# Database and Supabase
+supabase==2.4.0
+postgrest==0.16.8
+gotrue==2.4.2
+
+# NLP and ML packages
+torch>=2.0.0
+transformers>=4.30.0
+sentence-transformers>=2.2.0
+scikit-learn>=1.3.0
+numpy>=1.24.0
+keybert>=0.8.0
+
+# Text processing
+nltk>=3.8.0
+spacy>=3.6.0
+
+# Utility packages
+tqdm>=4.65.0
+psutil>=5.9.0
+python-dateutil>=2.8.0
 httpx==0.28.1
 huggingface-hub==0.34.4
 hyperframe==6.1.0

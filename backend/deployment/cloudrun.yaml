@@ -1,0 +1,63 @@
+# Google Cloud Run deployment configuration
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: news-pipeline
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    metadata:
+      annotations:
+        # Run as a job, not a service
+        run.googleapis.com/execution-environment: gen2
+        # Timeout after 30 minutes
+        run.googleapis.com/timeout-seconds: "1800"
+        # Don't keep instances warm
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "1"
+    spec:
+      serviceAccountName: news-pipeline-sa
+      containers:
+      - image: gcr.io/PROJECT_ID/news-pipeline
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PYTHONPATH
+          value: "/app"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: FETCH_LIMIT
+          value: "1000"
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: supabase-credentials
+              key: url
+        - name: SUPABASE_SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-credentials
+              key: service_key
+        - name: GNEWS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gnews-credentials
+              key: api_key
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+---
+# Cloud Scheduler job to trigger the pipeline
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloud-scheduler-config
+data:
+  schedule: "0 6 * * *"  # Daily at 6 AM UTC
+  timezone: "UTC"
+  target_url: "https://news-pipeline-SERVICE_URL.run.app"

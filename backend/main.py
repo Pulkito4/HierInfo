@@ -9,8 +9,8 @@ import sys
 from datetime import datetime
 from typing import List, Dict, Optional
 
-# Add current directory to path for imports
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Add app directory to path for imports
+sys.path.append(os.path.join(os.path.dirname(__file__), 'app'))
 
 # Pipeline imports
 from pipeline.news_fetcher import NewsFetcher, DEFAULT_RSS_FEEDS
@@ -27,15 +27,11 @@ from models.categorization import CategoryModel
 # Config imports
 from config.settings import Settings
 
+# Utility imports
+from utils.logging_config import setup_logging
+
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('pipeline.log'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+setup_logging()
 logger = logging.getLogger(__name__)
 
 class NewsProcessingPipeline:
@@ -62,7 +58,7 @@ class NewsProcessingPipeline:
         }
     
     def run_pipeline(self, 
-                    fetch_limit: int = 1000, 
+                    fetch_limit: int = 20, 
                     categories: Optional[List[str]] = None) -> Dict:
         """
         Run the complete news processing pipeline.
@@ -119,7 +115,7 @@ class NewsProcessingPipeline:
         logger.info("Step 1: Fetching articles from sources")
         
         all_articles = []
-        articles_per_category = fetch_limit // 5  # Distribute across categories
+        articles_per_category = max(5, fetch_limit // 5)  # Minimum 5 articles per category for testing
         
         # Fetch from GNews API
         try:
@@ -324,10 +320,10 @@ def main():
     """Main entry point for the pipeline."""
     pipeline = NewsProcessingPipeline()
     
-    # You can customize these parameters
+    # 🧪 TESTING MODE: Limited articles to avoid API limits
     result = pipeline.run_pipeline(
-        fetch_limit=1000,
-        categories=['general', 'technology', 'business', 'health', 'sports']
+        fetch_limit=15,  # Only fetch 15 articles total for testing
+        categories=['technology', 'business']  # Only test with 2 categories
     )
     
     logger.info(f"Pipeline completed with status: {result['status']}")

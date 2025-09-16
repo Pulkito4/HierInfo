@@ -1,0 +1,22 @@
+# Render.com deployment configuration
+services:
+  - type: cron
+    name: news-pipeline
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    schedule: "0 6 * * *"  # Run daily at 6 AM UTC
+    envVars:
+      - key: PYTHONPATH
+        value: /opt/render/project/src
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: FETCH_LIMIT
+        value: 1000
+      - key: RUN_ON_STARTUP
+        value: false
+    # Environment variables (set these in Render dashboard):
+    # SUPABASE_URL
+    # SUPABASE_SERVICE_KEY
+    # GNEWS_API_KEY
