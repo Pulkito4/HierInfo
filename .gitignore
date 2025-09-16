@@ -4,8 +4,12 @@ frontend/.next/
 
 # Python
 backend/venv/
-backend/__pycache__/
+*__pycache__/
 
 # Env
 *.env
 *.env.local
+
+*/logs
+*/model_cache
+test_*.py
