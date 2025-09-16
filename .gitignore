@@ -10,6 +10,15 @@ backend/venv/
 *.env
 *.env.local
 
+# Logs and caches
 */logs
 */model_cache
+
+# Test files
 test_*.py
+*_test.py
+
+# Old class-based architecture (if keeping for reference)
+backend/main.py
+backend/pipeline/
+backend/models/
