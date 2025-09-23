@@ -265,96 +265,96 @@ def display_dataframe_info(df: pd.DataFrame, show_sample: bool = True):
     
     print("="*70)
 
-def prepare_for_nlp_processing(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Prepare the DataFrame for NLP processing by cleaning and validating data.
+# def prepare_for_nlp_processing(df: pd.DataFrame) -> pd.DataFrame:
+#     """
+#     Prepare the DataFrame for NLP processing by cleaning and validating data.
     
-    This function filters and cleans the DataFrame to ensure high-quality
-    data for NLP tasks like summarization, categorization, and embedding generation.
+#     This function filters and cleans the DataFrame to ensure high-quality
+#     data for NLP tasks like summarization, categorization, and embedding generation.
     
-    Args:
-        df (pd.DataFrame): Raw news DataFrame
+#     Args:
+#         df (pd.DataFrame): Raw news DataFrame
         
-    Returns:
-        pd.DataFrame: Cleaned DataFrame ready for NLP processing
-    """
+#     Returns:
+#         pd.DataFrame: Cleaned DataFrame ready for NLP processing
+#     """
     
-    logger.info("🧹 Preparing DataFrame for NLP processing...")
+#     logger.info("🧹 Preparing DataFrame for NLP processing...")
     
-    # Create a copy to avoid modifying original
-    processed_df = df.copy()
-    initial_count = len(processed_df)
+#     # Create a copy to avoid modifying original
+#     processed_df = df.copy()
+#     initial_count = len(processed_df)
     
-    # Remove articles without content
-    processed_df = processed_df[processed_df['raw_content'].notna()]
-    processed_df = processed_df[processed_df['raw_content'].str.strip() != '']
+#     # Remove articles without content
+#     processed_df = processed_df[processed_df['raw_content'].notna()]
+#     processed_df = processed_df[processed_df['raw_content'].str.strip() != '']
     
-    content_filtered = initial_count - len(processed_df)
-    if content_filtered > 0:
-        logger.info(f"🗑️  Removed {content_filtered} articles without valid content")
+#     content_filtered = initial_count - len(processed_df)
+#     if content_filtered > 0:
+#         logger.info(f"🗑️  Removed {content_filtered} articles without valid content")
     
-    # Remove articles with very short content (less than 100 characters)
-    processed_df = processed_df[processed_df['raw_content'].str.len() >= 100]
-    short_content_filtered = initial_count - content_filtered - len(processed_df)
+#     # Remove articles with very short content (less than 100 characters)
+#     processed_df = processed_df[processed_df['raw_content'].str.len() >= 100]
+#     short_content_filtered = initial_count - content_filtered - len(processed_df)
     
-    if short_content_filtered > 0:
-        logger.info(f"🗑️  Removed {short_content_filtered} articles with content < 100 characters")
+#     if short_content_filtered > 0:
+#         logger.info(f"🗑️  Removed {short_content_filtered} articles with content < 100 characters")
     
-    # Remove articles with extremely long content (potential parsing errors)
-    max_content_length = 50000  # 50k characters max
-    processed_df = processed_df[processed_df['raw_content'].str.len() <= max_content_length]
-    long_content_filtered = initial_count - content_filtered - short_content_filtered - len(processed_df)
+#     # Remove articles with extremely long content (potential parsing errors)
+#     max_content_length = 50000  # 50k characters max
+#     processed_df = processed_df[processed_df['raw_content'].str.len() <= max_content_length]
+#     long_content_filtered = initial_count - content_filtered - short_content_filtered - len(processed_df)
     
-    if long_content_filtered > 0:
-        logger.info(f"🗑️  Removed {long_content_filtered} articles with content > {max_content_length} characters")
+#     if long_content_filtered > 0:
+#         logger.info(f"🗑️  Removed {long_content_filtered} articles with content > {max_content_length} characters")
     
-    # Reset index after filtering
-    processed_df = processed_df.reset_index(drop=True)
+#     # Reset index after filtering
+#     processed_df = processed_df.reset_index(drop=True)
     
-    final_count = len(processed_df)
-    removed_count = initial_count - final_count
+#     final_count = len(processed_df)
+#     removed_count = initial_count - final_count
     
-    logger.info(f"✅ DataFrame ready for NLP processing:")
-    logger.info(f"   📊 Original articles: {initial_count}")
-    logger.info(f"   🗑️  Filtered out: {removed_count}")
-    logger.info(f"   ✅ Ready for NLP: {final_count}")
+#     logger.info(f"✅ DataFrame ready for NLP processing:")
+#     logger.info(f"   📊 Original articles: {initial_count}")
+#     logger.info(f"   🗑️  Filtered out: {removed_count}")
+#     logger.info(f"   ✅ Ready for NLP: {final_count}")
     
-    return processed_df
+#     return processed_df
 
-def export_dataframe_summary(df: pd.DataFrame, filepath: str = None) -> str:
-    """
-    Export DataFrame summary to a file for reporting and monitoring.
+# def export_dataframe_summary(df: pd.DataFrame, filepath: str = None) -> str:
+#     """
+#     Export DataFrame summary to a file for reporting and monitoring.
     
-    Args:
-        df (pd.DataFrame): DataFrame to summarize
-        filepath (str, optional): Output file path. If None, creates timestamped file
+#     Args:
+#         df (pd.DataFrame): DataFrame to summarize
+#         filepath (str, optional): Output file path. If None, creates timestamped file
         
-    Returns:
-        str: Path to the exported summary file
-    """
+#     Returns:
+#         str: Path to the exported summary file
+#     """
     
-    if filepath is None:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filepath = f"dataframe_summary_{timestamp}.txt"
+#     if filepath is None:
+#         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+#         filepath = f"dataframe_summary_{timestamp}.txt"
     
-    summary = get_dataframe_summary(df)
+#     summary = get_dataframe_summary(df)
     
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write("News DataFrame Summary Report\n")
-        f.write("=" * 40 + "\n")
-        f.write(f"Generated: {datetime.now().isoformat()}\n\n")
+#     with open(filepath, 'w', encoding='utf-8') as f:
+#         f.write("News DataFrame Summary Report\n")
+#         f.write("=" * 40 + "\n")
+#         f.write(f"Generated: {datetime.now().isoformat()}\n\n")
         
-        f.write(f"Total Articles: {summary['total_articles']}\n")
-        f.write(f"Unique Sources: {summary['unique_sources']}\n")
-        f.write(f"Articles with Content: {summary['articles_with_content']}\n")
-        f.write(f"Memory Usage: {summary['memory_usage_mb']:.2f} MB\n\n")
+#         f.write(f"Total Articles: {summary['total_articles']}\n")
+#         f.write(f"Unique Sources: {summary['unique_sources']}\n")
+#         f.write(f"Articles with Content: {summary['articles_with_content']}\n")
+#         f.write(f"Memory Usage: {summary['memory_usage_mb']:.2f} MB\n\n")
         
-        f.write("Source Distribution:\n")
-        for source, count in summary['source_distribution'].items():
-            f.write(f"  {source}: {count}\n")
+#         f.write("Source Distribution:\n")
+#         for source, count in summary['source_distribution'].items():
+#             f.write(f"  {source}: {count}\n")
     
-    logger.info(f"📄 DataFrame summary exported to: {filepath}")
-    return filepath
+#     logger.info(f"📄 DataFrame summary exported to: {filepath}")
+#     return filepath
 
 def test_dataframe_functionality():
     """

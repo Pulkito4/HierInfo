@@ -11,3 +11,8 @@
 2025-09-23 19:59:13,900 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250923.log
 2025-09-23 19:59:15,707 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250923.log
 2025-09-23 19:59:16,424 - news_pipeline - INFO - main:300 - 🧪 Test mode requested
+2025-09-23 20:14:43,573 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250923.log
+2025-09-23 20:24:40,003 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250923.log
+2025-09-23 20:28:24,784 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250923.log
+2025-09-23 20:45:19,933 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250923.log
+2025-09-23 20:50:05,259 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250923.log
