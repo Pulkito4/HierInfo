@@ -176,7 +176,7 @@ def validate_api_connection() -> bool:
         logger.error(f"❌ GNews API connection test failed: {e}")
         return False
 
-def get_api_usage_stats() -> Dict:
+# def get_api_usage_stats() -> Dict:
     """
     Get API usage statistics for monitoring purposes.
     
