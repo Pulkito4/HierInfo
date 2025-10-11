@@ -7,3 +7,8 @@
 2025-09-25 15:51:52,890 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250925.log
 2025-09-25 15:51:53,836 - news_pipeline - INFO - main:304 - 🏭 Production mode
 2025-09-25 15:52:04,231 - news_pipeline - INFO - main:312 - 🎉 Pipeline execution completed successfully!
+2025-09-25 17:29:46,191 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250925.log
+2025-09-25 17:32:46,317 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250925.log
+2025-09-25 17:35:06,656 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250925.log
+2025-09-25 17:36:27,088 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250925.log
+2025-09-25 17:45:07,148 - news_pipeline - INFO - setup_logging:63 - 🔧 Logging configured - Level: INFO, File: /Users/tanishkagoel/Desktop/HierInfo/backend/logs/pipeline_20250925.log

@@ -275,6 +275,8 @@ def parse_article_with_two_tier_fallback(url: str) -> Optional[Dict]:
     logger.error(f"💀 All parsing methods failed for {domain}")
     return None
 
+
+
 def parse_articles_batch(urls: List[str], max_workers: int = 5) -> List[Dict]:
     """
     Parse multiple articles concurrently for better performance.
@@ -293,93 +295,143 @@ def parse_articles_batch(urls: List[str], max_workers: int = 5) -> List[Dict]:
     logger.info(f"🚀 Starting batch parsing of {len(urls)} articles with {max_workers} workers")
     
     parsed_articles = []
+    
+    # Handle empty input gracefully
+    if not urls:
+        logger.warning("⚠️ parse_articles_batch received an empty list of URLs.")
+        return []
+        
     failed_count = 0
     
     # Use ThreadPoolExecutor for concurrent parsing
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all parsing tasks
-        future_to_url = {
-            executor.submit(parse_article_with_two_tier_fallback, url): url 
-            for url in urls
-        }
+        future_to_url = {executor.submit(parse_article_with_two_tier_fallback, url): url for url in urls}
         
-        # Process completed tasks
         for future in concurrent.futures.as_completed(future_to_url):
             url = future_to_url[future]
-            
             try:
                 result = future.result()
                 if result:
                     parsed_articles.append(result)
-                    logger.debug(f"✅ Batch parse success: {urlparse(url).netloc}")
                 else:
                     failed_count += 1
-                    logger.warning(f"❌ Batch parse failed: {urlparse(url).netloc}")
-                    
             except Exception as e:
                 failed_count += 1
-                logger.error(f"💥 Batch parse exception for {urlparse(url).netloc}: {str(e)}")
+                logger.error(f"💥 Batch parse exception for {urlparse(url).netloc}: {e}")
     
-    # Log batch results
     success_count = len(parsed_articles)
     total_count = len(urls)
     success_rate = (success_count / total_count) * 100 if total_count > 0 else 0
     
-    logger.info(f"📊 Batch parsing completed:")
-    logger.info(f"   ✅ Successful: {success_count}/{total_count} ({success_rate:.1f}%)")
-    logger.info(f"   ❌ Failed: {failed_count}")
+    logger.info(f"📊 Batch parsing completed: {success_count}/{total_count} articles successful ({success_rate:.1f}%)")
     
     return parsed_articles
 
-def test_parsing_functionality():
-    """
-    Test function for development and deployment verification.
+# def parse_articles_batch(urls: List[str], max_workers: int = 5) -> List[Dict]:
+#     """
+#     Parse multiple articles concurrently for better performance.
     
-    This function tests the parsing functionality with known URLs
-    and is useful for verifying deployment health.
-    """
+#     This function is designed for production use where you need to parse
+#     many articles efficiently. It uses ThreadPoolExecutor for concurrent processing.
     
-    logger.info("🧪 Starting parsing functionality test...")
-    
-    # Test URLs (use reliable news sites)
-    test_urls = [
-        "https://www.bbc.com/news",
-        "https://edition.cnn.com/",
-        "https://www.reuters.com/"
-    ]
-    
-    success_count = 0
-    
-    for i, url in enumerate(test_urls[:1], 1):  # Test only first URL to avoid rate limiting
-        logger.info(f"🔗 Test {i}: Parsing {urlparse(url).netloc}")
+#     Args:
+#         urls (List[str]): List of article URLs to parse
+#         max_workers (int): Maximum number of concurrent workers
         
-        try:
-            result = parse_article_with_two_tier_fallback(url)
+#     Returns:
+#         List[Dict]: List of successfully parsed articles
+#     """
+    
+#     logger.info(f"🚀 Starting batch parsing of {len(urls)} articles with {max_workers} workers")
+    
+#     parsed_articles = []
+#     failed_count = 0
+    
+#     # Use ThreadPoolExecutor for concurrent parsing
+#     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+#         # Submit all parsing tasks
+#         future_to_url = {
+#             executor.submit(parse_article_with_two_tier_fallback, url): url 
+#             for url in urls
+#         }
+        
+#         # Process completed tasks
+#         for future in concurrent.futures.as_completed(future_to_url):
+#             url = future_to_url[future]
             
-            if result and result.get('text'):
-                success_count += 1
-                logger.info(f"✅ Test {i} passed: {len(result['text'])} chars extracted")
-            else:
-                logger.warning(f"⚠️  Test {i} failed: No content extracted")
-                
-        except Exception as e:
-            logger.error(f"❌ Test {i} error: {str(e)}")
+#             try:
+#                 result = future.result()
+#                 if result:
+#                     parsed_articles.append(result)
+#                     logger.debug(f"✅ Batch parse success: {urlparse(url).netloc}")
+#                 else:
+#                     failed_count += 1
+#                     logger.warning(f"❌ Batch parse failed: {urlparse(url).netloc}")
+                    
+#             except Exception as e:
+#                 failed_count += 1
+#                 logger.error(f"💥 Batch parse exception for {urlparse(url).netloc}: {str(e)}")
     
-    success_rate = (success_count / 1) * 100  # Only testing 1 URL
-    logger.info(f"🏁 Parsing test completed: {success_count}/1 tests passed ({success_rate:.1f}%)")
+#     # Log batch results
+#     success_count = len(parsed_articles)
+#     total_count = len(urls)
+#     success_rate = (success_count / total_count) * 100 if total_count > 0 else 0
     
-    return success_count > 0
+#     logger.info(f"📊 Batch parsing completed:")
+#     logger.info(f"   ✅ Successful: {success_count}/{total_count} ({success_rate:.1f}%)")
+#     logger.info(f"   ❌ Failed: {failed_count}")
+    
+#     return parsed_articles
 
-if __name__ == "__main__":
-    """
-    Direct execution for testing and development.
-    """
-    print("🧪 Running Content Scraper Tests...")
+# def test_parsing_functionality():
+#     """
+#     Test function for development and deployment verification.
     
-    # Run parsing functionality tests
-    success = test_parsing_functionality()
+#     This function tests the parsing functionality with known URLs
+#     and is useful for verifying deployment health.
+#     """
     
-    if success:
-        print("✅ Parsing tests passed! Content scraper is ready for production.")
-    else:
-        print("❌ Parsing tests failed. Check logs for details.")
+#     logger.info("🧪 Starting parsing functionality test...")
+    
+#     # Test URLs (use reliable news sites)
+#     test_urls = [
+#         "https://www.bbc.com/news",
+#         "https://edition.cnn.com/",
+#         "https://www.reuters.com/"
+#     ]
+    
+#     success_count = 0
+    
+#     for i, url in enumerate(test_urls[:1], 1):  # Test only first URL to avoid rate limiting
+#         logger.info(f"🔗 Test {i}: Parsing {urlparse(url).netloc}")
+        
+#         try:
+#             result = parse_article_with_two_tier_fallback(url)
+            
+#             if result and result.get('text'):
+#                 success_count += 1
+#                 logger.info(f"✅ Test {i} passed: {len(result['text'])} chars extracted")
+#             else:
+#                 logger.warning(f"⚠️  Test {i} failed: No content extracted")
+                
+#         except Exception as e:
+#             logger.error(f"❌ Test {i} error: {str(e)}")
+    
+#     success_rate = (success_count / 1) * 100  # Only testing 1 URL
+#     logger.info(f"🏁 Parsing test completed: {success_count}/1 tests passed ({success_rate:.1f}%)")
+    
+#     return success_count > 0
+
+# if __name__ == "__main__":
+#     """
+#     Direct execution for testing and development.
+#     """
+#     print("🧪 Running Content Scraper Tests...")
+    
+#     # Run parsing functionality tests
+#     success = test_parsing_functionality()
+    
+#     if success:
+#         print("✅ Parsing tests passed! Content scraper is ready for production.")
+#     else:
+#         print("❌ Parsing tests failed. Check logs for details.")
