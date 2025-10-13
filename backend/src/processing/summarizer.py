@@ -39,7 +39,7 @@ def _summarize_text_mapreduce(text: str) -> str:
     Returns:
         str: The final, coherent summary.
     """
-    if not text or not isinstance(text, str) or len(text.strip()) < 200:
+    if pd.isna(text) or not isinstance(text, str) or len(text.strip()) < 200:
         logger.debug("Skipping summary for short or invalid text.")
         return "" # Return empty string for short or empty content
 

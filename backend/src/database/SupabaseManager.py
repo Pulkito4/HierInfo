@@ -121,3 +121,18 @@ class SupabaseManager:
                     logger.info("✅ Category links inserted.")
                 except Exception as e:
                     logger.error(f"❌ Error inserting category links: {e}")
+
+    def log_pipeline_run(self, status: str, records_added: int = 0, error_message: str = None):
+        """Logs a summary of the pipeline execution to the api_logs table."""
+        log_entry = {
+            "source": "daily_pipeline_run",
+            "status": status,
+            "records_added": records_added,
+            "error_message": error_message
+        }
+        try:
+            logger.info(f"Logging pipeline run to Supabase: status={status}")
+            self.client.table('api_logs').insert(log_entry).execute()
+        except Exception as e:
+            # Log the failure to log, but don't crash the pipeline
+            logger.error(f"❌ Failed to log pipeline run to Supabase: {e}")

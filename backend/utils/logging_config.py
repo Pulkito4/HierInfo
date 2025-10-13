@@ -29,10 +29,12 @@ def setup_logging(
     
     # Create logger
     logger = logging.getLogger('news_pipeline')
-    logger.setLevel(getattr(logging, log_level.upper()))
     
-    # Clear any existing handlers
-    logger.handlers.clear()
+    # If already configured, return existing logger as-is to avoid duplicate setup
+    if logger.handlers:
+        return logger
+
+    logger.setLevel(getattr(logging, log_level.upper()))
     
     # Create formatter
     formatter = logging.Formatter(
@@ -48,12 +50,12 @@ def setup_logging(
     
     # File handler
     if log_file is None:
-        # Create daily log file
         log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
         os.makedirs(log_dir, exist_ok=True)
-        today = datetime.now().strftime('%Y%m%d')
-        log_file = os.path.join(log_dir, f'pipeline_{today}.log')
-    
+        # Include timestamp for unique filenames across runs
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        log_file = os.path.join(log_dir, f'pipeline_{timestamp}.log')
+
     if log_file:
         file_handler = logging.FileHandler(log_file, encoding='utf-8')
         file_handler.setLevel(getattr(logging, log_level.upper()))
