@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 from utils import get_logger
 from src import config as cfg
 from src import constants as C
+import concurrent.futures
 
 logger = get_logger(__name__)
 
@@ -35,48 +36,48 @@ def fetch_rss_metadata() -> List[Dict]:
     yesterday = today - timedelta(days=1)
     logger.info(f"Filtering RSS articles for date: {yesterday}")
     
-    all_articles_metadata = []
-    
-    # Loop through each category and its list of sources
-    for category, sources in C.RSS_FEEDS.items():
-        for source in sources:
-            source_name = source['name']
-            feed_url = source['url']
-            
+    all_articles_metadata: List[Dict] = []
+
+    def _process_feed(category: str, source: Dict) -> List[Dict]:
+        source_name = source['name']
+        feed_url = source['url']
+        out: List[Dict] = []
+        try:
+            logger.debug(f"Fetching feed: {source_name} ({feed_url})")
+            feed = feedparser.parse(feed_url)
+            for entry in feed.entries:
+                if hasattr(entry, "published_parsed") and entry.published_parsed:
+                    published_dt_utc = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                    published_dt_local = published_dt_utc.astimezone(tz)
+                    if published_dt_local.date() != yesterday:
+                        continue
+                else:
+                    logger.warning(f"Skipping entry in '{source_name}', missing published date.")
+                    continue
+                out.append({
+                    'url': entry.link,
+                    'title': entry.get('title', 'No Title'),
+                    'source_name': source_name,
+                    'published_at': published_dt_local.isoformat(),
+                    'image_url': None,
+                    'source_type': 'rss_feed',
+                    'initial_category': category
+                })
+        except Exception as e:
+            logger.error(f"❌ Failed to process RSS feed '{source_name}': {e}")
+        return out
+
+    # Submit all sources to a small thread pool
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        futures = []
+        for category, sources in C.RSS_FEEDS.items():
+            for source in sources:
+                futures.append(executor.submit(_process_feed, category, source))
+        for fut in concurrent.futures.as_completed(futures):
             try:
-                logger.debug(f"Fetching feed: {source_name} ({feed_url})")
-                feed = feedparser.parse(feed_url)
-
-                for entry in feed.entries:
-                    # --- Date Parsing & Filtering Logic ---
-                    if hasattr(entry, "published_parsed") and entry.published_parsed:
-                        # Create a timezone-aware UTC datetime from parsed tuple
-                        published_dt_utc = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
-                        # Convert it to the target timezone
-                        published_dt_local = published_dt_utc.astimezone(tz)
-                        
-                        # Check if the article's date matches yesterday
-                        if published_dt_local.date() != yesterday:
-                            continue # Skip to the next article
-                    else:
-                        logger.warning(f"Skipping entry in '{source_name}', missing published date.")
-                        continue # Skip if no published date is available
-
-                    # --- If date matches, format the metadata ---
-                    article_meta = {
-                        'url': entry.link,
-                        'title': entry.get('title', 'No Title'),
-                        'source_name': source_name,
-                        'published_at': published_dt_local.isoformat(),  # Store as timezone-aware string
-                        'image_url': None,
-                        'source_type': 'rss_feed',
-                        'initial_category': category
-                    }
-                    all_articles_metadata.append(article_meta)
-
+                all_articles_metadata.extend(fut.result() or [])
             except Exception as e:
-                logger.error(f"❌ Failed to process RSS feed '{source_name}': {e}")
-                continue
+                logger.error(f"❌ RSS worker failure: {e}")
             
     logger.info(f"✅ RSS client finished. Returning {len(all_articles_metadata)} metadata entries from yesterday.")
     return all_articles_metadata

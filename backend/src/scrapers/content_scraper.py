@@ -8,6 +8,7 @@ Includes two-tier fallback system and comprehensive logging.
 import time
 import random
 from urllib.parse import urlparse
+import threading
 from typing import Dict, Optional, List
 import concurrent.futures
 from newspaper import Article
@@ -16,6 +17,9 @@ from utils import get_logger
 
 # Initialize logger
 logger = get_logger(__name__)
+
+# Limit concurrent Playwright browser sessions to avoid high resource usage
+_playwright_sema = threading.Semaphore(2)
 
 def parse_with_newspaper3k(url: str, timeout: int = 15) -> Optional[Dict]:
     """
@@ -100,6 +104,8 @@ def parse_with_playwright(url: str, timeout: int = 30) -> Optional[Dict]:
     
     logger.debug(f"🎭 Starting Playwright parsing for: {urlparse(url).netloc}")
     
+    # Ensure only a small number of Playwright parsers run concurrently
+    _playwright_sema.acquire()
     try:
         with sync_playwright() as p:
             # Launch browser with stealth options for anti-bot evasion
@@ -211,6 +217,8 @@ def parse_with_playwright(url: str, timeout: int = 30) -> Optional[Dict]:
     except Exception as e:
         logger.warning(f"❌ Playwright failed for {urlparse(url).netloc}: {str(e)}")
         return None
+    finally:
+        _playwright_sema.release()
 
 def parse_article_with_two_tier_fallback(url: str) -> Optional[Dict]:
     """
