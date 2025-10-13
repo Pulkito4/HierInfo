@@ -23,10 +23,16 @@ export default function AuthCallback() {
           return;
         }
 
+        // Check for redirect parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get('redirect');
+        
         // Redirect based on user status
         console.log('User authenticated:', { user: user.id, isNewUser });
         if (isNewUser) {
           router.push('/categories');
+        } else if (redirectTo && redirectTo.startsWith('/')) {
+          router.push(redirectTo);
         } else {
           router.push('/home');
         }

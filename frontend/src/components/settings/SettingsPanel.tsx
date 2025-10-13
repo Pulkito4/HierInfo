@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { User, Settings, LogOut, Trash2, ChevronRight } from 'lucide-react';
-import { signOut } from '@/lib/supabaseAuth';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
@@ -8,7 +7,7 @@ import { useAuth } from '@/lib/authContext';
 import { supabase } from '@/lib/supabase';
 
 const SettingsPanel = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -44,7 +43,8 @@ const SettingsPanel = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      router.push('/');
+      // Navigation is handled by the auth context
+      router.replace('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -63,7 +63,7 @@ const SettingsPanel = () => {
 
       // Sign out and redirect
       await signOut();
-      router.push('/');
+      router.replace('/');
     } catch (error) {
       console.error('Error deleting account:', error);
       setIsDeleting(false);

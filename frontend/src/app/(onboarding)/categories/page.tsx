@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import LoadingSkeleton from '@/components/ui/loading-skeleton';
 import ErrorMessage from '@/components/ui/error-message';
 import { useAuth } from '@/lib/authContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const CategoriesPage = () => {
   const { user } = useAuth();
@@ -116,7 +117,8 @@ const CategoriesPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -281,6 +283,7 @@ const CategoriesPage = () => {
 
       </div>
     </div>
+    </ProtectedRoute>
   );
 };
 

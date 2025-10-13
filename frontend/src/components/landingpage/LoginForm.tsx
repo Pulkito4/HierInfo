@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,7 +50,17 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       setError(null)
       const { user, error, isNewUser } = await signInWithEmail(email, password)
       if (error) setError(error.message)
-      else if (user) router.push(isNewUser ? '/categories' : '/home')
+      else if (user) {
+        // Check for redirect parameter in URL
+        const urlParams = new URLSearchParams(window.location.search)
+        const redirectTo = urlParams.get('redirect')
+        
+        if (redirectTo && redirectTo.startsWith('/')) {
+          router.push(redirectTo)
+        } else {
+          router.push(isNewUser ? '/categories' : '/home')
+        }
+      }
     } catch {
       setError('An error occurred during email sign-in')
     } finally {
@@ -75,10 +86,12 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
-            <img
+            <Image
               src="/google.png"
               alt="Google"
-              className="w-4 h-4 absolute left-3"
+              width={16}
+              height={16}
+              className="absolute left-3"
             />
             {loading ? 'Signing in...' : 'Continue with Google'}
           </Button>

@@ -1,13 +1,13 @@
-import Link from "next/link";
 import Image from "next/image";
+import AuthButton from "@/components/AuthButton";
 
 export default function HomePage() {
   return (
     <>
      <div className="  bg-[#101130]  ">
       <div className="flex justify-between p-2">
-      <Image src="/Logo52.png" alt="Logo" width={150} height={150} className="mt-0" />
-       <Link href="/login" className="text-white pt-4 pr-4 hover:underline">Get Started</Link>
+        <Image src="/Logo52.png" alt="Logo" width={150} height={150} className="mt-0" />
+        <AuthButton showStatus={true}>Get Started</AuthButton>
       </div>
 
       <div className="flex justify-between items-center mt-5 p-3">

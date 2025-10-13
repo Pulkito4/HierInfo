@@ -122,10 +122,14 @@ export const signUpWithEmail = async (email: string, password: string, username:
     return { user: null, error: err as Error, isNewUser: false };
   }
 };export const signInWithGoogle = async () => {
+  // Get redirect parameter from current URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectPath = urlParams.get('redirect') || '/home';
+  
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { 
-      redirectTo: `${window.location.origin}/auth/callback`
+      redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`
     },
   });
   return { error };
@@ -208,9 +212,9 @@ export const getUserPreferences = async (userId: string) => {
   }
 };
 
-export const updateUserPreferences = async (userId: string, categoryId: string) => {
-  return updateUserMultiplePreferences(userId, [categoryId]);
-};
+// export const updateUserPreferences = async (userId: string, categoryId: string) => {
+//   return updateUserMultiplePreferences(userId, [categoryId]);
+// };
 
 // Function to update user preferences (multiple categories)
 export const updateUserMultiplePreferences = async (userId: string, categoryIds: string[]) => {
