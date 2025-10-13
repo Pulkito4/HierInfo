@@ -29,15 +29,16 @@ export function useCategories(): UseCategoriesReturn {
       setCategories(response.categories);
       setLoading('success');
     } catch (err) {
-      console.error('Error fetching categories:', err);
       setError(err as Error);
       setLoading('error');
     }
   }, []);
 
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    if (loading === 'idle') {
+      fetchCategories();
+    }
+  }, []);
 
   return {
     categories,

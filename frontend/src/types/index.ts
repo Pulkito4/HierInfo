@@ -22,12 +22,18 @@ export type Category = {
 export type Profile = {
   id: string;
   username: string;
-  preferences?: string | null; // Category ID
+  preferences?: UserPreferencesData | string | null; // Can be object, string, or null
   created_at: string;
+};
+
+export type UserPreferencesData = {
+  categoryIds: string[];
+  updatedAt: string;
 };
 
 export type UserPreferences = {
   categoryId: string | null;
+  categoryIds?: string[];
   notificationsEnabled?: boolean;
   // Add more preference fields as needed
 };

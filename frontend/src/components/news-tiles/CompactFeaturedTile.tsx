@@ -1,6 +1,7 @@
 import { Article } from "@/types";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import Link from "next/link";
+import ArticleActions from "./ArticleActions";
 
 const CompactFeaturedTile: React.FC<{ article: Article }> = ({ article }) => {
   const tileStyle = article.image_url 
@@ -8,7 +9,7 @@ const CompactFeaturedTile: React.FC<{ article: Article }> = ({ article }) => {
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${article.image_url})`,
       }
     : {
-        background: 'linear-gradient(45deg, #ff6b6b 0%, #ee5a24 100%)', // Different gradient for variety
+        background: ' linear-gradient(45deg, #141e30 0%, #243b55 100%)', // Different gradient for variety
       };
 
   return (
@@ -23,18 +24,21 @@ const CompactFeaturedTile: React.FC<{ article: Article }> = ({ article }) => {
       
       <div className="relative z-10">
         <h3 className="text-lg font-bold leading-tight mb-2">
-          {article.title}
+        {article.title}
         </h3>
-        <div className="flex justify-between items-center">
-          <p className="text-xs opacity-80">{article.source}</p>
-          <div className="flex space-x-1">
-            <button className="text-gray-300 hover:text-green-400">
-              <ThumbsUp size={16} />
-            </button>
-            <button className="text-gray-300 hover:text-red-400">
-              <ThumbsDown size={16} />
-            </button>
-          </div>
+        {article.summary && (
+          <p className="text-sm opacity-90 mb-4">
+            {article.summary.length > 150 ? `${article.summary.substring(0, 150)}...` : article.summary}
+          </p>
+        )}
+        <div className="mt-auto">
+          <ArticleActions
+            article={article}
+            variant="light"
+            size="lg"
+            onLike={(id) => console.log('Liked article:', id)}
+            onDislike={(id) => console.log('Disliked article:', id)}
+          />
         </div>
       </div>
     </Link>

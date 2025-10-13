@@ -7,6 +7,7 @@ import React from "react";
 import Link from "next/link";
 import { Article } from "@/types"; // Adjust import path as needed
 import { ThumbsDown, ThumbsUp } from "lucide-react";
+import ArticleActions from "./ArticleActions";
 
 interface FeaturedArticleTileProps {
   article: Article;
@@ -19,13 +20,17 @@ const FeaturedArticleTile: React.FC<FeaturedArticleTileProps> = ({ article }) =>
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${article.image_url})`,
       }
     : {
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Fallback gradient
+        background: 'linear-gradient(45deg, #0d1b2a 0%, #2a3a5c 100%)', // Fallback gradient
       };
 
+  const handleTileClick = () => {
+    window.location.href = `/article/${article.id}`;
+  };
+
   return (
-    <Link
-      href={`/article/${article.id}`}
-      className="block w-full h-96 rounded-lg bg-cover bg-center text-white p-8 flex flex-col justify-end relative overflow-hidden group"
+    <div
+      className="w-full h-96 rounded-lg bg-cover bg-center text-white p-8 flex flex-col justify-end relative overflow-hidden group cursor-pointer"
+      onClick={handleTileClick}
     >
       <div
         className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
@@ -43,21 +48,17 @@ const FeaturedArticleTile: React.FC<FeaturedArticleTileProps> = ({ article }) =>
           </p>
         )}
         
-        <div className="flex justify-between items-center">
-          <p className="text-sm font-semibold opacity-80">
-            Source: {article.source}
-          </p>
-          <div className="flex space-x-3">
-            <button className="text-gray-300 hover:text-[#49E8C6]">
-              <ThumbsUp />
-            </button>
-            <button className="text-gray-300 hover:text-red-500">
-              <ThumbsDown />
-            </button>
-          </div>
+         <div className="mt-auto">
+          <ArticleActions
+            article={article}
+            variant="overlay"
+            size="lg"
+            onLike={(id) => console.log('Liked article:', id)}
+            onDislike={(id) => console.log('Disliked article:', id)}
+          />
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 

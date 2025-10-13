@@ -14,7 +14,7 @@ interface AllTilesProps {
   showFeatured?: boolean;
 }
 
-const AllTiles: React.FC<AllTilesProps> = ({ articles, onLoadMore, hasMore, loading, showFeatured }) => {
+const AllTiles: React.FC<AllTilesProps> = ({ articles }) => {
   const createLayoutPattern = (articles: Article[]) => {
     const layout = [];
     let index = 0;

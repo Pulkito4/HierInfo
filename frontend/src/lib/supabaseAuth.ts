@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import type { AuthError, User } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -8,29 +7,67 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Helper function to check if user profile exists
 const checkUserProfile = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-  
-  return { profile: data, error };
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) {
+      // Handle specific error cases first
+      if (error.code === 'PGRST116') {
+        // No rows returned - user profile doesn't exist
+        return { profile: null, error: null };
+      }
+      
+      if (error.message?.includes('relation "public.profiles" does not exist')) {
+        return { 
+          profile: null, 
+          error: new Error('Profiles table missing. Please create it in your Supabase database.') 
+        };
+      }
+      
+      return { profile: null, error };
+    }
+    
+    return { profile: data, error: null };
+    
+  } catch (err) {
+    return { profile: null, error: err as Error };
+  }
 };
 
 // Helper function to create user profile
 const createUserProfile = async (userId: string, username: string) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .insert({
-      id: userId,
-      username,
-      preferences: null, // Initialize preferences as null
-      created_at: new Date().toISOString()
-    })
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        username,
+        preferences: null, // Initialize preferences as null
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
 
-  return { profile: data, error };
+    if (error) {
+      if (error.message?.includes('relation "public.profiles" does not exist')) {
+        return { 
+          profile: null, 
+          error: new Error('Profiles table missing. Please create it in your Supabase database.') 
+        };
+      }
+      
+      return { profile: null, error };
+    }
+    
+    return { profile: data, error: null };
+    
+  } catch (err) {
+    return { profile: null, error: err as Error };
+  }
 };export const signInWithEmail = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   
@@ -46,33 +83,45 @@ const createUserProfile = async (userId: string, username: string) => {
 };
 
 export const signUpWithEmail = async (email: string, password: string, username: string) => {
-  const { data, error } = await supabase.auth.signUp({ 
-    email, 
-    password,
-    options: {
-      data: {
-        username: username
+  try {
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: {
+          username: username
+        },
+        emailRedirectTo: `${window.location.origin}/auth/callback`
       }
+    });
+    
+    if (error) {
+      return { user: null, error, isNewUser: false };
     }
-  });
-  
-  if (error || !data.user) {
-    return { user: data.user, error, isNewUser: false };
-  }
 
-  // Create profile for new user
-  const { profile, error: profileError } = await createUserProfile(data.user.id, username);
-  
-  if (profileError) {
-    console.error('Error creating user profile:', profileError);
-    // Don't fail the signup if profile creation fails, but log it
-    // The profile can be created later or during the categories selection
-  }
-  
-  return { user: data.user, error, isNewUser: true };
-};
+    if (!data.user) {
+      return { user: null, error: new Error('No user returned'), isNewUser: false };
+    }
 
-export const signInWithGoogle = async () => {
+    // For email confirmation flow, don't create profile immediately
+    // It will be created in the auth callback after email confirmation
+    if (!data.session) {
+      return { user: data.user, error: null, isNewUser: true };
+    }
+
+    // If immediate session (email confirmation disabled), create profile now
+    const { profile, error: profileError } = await createUserProfile(data.user.id, username);
+    
+    if (profileError) {
+      // Profile creation failed but signup succeeded - profile can be created later
+      return { user: data.user, error: null, isNewUser: true };
+    }
+
+    return { user: data.user, error: null, isNewUser: true };
+  } catch (err) {
+    return { user: null, error: err as Error, isNewUser: false };
+  }
+};export const signInWithGoogle = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { 
@@ -83,23 +132,38 @@ export const signInWithGoogle = async () => {
 };
 
 export const handleAuthCallback = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  
-  if (error || !user) {
-    return { user: null, error, isNewUser: false };
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      return { user: null, error, isNewUser: false };
+    }
+
+    if (!user) {
+      return { user: null, error: new Error('No user found'), isNewUser: false };
+    }
+
+    // Check if profile exists
+    const { profile, error: profileCheckError } = await checkUserProfile(user.id);
+    
+    const isNewUser = !profile;
+
+    // If new user and email is confirmed, create profile
+    if (isNewUser && user.email_confirmed_at) {
+      // Extract username from email as fallback
+      const username = user.email?.split('@')[0] || 'user';
+      
+      const { profile: newProfile, error: profileError } = await createUserProfile(user.id, username);
+      
+      if (profileError) {
+        // Continue anyway - profile can be created later
+      }
+    }
+
+    return { user, error: null, isNewUser };
+  } catch (err) {
+    return { user: null, error: err as Error, isNewUser: false };
   }
-
-  // Check if profile exists
-  const { profile } = await checkUserProfile(user.id);
-  const isNewUser = !profile;
-
-  // If new user, create profile
-  if (isNewUser) {
-    const username = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
-    await createUserProfile(user.id, username);
-  }
-
-  return { user, error: null, isNewUser };
 };
 
 export const signOut = async () => {
@@ -124,17 +188,38 @@ export const getCategories = async () => {
 
 // ...existing code...
 
-// Function to update user preferences
-export const updateUserPreferences = async (userId: string, categoryId: string) => {
+// Function to update user preferences (single category - for backward compatibility)
+// Function to get user preferences
+export const getUserPreferences = async (userId: string) => {
   try {
-    console.log('Updating preferences for user:', userId, 'with category:', categoryId);
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('preferences')
+      .eq('id', userId)
+      .single();
     
+    if (error) {
+      return { preferences: null, error };
+    }
+    
+    return { preferences: profile?.preferences, error: null };
+  } catch (err) {
+    return { preferences: null, error: err };
+  }
+};
+
+export const updateUserPreferences = async (userId: string, categoryId: string) => {
+  return updateUserMultiplePreferences(userId, [categoryId]);
+};
+
+// Function to update user preferences (multiple categories)
+export const updateUserMultiplePreferences = async (userId: string, categoryIds: string[]) => {
+  try {
     // First, check if the profile exists
     const { profile: existingProfile } = await checkUserProfile(userId);
     
     if (!existingProfile) {
       // If profile doesn't exist, create it first
-      console.log('Profile not found, creating one...');
       const { data: user } = await supabase.auth.getUser();
       const username = user.user?.user_metadata?.username || 
                       user.user?.user_metadata?.full_name || 
@@ -143,43 +228,35 @@ export const updateUserPreferences = async (userId: string, categoryId: string) 
       
       const { profile: newProfile, error: createError } = await createUserProfile(userId, username);
       if (createError) {
-        console.error('Error creating profile:', createError);
         return { profile: null, error: createError };
       }
     }
     
+    // Store as JSON array in the preferences field
+    const preferencesData = {
+      categoryIds: categoryIds,
+      updatedAt: new Date().toISOString()
+    };
+    
     // Now update the preferences
     const { data, error } = await supabase
       .from('profiles')
-      .update({ preferences: categoryId })
+      .update({ preferences: preferencesData })
       .eq('id', userId)
       .select()
       .single();
     
     if (error) {
-      console.error('Supabase error details (raw):', error);
-      console.error('Supabase error details (structured):', {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
-      });
-      console.error('Supabase error stringified:', JSON.stringify(error, null, 2));
-      
       // If the error is about missing column, try to handle it gracefully
       if (error.message?.includes('column "preferences" does not exist')) {
-        console.warn('Preferences column does not exist in profiles table. Please add it to your database schema.');
         return { profile: null, error: new Error('Database schema needs to be updated. Please add a "preferences" column to the profiles table.') };
       } else if (error.message?.includes('relation "public.profiles" does not exist')) {
-        console.error('Profiles table does not exist. Please create it using the SQL in DATABASE_SETUP.md');
         return { profile: null, error: new Error('Database schema missing. Please create the profiles table using the SQL in DATABASE_SETUP.md') };
       }
     }
     
-    console.log('Update result:', { data, error });
     return { profile: data, error };
   } catch (err) {
-    console.error('Unexpected error in updateUserPreferences:', err);
     return { profile: null, error: err };
   }
 };

@@ -1,7 +1,6 @@
 import { LoginForm } from "@/components/landingpage/LoginForm";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 
 export default async function Page() {

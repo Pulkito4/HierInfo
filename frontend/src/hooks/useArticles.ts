@@ -93,14 +93,14 @@ export function useArticles(options: UseArticlesOptions = {}): UseArticlesReturn
 
   // Initial fetch
   useEffect(() => {
-    if (enabled) {
+    if (enabled && loading === 'idle') {
       fetchArticles(true);
     }
   }, [enabled, fetchOptions.categoryId, fetchOptions.onlyTrending, fetchOptions.onlyCritical]);
 
   // Fetch more when page changes
   useEffect(() => {
-    if (page > 0) {
+    if (page > 0 && loading !== 'loading') {
       fetchArticles(false);
     }
   }, [page]);
@@ -174,7 +174,11 @@ export function useUserFeed(userId: string | null, options: Omit<UseArticlesOpti
       setTotalCount(response.count || 0);
       setLoading('success');
     } catch (err) {
-      console.error('Error fetching user feed:', err);
+      console.error('Error fetching user feed:', {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+        error: err
+      });
       setError(err as Error);
       setLoading('error');
     }
@@ -194,14 +198,14 @@ export function useUserFeed(userId: string | null, options: Omit<UseArticlesOpti
 
   // Initial fetch
   useEffect(() => {
-    if (userId && options.enabled !== false) {
+    if (userId && options.enabled !== false && loading === 'idle') {
       fetchUserFeed(true);
     }
   }, [userId, restOptions.categoryId, restOptions.onlyTrending, restOptions.onlyCritical]);
 
   // Fetch more when page changes
   useEffect(() => {
-    if (page > 0 && userId) {
+    if (page > 0 && userId && loading !== 'loading') {
       fetchUserFeed(false);
     }
   }, [page, userId]);

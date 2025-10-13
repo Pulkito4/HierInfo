@@ -12,30 +12,18 @@ import React, { useState } from 'react'
 import Image from 'next/image';
 import AllTiles from '@/components/news-tiles/AllTiles';
 import { useArticles, useUserFeed } from '@/hooks/useArticles';
-import { useCategories } from '@/hooks/useCategories';
-import { getCurrentUser } from '@/lib/supabaseAuth';
-import { useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/lib/authContext';
 import LoadingSkeleton from '@/components/ui/loading-skeleton';
 import ErrorMessage from '@/components/ui/error-message';
 import { LoadingState } from '@/types';
-
+import SettingsPanel from '@/components/settings/SettingsPanel';
 const Homepage = () => {
   const [activeTab, setActiveTab] = useState<'personal' | 'explore' | 'settings'>('personal');
   const [personalSubTab, setPersonalSubTab] = useState<'feed' | 'trending'>('feed');
-  const [user, setUser] = useState<any>(null);
-
-  // Get current user
-  useEffect(() => {
-    const getUser = async () => {
-      const { user } = await getCurrentUser();
-      setUser(user);
-    };
-    getUser();
-  }, []);
+  const { user } = useAuth();
 
   // Hooks for different tabs
-  const personalFeed = useUserFeed(user?.id, {
+  const personalFeed = useUserFeed(user?.id || null, {
     enabled: activeTab === 'personal' && personalSubTab === 'feed' && !!user?.id,
     limit: 15
   });
@@ -54,8 +42,6 @@ const Homepage = () => {
     sortBy: 'trending_score',
     sortOrder: 'desc'
   });
-
-  const { categories } = useCategories();
 
   const PersonalTabNavigation = () => (
     <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mb-6">
@@ -92,14 +78,7 @@ const Homepage = () => {
     </div>
   );
 
-  const CriticalNewsIndicator = () => (
-    <div className="flex items-center gap-2 mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-      <span className="text-sm font-medium text-red-800 dark:text-red-200">
-        Breaking news and critical updates
-      </span>
-    </div>
-  );
+
 
  const renderContent = () => {
   const isLoading = (state: LoadingState) => state === 'loading' || state === 'idle';
@@ -107,7 +86,7 @@ const Homepage = () => {
   switch (activeTab) {
     case 'personal':
       return (
-        <div className="space-y-4">
+        <div className="space-y-1">
           <PersonalTabNavigation />
           
           {personalSubTab === 'feed' ? (
@@ -116,22 +95,48 @@ const Homepage = () => {
                 <LoadingSkeleton type="articles" count={6} />
               ) : personalFeed.error ? (
                 <ErrorMessage error={personalFeed.error} onRetry={personalFeed.refetch} />
+              ) : personalFeed.articles.length === 0 && personalFeed.loading === 'success' ? (
+                <div className="flex flex-col items-center justify-center py-12 px-4">
+                  <div className="text-center space-y-4">
+                    <div className="text-6xl mb-4">📰</div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      No articles to show
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                      We couldn&apos;t find any articles matching your selected categories. Try adding more categories in your settings or check back later for new content.
+                    </p>
+                    <div className="space-x-2">
+                      <button
+                        onClick={() => setActiveTab('settings')}
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        Update Categories
+                      </button>
+                      <button
+                        onClick={() => personalFeed.refetch()}
+                        className="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h2 className="text-2xl font-bold">Your Personalized Feed</h2>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      <h2 className="text-2xl font-bold">Top Stories for You</h2>
+                      {/* <p className="text-gray-600 dark:text-gray-400 text-sm">
                         Based on your preferences
-                      </p>
+                      </p> */}
                     </div>
-                    <button 
+                    {/* <button 
                       onClick={personalFeed.refresh}
                       className="text-sm text-blue-600 hover:underline"
                       disabled={personalFeed.loading === 'loading'}
                     >
                       {personalFeed.loading === 'loading' ? 'Refreshing...' : 'Refresh'}
-                    </button>
+                    </button> */}
                   </div>
                   <AllTiles 
                     articles={personalFeed.articles} 
@@ -154,22 +159,18 @@ const Homepage = () => {
                   <div className="flex justify-between items-center">
                     <div>
                       <h2 className="text-2xl font-bold flex items-center gap-2">
-                        Breaking & Trending News
-                        <Badge variant="destructive" className="animate-pulse">
-                          LIVE
-                        </Badge>
+                      Critical updates and trending stories
+                        
                       </h2>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        Critical updates and trending stories
-                      </p>
+                     
                     </div>
-                    <button 
+                    {/* <button 
                       onClick={trendingNews.refresh}
                       className="text-sm text-red-600 hover:underline"
                       disabled={trendingNews.loading === 'loading'}
                     >
                       {trendingNews.loading === 'loading' ? 'Refreshing...' : 'Refresh'}
-                    </button>
+                    </button> */}
                   </div>
                   <AllTiles 
                     articles={trendingNews.articles} 
@@ -207,7 +208,7 @@ const Homepage = () => {
       );
 
     case 'settings':
-      return <div>Settings Panel Coming Soon...</div>; // Placeholder for now
+      return <div><SettingsPanel /></div>; // Placeholder for now
   }
 };
 
@@ -260,6 +261,7 @@ const Homepage = () => {
           <div className='flex items-center font-sans font-semibold gap-2'>
             <Settings className=' text-[#E0E7FF]'/>
             Settings
+            
           </div>
         </button>
       </div>
