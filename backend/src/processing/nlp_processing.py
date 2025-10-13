@@ -1,8 +1,6 @@
-# src/processing/nlp_processing.py
-
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import List
 
 # Import NLP libraries
 from transformers import pipeline, logging as hf_logging
@@ -15,12 +13,12 @@ import nltk
 from nltk.stem import WordNetLemmatizer
 from tqdm import tqdm
 
+# Initialize logger (assuming you have a central logging config)
+from utils import get_logger
+
 # Suppress verbose warnings from Hugging Face
 hf_logging.set_verbosity_error()
-
-# Initialize logger (assuming you have a central logging config)
-from logging import getLogger
-logger = getLogger(__name__)
+logger = get_logger(__name__)
 
 # --- MODEL INITIALIZATION (Load models only once) ---
 # It's crucial to load these models once and reuse them to save memory and time.

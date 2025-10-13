@@ -1,119 +1,139 @@
-import os
 import time
 import requests
-from typing import List, Dict, Any
+from typing import List, Dict
+from utils import get_logger
+from src import config as cfg
+from src import constants as C
 
-# Assuming a central logging config in main.py, or you can use your own.
-from logging import getLogger
-from src.scrapers.content_scraper import parse_articles_batch
+logger = get_logger(__name__)
 
-logger = getLogger(__name__)
+# Create a session with retries and sensible defaults to improve resilience
+_session = requests.Session()
+try:
+    from requests.adapters import HTTPAdapter
+    from urllib3.util.retry import Retry
 
-# fetches article metadata
-def _fetch_raw_articles_from_gnews(
-    api_key: str,
-    max_articles: int = 100,
-    category: str = "world",
-    country: str = "in",
-    language: str = "en",
-    retry_attempts: int = 3,
-    timeout: int = 30
-) -> List[Dict]:
+    retries = Retry(
+        total=3,
+        backoff_factor=0.5,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=("GET",),
+        raise_on_status=False,
+    )
+    _session.mount("https://", HTTPAdapter(max_retries=retries))
+    _session.mount("http://", HTTPAdapter(max_retries=retries))
+except Exception:
+    # If Retry isn't available, continue with basic Session
+    pass
+def _fetch_gnews_page(api_key: str, category: str, country: str, page: int) -> List[Dict]:
     """
-    (Internal) Fetches raw article metadata from GNews API with production-grade error handling.
-    This is your original, robust function, now marked as internal to the client.
+    (Internal) Fetches a single page of article metadata from GNews API
+    with production-grade error handling.
     """
-    logger.info(f"🚀 Starting GNews API fetch - Target: {max_articles} articles")
-    logger.debug(f"Parameters: category={category}, country={country}, lang={language}")
-
-    url = "https://gnews.io/api/v4/top-headlines"
     params = {
         'category': category,
         'country': country,
-        'lang': language,
-        'max': min(max_articles, 100),
+        'lang': 'en',
+        'max': C.MAX_ARTICLES_PER_PAGE,
+        'page': page,
         'apikey': api_key
     }
 
-    last_exception = None
-    for attempt in range(retry_attempts):
-        try:
-            response = requests.get(url, params=params, timeout=timeout)
-            response.raise_for_status()
-            data = response.json()
-            articles = data.get('articles', [])
-            logger.info(f"✅ Successfully fetched metadata for {len(articles)} articles from GNews API")
-            return articles
-        except requests.exceptions.RequestException as e:
-            logger.warning(f"🌐 Network error on attempt {attempt + 1}: {e}")
-            last_exception = e
-            time.sleep(2 ** attempt) # Exponential backoff
-
-    logger.error(f"❌ Failed to fetch from GNews after {retry_attempts} attempts. Last error: {last_exception}")
+    try:
+        response = _session.get(cfg.GNEWS_URL, params=params, timeout=20)
+        response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
+        data = response.json()
+        articles = data.get('articles', [])
+        logger.debug(f"Successfully fetched {len(articles)} articles for {country.upper()}-{category} (Page {page})")
+        return articles
+    except requests.exceptions.HTTPError as http_err:
+        if response.status_code in [429, 403]:
+            logger.info(f"Rate limit or page limit reached for {country.upper()}-{category}. Stopping for this category.")
+        else:
+            logger.error(f"HTTP error fetching page: {http_err}")
+    except requests.exceptions.RequestException as req_err:
+        logger.error(f"Network error fetching page: {req_err}")
+    
     return []
 
-def fetch_and_process_gnews_articles(
-    max_articles: int = 100,
-    category: str = "world",
-    country: str = "in"
-) -> List[Dict[str, Any]]:
+def fetch_gnews_metadata() -> List[Dict]:
     """
-    The main public function for this client. It fetches, scrapes, and formats articles.
+    Fetches article metadata from GNews by distributing the API quota
+    evenly across specified countries to ensure diverse news coverage.
+    The run mode ('prod' or 'test') is controlled by the PIPELINE_MODE in config.
 
-    This function orchestrates the entire process:
-    1. Fetches raw article metadata using your robust, retry-enabled function.
-    2. Batch scrapes the content from the article URLs.
-    3. Merges the metadata and scraped content into the final, standardized format.
+    Returns:
+        List[Dict]: A list of dictionaries, each containing article metadata.
     """
-    logger.info(f"🎬 Starting full GNews processing for category '{category}'...")
-    
-    api_key = os.getenv("GNEWS_API_KEY")
+    api_key = cfg.GNEWS_API_KEY
     if not api_key:
-        logger.error("❌ CRITICAL: GNEWS_API_KEY not found in environment variables.")
+        logger.critical("❌ GNEWS_API_KEY not found. Cannot proceed.")
         raise ValueError("GNEWS_API_KEY is not set.")
 
-    # 1. Fetch raw metadata
-    raw_gnews_articles = _fetch_raw_articles_from_gnews(
-        api_key=api_key,
-        max_articles=max_articles,
-        category=category,
-        country=country
-    )
+    # Get the pipeline mode from the central config file
+    mode = cfg.GNEWS_FETCH_MODE.lower() # 'prod' or 'test'
 
-    if not raw_gnews_articles:
-        logger.warning("No articles returned from GNews API. Ending process.")
-        return []
+    if mode == 'prod':
+        logger.info("🚀 Starting GNews fetch in PRODUCTION mode.")
+        total_requests_limit = 100
+        countries_to_fetch = C.GNEWS_COUNTRIES
+        categories_to_fetch = C.GNEWS_CATEGORIES
+        
+        if not countries_to_fetch:
+            logger.error("No countries defined in constants.py. Halting.")
+            return []
 
-    # 2. Scrape content in a batch
-    urls_to_scrape = [article['url'] for article in raw_gnews_articles]
-    scraped_content_list = parse_articles_batch(urls_to_scrape, max_workers=5)
-    scraped_content_map = {content['url']: content for content in scraped_content_list}
+        # ** THE CORRECTED LOGIC: Allocate a budget for each country **
+        num_countries = len(countries_to_fetch)
+        requests_per_country = total_requests_limit // num_countries
+        logger.info(f"📊 Distributing {total_requests_limit} requests across {num_countries} countries (~{requests_per_country} each).")
+    else:
+        logger.info("🧪 Starting GNews fetch in TEST mode.")
+        requests_per_country = 2
+        countries_to_fetch = [C.GNEWS_COUNTRIES[0]] if C.GNEWS_COUNTRIES else []
+        categories_to_fetch = [C.GNEWS_CATEGORIES[0]] if C.GNEWS_CATEGORIES else []
 
-    # 3. Merge metadata with scraped content
-    processed_articles = []
-    for gnews_article in raw_gnews_articles:
-        url = gnews_article['url']
-        if url in scraped_content_map:
-            parsed_content = scraped_content_map[url]
-            article_data = {
-                'url': url,
-                'title': parsed_content.get('title') or gnews_article.get('title', ''),
-                'source_name': gnews_article.get('source', {}).get('name', ''),
-                'published_at': gnews_article.get('publishedAt'),
-                'image_url': parsed_content.get('image_url') or gnews_article.get('image', ''),
-                'raw_content': parsed_content.get('text', ''),
-                'summary': '',
-                'embedding': None,
-                'categories': [],
-                'keywords': [],
-                'trending_score': 0,
-                'is_critical': False,
-                'source_type': 'gnews_api',
-                'parsing_method': parsed_content.get('method', 'none')
-            }
-            processed_articles.append(article_data)
-        else:
-            logger.warning(f"⚠️ Skipping article, failed to scrape content for: {url}")
+    all_articles = []
+    total_requests_made = 0
 
-    logger.info(f"✅ GNews client finished. Successfully processed {len(processed_articles)} articles.")
-    return processed_articles
+    # Loop through each country and spend its allocated budget
+    for country in countries_to_fetch:
+        requests_for_this_country = 0
+        logger.info(f"--- Fetching for country: {country.upper()} (Budget: {requests_per_country} requests) ---")
+        
+        for category in categories_to_fetch:
+            if requests_for_this_country >= requests_per_country:
+                break
+            for page_num in range(1, C.MAX_PAGES_PER_QUERY + 1):
+                if requests_for_this_country >= requests_per_country:
+                    logger.info(f"Budget for {country.upper()} exhausted. Moving to next country.")
+                    break
+
+                logger.info(f"Fetching: {country.upper()}-{category}, Page {page_num} (Request #{requests_for_this_country + 1} for this country)")
+                
+                page_articles = _fetch_gnews_page(api_key, category, country, page_num)
+                
+                requests_for_this_country += 1
+                total_requests_made += 1
+                
+                if not page_articles:
+                    break # No more articles for this category, move to the next one
+                
+                all_articles.extend(page_articles)
+                time.sleep(1)
+    
+    # --- Final Formatting Step ---
+    logger.info(f"Formatting {len(all_articles)} raw articles into a clean metadata list...")
+    formatted_metadata = []
+    for article in all_articles:
+        formatted_metadata.append({
+            'url': article['url'],
+            'title': article.get('title', ''),
+            'source_name': article.get('source', {}).get('name', ''),
+            'published_at': article.get('publishedAt'),
+            'image_url': article.get('image', ''),
+            'source_type': 'gnews_api'
+        })
+    
+    logger.info(f"✅ GNews client finished. Returning {len(formatted_metadata)} metadata entries after making {total_requests_made} total requests.")
+    return formatted_metadata

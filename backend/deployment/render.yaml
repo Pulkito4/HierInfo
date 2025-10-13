@@ -8,8 +8,8 @@ services:
     schedule: "0 8 * * *"  # Run daily at 8 AM UTC
     buildCommand: |
       pip install -r deployment/requirements.txt
-      playwright install chromium
-    startCommand: python main_functional.py --articles 200
+      python -m playwright install chromium
+    startCommand: python main.py
     
     # Environment variables
     envVars:
@@ -21,8 +21,7 @@ services:
     # Resource allocation
     plan: starter  # Can upgrade to standard for more resources
     
-    # Health checks
-    healthCheckPath: /health
+  # Health checks are not applicable to cron services on Render
     
     # Build settings
     buildFilter:

@@ -71,9 +71,11 @@ def get_logger(name: str = 'news_pipeline') -> logging.Logger:
         name (str): Logger name
         
     Returns:
-        logging.Logger: Logger instance
+        logging.Logger: Child logger under the 'news_pipeline' parent so all handlers apply uniformly
     """
-    return logging.getLogger(name)
+    # Ensure all module loggers propagate to the single configured parent
+    parent = logging.getLogger('news_pipeline')
+    return parent.getChild(name)
 
 # Default logger setup for imports
 logger = setup_logging()

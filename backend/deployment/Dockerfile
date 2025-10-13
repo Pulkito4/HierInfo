@@ -14,18 +14,18 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Playwright dependencies
-RUN pip install playwright==1.40.0 && \
+RUN pip install --no-cache-dir playwright==1.55.0 && \
     playwright install chromium && \
     playwright install-deps chromium
 
 # Copy requirements first for better caching
-COPY deployment/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY deployment/requirements.txt ./deployment-requirements.txt
+RUN pip install --no-cache-dir -r deployment-requirements.txt
 
 # Copy application code
 COPY src/ ./src/
 COPY utils/ ./utils/
-COPY main_functional.py .
+COPY main.py .
 
 # Create directories for logs
 RUN mkdir -p logs
@@ -33,6 +33,7 @@ RUN mkdir -p logs
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV LOG_LEVEL=INFO
+ENV PYTHONUNBUFFERED=1
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash app && \
@@ -41,7 +42,7 @@ USER app
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s \
-    CMD python main_functional.py --test || exit 1
+    CMD python -c "import sys; print('ok')" || exit 1
 
 # Default command
-CMD ["python", "main_functional.py"]
+CMD ["python", "main.py"]

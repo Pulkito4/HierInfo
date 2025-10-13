@@ -12,7 +12,7 @@ from typing import Dict, Optional, List
 import concurrent.futures
 from newspaper import Article
 from playwright.sync_api import sync_playwright
-from utils.logging_config import get_logger
+from utils import get_logger
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -50,28 +50,28 @@ def parse_with_newspaper3k(url: str, timeout: int = 15) -> Optional[Dict]:
         article.config.number_threads = 1  # Single thread for stability
         
         # Download and parse the article
-        logger.debug(f"🌐 Downloading article content...")
+        logger.debug("🌐 Downloading article content...")
         article.download()
         
-        logger.debug(f"🔍 Parsing article structure...")
+        logger.debug("🔍 Parsing article structure...")
         article.parse()
         
         # Extract content in standardized format for DataFrame compatibility
         content = {
             'url': url,
             'title': article.title.strip() if article.title else '',
-            'text': article.text.strip() if article.text else '',
+            'raw_content': article.text.strip() if article.text else '',
             'authors': article.authors or [],
             'published_at': article.publish_date,
             'image_url': article.top_image or '',
             'source_name': '',  # Will be populated from GNews API data
-            'method': 'newspaper3k',
+            'parsing_method': 'newspaper3k',
             'domain': urlparse(url).netloc
         }
         
         # Validate content quality
-        text_length = len(content['text'])
-        if content['text'] and text_length > 100:
+        text_length = len(content['raw_content'])
+        if content['raw_content'] and text_length > 100:
             logger.info(f"✅ newspaper3k successful - {text_length} chars extracted from {content['domain']}")
             logger.debug(f"📝 Title: {content['title'][:100]}...")
             return content
@@ -169,7 +169,7 @@ def parse_with_playwright(url: str, timeout: int = 30) -> Optional[Dict]:
             # Try to wait for common article selectors
             try:
                 page.wait_for_selector('article, .article, .post-content, .entry-content', timeout=5000)
-            except:
+            except Exception:
                 logger.debug("⚠️  No common article selectors found, proceeding with full page")
             
             # Get page content
@@ -189,18 +189,18 @@ def parse_with_playwright(url: str, timeout: int = 30) -> Optional[Dict]:
             content = {
                 'url': url,
                 'title': article.title.strip() if article.title else '',
-                'text': article.text.strip() if article.text else '',
+                'raw_content': article.text.strip() if article.text else '',
                 'authors': article.authors or [],
                 'published_at': article.publish_date,
                 'image_url': article.top_image or '',
                 'source_name': '',  # Will be populated from GNews API data
-                'method': 'playwright',
+                'parsing_method': 'playwright',
                 'domain': urlparse(url).netloc
             }
             
             # Validate content quality
-            text_length = len(content['text'])
-            if content['text'] and text_length > 100:
+            text_length = len(content['raw_content'])
+            if content['raw_content'] and text_length > 100:
                 logger.info(f"✅ Playwright successful - {text_length} chars extracted from {content['domain']}")
                 logger.debug(f"📝 Title: {content['title'][:100]}...")
                 return content
@@ -246,15 +246,15 @@ def parse_article_with_two_tier_fallback(url: str) -> Optional[Dict]:
         try:
             # Attempt parsing with current method
             content = parser_func(url)
-            
-            if content and content.get('text') and len(content['text']) > 100:
-                logger.info(f"🎉 SUCCESS! {method_name} extracted {len(content['text'])} characters from {domain}")
-                
+
+            if content and content.get('raw_content') and len(content['raw_content']) > 100:
+                logger.info(f"🎉 SUCCESS! {method_name} extracted {len(content['raw_content'])} characters from {domain}")
+
                 # Log success details for monitoring
-                logger.debug(f"📊 Success details:")
+                logger.debug("📊 Success details:")
                 logger.debug(f"   Method: {method_name}")
                 logger.debug(f"   Domain: {domain}")
-                logger.debug(f"   Content length: {len(content['text'])} chars")
+                logger.debug(f"   Content length: {len(content['raw_content'])} chars")
                 logger.debug(f"   Title: {content['title'][:100]}...")
                 
                 return content
@@ -263,7 +263,7 @@ def parse_article_with_two_tier_fallback(url: str) -> Optional[Dict]:
                 
         except Exception as e:
             logger.warning(f"💥 {method_name} encountered error for {domain}: {str(e)}")
-            logger.debug(f"🔄 Moving to next parsing method...")
+            logger.debug("🔄 Moving to next parsing method...")
         
         # Add delay between attempts to be respectful to servers
         if tier < len(parsing_methods):
@@ -274,7 +274,6 @@ def parse_article_with_two_tier_fallback(url: str) -> Optional[Dict]:
     # All parsing methods failed
     logger.error(f"💀 All parsing methods failed for {domain}")
     return None
-
 
 
 def parse_articles_batch(urls: List[str], max_workers: int = 5) -> List[Dict]:
@@ -326,112 +325,3 @@ def parse_articles_batch(urls: List[str], max_workers: int = 5) -> List[Dict]:
     logger.info(f"📊 Batch parsing completed: {success_count}/{total_count} articles successful ({success_rate:.1f}%)")
     
     return parsed_articles
-
-# def parse_articles_batch(urls: List[str], max_workers: int = 5) -> List[Dict]:
-#     """
-#     Parse multiple articles concurrently for better performance.
-    
-#     This function is designed for production use where you need to parse
-#     many articles efficiently. It uses ThreadPoolExecutor for concurrent processing.
-    
-#     Args:
-#         urls (List[str]): List of article URLs to parse
-#         max_workers (int): Maximum number of concurrent workers
-        
-#     Returns:
-#         List[Dict]: List of successfully parsed articles
-#     """
-    
-#     logger.info(f"🚀 Starting batch parsing of {len(urls)} articles with {max_workers} workers")
-    
-#     parsed_articles = []
-#     failed_count = 0
-    
-#     # Use ThreadPoolExecutor for concurrent parsing
-#     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-#         # Submit all parsing tasks
-#         future_to_url = {
-#             executor.submit(parse_article_with_two_tier_fallback, url): url 
-#             for url in urls
-#         }
-        
-#         # Process completed tasks
-#         for future in concurrent.futures.as_completed(future_to_url):
-#             url = future_to_url[future]
-            
-#             try:
-#                 result = future.result()
-#                 if result:
-#                     parsed_articles.append(result)
-#                     logger.debug(f"✅ Batch parse success: {urlparse(url).netloc}")
-#                 else:
-#                     failed_count += 1
-#                     logger.warning(f"❌ Batch parse failed: {urlparse(url).netloc}")
-                    
-#             except Exception as e:
-#                 failed_count += 1
-#                 logger.error(f"💥 Batch parse exception for {urlparse(url).netloc}: {str(e)}")
-    
-#     # Log batch results
-#     success_count = len(parsed_articles)
-#     total_count = len(urls)
-#     success_rate = (success_count / total_count) * 100 if total_count > 0 else 0
-    
-#     logger.info(f"📊 Batch parsing completed:")
-#     logger.info(f"   ✅ Successful: {success_count}/{total_count} ({success_rate:.1f}%)")
-#     logger.info(f"   ❌ Failed: {failed_count}")
-    
-#     return parsed_articles
-
-# def test_parsing_functionality():
-#     """
-#     Test function for development and deployment verification.
-    
-#     This function tests the parsing functionality with known URLs
-#     and is useful for verifying deployment health.
-#     """
-    
-#     logger.info("🧪 Starting parsing functionality test...")
-    
-#     # Test URLs (use reliable news sites)
-#     test_urls = [
-#         "https://www.bbc.com/news",
-#         "https://edition.cnn.com/",
-#         "https://www.reuters.com/"
-#     ]
-    
-#     success_count = 0
-    
-#     for i, url in enumerate(test_urls[:1], 1):  # Test only first URL to avoid rate limiting
-#         logger.info(f"🔗 Test {i}: Parsing {urlparse(url).netloc}")
-        
-#         try:
-#             result = parse_article_with_two_tier_fallback(url)
-            
-#             if result and result.get('text'):
-#                 success_count += 1
-#                 logger.info(f"✅ Test {i} passed: {len(result['text'])} chars extracted")
-#             else:
-#                 logger.warning(f"⚠️  Test {i} failed: No content extracted")
-                
-#         except Exception as e:
-#             logger.error(f"❌ Test {i} error: {str(e)}")
-    
-#     success_rate = (success_count / 1) * 100  # Only testing 1 URL
-#     logger.info(f"🏁 Parsing test completed: {success_count}/1 tests passed ({success_rate:.1f}%)")
-    
-#     return success_count > 0
-
-# if __name__ == "__main__":
-#     """
-#     Direct execution for testing and development.
-#     """
-#     print("🧪 Running Content Scraper Tests...")
-    
-#     # Run parsing functionality tests
-#     success = test_parsing_functionality()
-    
-#     if success:
-#         print("✅ Parsing tests passed! Content scraper is ready for production.")
-#     else:
-#         print("❌ Parsing tests failed. Check logs for details.")
