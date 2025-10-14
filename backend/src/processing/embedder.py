@@ -9,7 +9,9 @@ logger = get_logger(__name__)
 # --- MODEL INITIALIZATION ---
 # Load the model once when the module is imported to save time and memory.
 try:
-    logger.info(f"🤖 Loading embedding model '{cfg.EMBEDDING_MODEL_NAME}' into memory...")
+    logger.info(
+        f"🤖 Loading embedding model '{cfg.EMBEDDING_MODEL_NAME}' into memory..."
+    )
     # You can specify a cache directory to save the model locally
     # model = SentenceTransformer(cfg.EMBEDDING_MODEL_NAME, cache_folder='./model_cache')
     model = SentenceTransformer(cfg.EMBEDDING_MODEL_NAME)
@@ -18,6 +20,7 @@ except Exception as e:
     logger.critical(f"❌ Failed to load embedding model: {e}")
     # This is a critical failure, so we raise the exception to stop the pipeline.
     raise
+
 
 def generate_embeddings(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -34,8 +37,10 @@ def generate_embeddings(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     # Check if 'raw_content' column exists and is not empty
-    if 'raw_content' not in df.columns or df['raw_content'].isnull().all():
-        logger.error("❌ 'raw_content' column is missing or empty. Cannot generate embeddings.")
+    if "raw_content" not in df.columns or df["raw_content"].isnull().all():
+        logger.error(
+            "❌ 'raw_content' column is missing or empty. Cannot generate embeddings."
+        )
         # Return the original DataFrame without the embedding column
         return df
 
@@ -43,7 +48,7 @@ def generate_embeddings(df: pd.DataFrame) -> pd.DataFrame:
 
     try:
         # Get the list of texts to embed. Fill any missing content with an empty string.
-        texts_to_embed = df['raw_content'].fillna('').tolist()
+        texts_to_embed = df["raw_content"].fillna("").tolist()
 
         # The .encode() method is highly optimized to process a batch of texts at once.
         # It will automatically use the GPU if one is available and CUDA is set up.
@@ -51,11 +56,11 @@ def generate_embeddings(df: pd.DataFrame) -> pd.DataFrame:
 
         # Add the generated embeddings as a new column to the DataFrame.
         # The column will contain lists (or numpy arrays) of numbers.
-        df['embedding'] = list(embeddings)
+        df["embedding"] = list(embeddings)
 
         logger.info("✅ Embedding generation complete.")
         return df
-        
+
     except Exception as e:
         logger.error(f"❌ An error occurred during embedding generation: {e}")
         # In case of an error, return the original DataFrame to avoid partial processing

@@ -32,7 +32,8 @@ except Exception:
 _host_lock = threading.Lock()
 _last_call_ts: Dict[str, float] = {}
 _MIN_INTERVAL_SEC = 0.25  # base min gap between calls per host
-_JITTER_MAX_SEC = 0.25    # up to this much extra jitter
+_JITTER_MAX_SEC = 0.25  # up to this much extra jitter
+
 
 def _throttle(host: str) -> None:
     now = time.monotonic()
@@ -43,44 +44,53 @@ def _throttle(host: str) -> None:
             time.sleep(gap + random.uniform(0, _JITTER_MAX_SEC))
         _last_call_ts[host] = time.monotonic()
 
-def _fetch_gnews_page(api_key: str, category: str, country: str, page: int) -> Tuple[List[Dict], bool]:
+
+def _fetch_gnews_page(
+    api_key: str, category: str, country: str, page: int
+) -> Tuple[List[Dict], bool]:
     """
     (Internal) Fetches a single page of article metadata from GNews API
     with production-grade error handling.
     """
     params = {
-        'category': category,
-        'country': country,
-        'lang': 'en',
-        'max': C.MAX_ARTICLES_PER_PAGE,
-        'page': page,
-        'apikey': api_key
+        "category": category,
+        "country": country,
+        "lang": "en",
+        "max": C.MAX_ARTICLES_PER_PAGE,
+        "page": page,
+        "apikey": api_key,
     }
 
     success = True
     try:
         # Respect a minimal per-host interval with jitter
         from urllib.parse import urlparse
+
         host = urlparse(cfg.GNEWS_URL).netloc
         _throttle(host)
 
         response = _session.get(cfg.GNEWS_URL, params=params, timeout=20)
-        response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
+        response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
         data = response.json()
-        articles = data.get('articles', [])
-        logger.debug(f"Successfully fetched {len(articles)} articles for {country.upper()}-{category} (Page {page})")
+        articles = data.get("articles", [])
+        logger.debug(
+            f"Successfully fetched {len(articles)} articles for {country.upper()}-{category} (Page {page})"
+        )
         return articles, success
     except requests.exceptions.HTTPError as http_err:
         if response.status_code in [429, 403]:
-            logger.info(f"Rate limit or page limit reached for {country.upper()}-{category}. Stopping for this category.")
+            logger.info(
+                f"Rate limit or page limit reached for {country.upper()}-{category}. Stopping for this category."
+            )
         else:
             logger.error(f"HTTP error fetching page: {http_err}")
         success = False
     except requests.exceptions.RequestException as req_err:
         logger.error(f"Network error fetching page: {req_err}")
         success = False
-    
+
     return [], success
+
 
 def fetch_gnews_metadata() -> List[Dict]:
     """
@@ -97,14 +107,14 @@ def fetch_gnews_metadata() -> List[Dict]:
         raise ValueError("GNEWS_API_KEY is not set.")
 
     # Get the pipeline mode from the central config file
-    mode = cfg.GNEWS_FETCH_MODE.lower() # 'prod' or 'test'
+    mode = cfg.GNEWS_FETCH_MODE.lower()  # 'prod' or 'test'
 
-    if mode == 'prod':
+    if mode == "prod":
         logger.info("🚀 Starting GNews fetch in PRODUCTION mode.")
         total_requests_limit = 100
         countries_to_fetch = C.GNEWS_COUNTRIES
         categories_to_fetch = C.GNEWS_CATEGORIES
-        
+
         if not countries_to_fetch:
             logger.error("No countries defined in constants.py. Halting.")
             return []
@@ -112,7 +122,9 @@ def fetch_gnews_metadata() -> List[Dict]:
         # ** THE CORRECTED LOGIC: Allocate a budget for each country **
         num_countries = len(countries_to_fetch)
         requests_per_country = total_requests_limit // num_countries
-        logger.info(f"📊 Distributing {total_requests_limit} requests across {num_countries} countries (~{requests_per_country} each).")
+        logger.info(
+            f"📊 Distributing {total_requests_limit} requests across {num_countries} countries (~{requests_per_country} each)."
+        )
     else:
         logger.info("🧪 Starting GNews fetch in TEST mode.")
         requests_per_country = 2
@@ -126,7 +138,9 @@ def fetch_gnews_metadata() -> List[Dict]:
     import concurrent.futures
 
     for country in countries_to_fetch:
-        logger.info(f"--- Fetching for country: {country.upper()} (Budget: {requests_per_country} requests) ---")
+        logger.info(
+            f"--- Fetching for country: {country.upper()} (Budget: {requests_per_country} requests) ---"
+        )
 
         tasks: List[Tuple[str, str, int]] = []  # (category, country, page)
         remaining = requests_per_country
@@ -146,7 +160,11 @@ def fetch_gnews_metadata() -> List[Dict]:
         # Fetch pages concurrently with a conservative worker count
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             future_to_task = {
-                executor.submit(_fetch_gnews_page, api_key, category, country, page): (category, country, page)
+                executor.submit(_fetch_gnews_page, api_key, category, country, page): (
+                    category,
+                    country,
+                    page,
+                )
                 for (category, country, page) in tasks
             }
             batch_success = 0
@@ -162,26 +180,34 @@ def fetch_gnews_metadata() -> List[Dict]:
                         all_articles.extend(page_articles)
                 except Exception as e:
                     cat, ctry, pg = future_to_task[future]
-                    logger.error(f"❌ GNews task failed for {ctry.upper()}-{cat} page {pg}: {e}")
+                    logger.error(
+                        f"❌ GNews task failed for {ctry.upper()}-{cat} page {pg}: {e}"
+                    )
                     batch_fail += 1
 
         total = len(tasks)
         logger.info(
             f"📊 GNews batch for {country.upper()}: success {batch_success}/{total}, fail {batch_fail}/{total}"
         )
-    
+
     # --- Final Formatting Step ---
-    logger.info(f"Formatting {len(all_articles)} raw articles into a clean metadata list...")
+    logger.info(
+        f"Formatting {len(all_articles)} raw articles into a clean metadata list..."
+    )
     formatted_metadata = []
     for article in all_articles:
-        formatted_metadata.append({
-            'url': article['url'],
-            'title': article.get('title', ''),
-            'source_name': article.get('source', {}).get('name', ''),
-            'published_at': article.get('publishedAt'),
-            'image_url': article.get('image', ''),
-            'source_type': 'gnews_api'
-        })
-    
-    logger.info(f"✅ GNews client finished. Returning {len(formatted_metadata)} metadata entries after making {total_requests_made} total requests.")
+        formatted_metadata.append(
+            {
+                "url": article["url"],
+                "title": article.get("title", ""),
+                "source_name": article.get("source", {}).get("name", ""),
+                "published_at": article.get("publishedAt"),
+                "image_url": article.get("image", ""),
+                "source_type": "gnews_api",
+            }
+        )
+
+    logger.info(
+        f"✅ GNews client finished. Returning {len(formatted_metadata)} metadata entries after making {total_requests_made} total requests."
+    )
     return formatted_metadata

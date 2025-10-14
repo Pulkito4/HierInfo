@@ -10,6 +10,7 @@ import concurrent.futures
 
 logger = get_logger(__name__)
 
+
 def fetch_rss_metadata() -> List[Dict]:
     """
     Fetches article metadata from RSS feeds and filters them to include
@@ -20,7 +21,9 @@ def fetch_rss_metadata() -> List[Dict]:
         List[Dict]: A list of dictionaries for articles published yesterday.
     """
     if not C.RSS_FEEDS:
-        logger.warning("⚠️ RSS_FEEDS dictionary is empty in config.py. Skipping RSS fetch.")
+        logger.warning(
+            "⚠️ RSS_FEEDS dictionary is empty in config.py. Skipping RSS fetch."
+        )
         return []
 
     logger.info(f"🚀 Starting RSS feed fetch for {len(C.RSS_FEEDS)} categories.")
@@ -30,13 +33,15 @@ def fetch_rss_metadata() -> List[Dict]:
         # Set the timezone from the config file
         tz = ZoneInfo(cfg.PIPELINE_TIMEZONE)
     except Exception:
-        logger.error(f"Invalid timezone '{cfg.PIPELINE_TIMEZONE}' in config. Using UTC.")
+        logger.error(
+            f"Invalid timezone '{cfg.PIPELINE_TIMEZONE}' in config. Using UTC."
+        )
         tz = ZoneInfo("UTC")
-        
+
     today = datetime.now(tz).date()
     yesterday = today - timedelta(days=1)
     logger.info(f"Filtering RSS articles for date: {yesterday}")
-    
+
     all_articles_metadata: List[Dict] = []
 
     def _parse_datetime_from_entry(entry, feed, tz: ZoneInfo) -> Optional[datetime]:
@@ -104,8 +109,8 @@ def fetch_rss_metadata() -> List[Dict]:
         return None
 
     def _process_feed(category: str, source: Dict) -> List[Dict]:
-        source_name = source['name']
-        feed_url = source['url']
+        source_name = source["name"]
+        feed_url = source["url"]
         out: List[Dict] = []
         try:
             logger.debug(f"Fetching feed: {source_name} ({feed_url})")
@@ -113,19 +118,23 @@ def fetch_rss_metadata() -> List[Dict]:
             for entry in feed.entries:
                 published_dt_local = _parse_datetime_from_entry(entry, feed, tz)
                 if not published_dt_local:
-                    logger.warning(f"Skipping entry in '{source_name}', missing published/updated/created/dc:date.")
+                    logger.warning(
+                        f"Skipping entry in '{source_name}', missing published/updated/created/dc:date."
+                    )
                     continue
                 if published_dt_local.date() != yesterday:
                     continue
-                out.append({
-                    'url': entry.link,
-                    'title': entry.get('title', 'No Title'),
-                    'source_name': source_name,
-                    'published_at': published_dt_local.isoformat(),
-                    'image_url': None,
-                    'source_type': 'rss_feed',
-                    'initial_category': category
-                })
+                out.append(
+                    {
+                        "url": entry.link,
+                        "title": entry.get("title", "No Title"),
+                        "source_name": source_name,
+                        "published_at": published_dt_local.isoformat(),
+                        "image_url": None,
+                        "source_type": "rss_feed",
+                        "initial_category": category,
+                    }
+                )
         except Exception as e:
             logger.error(f"❌ Failed to process RSS feed '{source_name}': {e}")
         return out
@@ -141,6 +150,8 @@ def fetch_rss_metadata() -> List[Dict]:
                 all_articles_metadata.extend(fut.result() or [])
             except Exception as e:
                 logger.error(f"❌ RSS worker failure: {e}")
-            
-    logger.info(f"✅ RSS client finished. Returning {len(all_articles_metadata)} metadata entries from yesterday.")
+
+    logger.info(
+        f"✅ RSS client finished. Returning {len(all_articles_metadata)} metadata entries from yesterday."
+    )
     return all_articles_metadata

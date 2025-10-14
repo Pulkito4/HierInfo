@@ -12,7 +12,7 @@ from .processing import (
     set_critical_flag,
     generate_keywords,
     generate_categories,
-    apply_nlp_processing
+    apply_nlp_processing,
 )
 
 # Scrapers
@@ -26,10 +26,8 @@ __all__ = [
     # API Clients
     "fetch_gnews_metadata",
     "fetch_rss_metadata",
-    
     # Database
     "SupabaseManager",
-    
     # Processing
     "generate_embeddings",
     "cluster_and_deduplicate",
@@ -38,11 +36,9 @@ __all__ = [
     "generate_keywords",
     "generate_categories",
     "apply_nlp_processing",
-    
     # Scrapers
     "parse_articles_batch",
-    
     # Config modules
     "constants",
-    "config"
+    "config",
 ]

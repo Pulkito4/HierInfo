@@ -26,13 +26,13 @@ PIPELINE_TIMEZONE = os.getenv("PIPELINE_TIMEZONE", "Asia/Kolkata")
 # ======================================================================
 # The "VIP List" for known, high-quality sources. Lower number = higher priority.
 SOURCE_PRIORITY_MAP = {
-    'Reuters': 1,
-    'Associated Press': 2,
-    'BBC News': 3,
-    'The New York Times': 3,
-    'The Guardian': 4,
-    'TechCrunch': 10,
-    'The Verge': 10
+    "Reuters": 1,
+    "Associated Press": 2,
+    "BBC News": 3,
+    "The New York Times": 3,
+    "The Guardian": 4,
+    "TechCrunch": 10,
+    "The Verge": 10,
 }
 
 # Rule-based scoring for unknown sources. Lower score = higher priority.
@@ -50,11 +50,11 @@ SOURCE_SCORING_RULES = {
         "News": -5,
         # Low-value keywords (add points to lower rank)
         "Blog": 20,
-        "Express": 15
-    }
+        "Express": 15,
+    },
 }
 
 # Names of the ML models you are using
-EMBEDDING_MODEL_NAME = 'all-MiniLM-L6-v2'
-SUMMARIZER_MODEL_NAME = 'sshleifer/distilbart-cnn-12-6'
-CLASSIFIER_MODEL_NAME = 'valhalla/distilbart-mnli-12-1'
+EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+SUMMARIZER_MODEL_NAME = "sshleifer/distilbart-cnn-12-6"
+CLASSIFIER_MODEL_NAME = "valhalla/distilbart-mnli-12-1"
