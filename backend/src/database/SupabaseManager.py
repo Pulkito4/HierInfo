@@ -71,8 +71,8 @@ class SupabaseManager:
         logger.info(f"🚀 Starting data storage for {len(df)} articles.")
 
         # --- 1. Upsert Articles and get their IDs ---
-        article_cols = ['url', 'title', 'source_name', 'published_at', 'image_url', 
-                        'raw_content', 'summary', 'keywords', 'trending_score', 'is_critical']
+        article_cols = ['url', 'title', 'source', 'published_at', 'image_url', 
+                         'summary', 'keywords', 'trending_score', 'is_critical']
         # Use only available columns to avoid KeyErrors if schema changes upstream
         available_cols = [c for c in article_cols if c in df.columns]
         if len(available_cols) != len(article_cols):
