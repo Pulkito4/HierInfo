@@ -8,11 +8,13 @@ interface ArticleActionsProps {
   variant?: 'light' | 'dark' | 'overlay';
   size?: 'sm' | 'md' | 'lg';
   showSource?: boolean;
-  showReadMore?: boolean;
   showActions?: boolean;
-  className?: string;
+  showReadMore?: boolean;
   onLike?: (articleId: string) => void;
   onDislike?: (articleId: string) => void;
+  onReadMore?: (articleId: string) => void; // New prop for handling expansion
+  isExpanded?: boolean; // New prop to track expansion state
+  className?: string;
 }
 
 const ArticleActions: React.FC<ArticleActionsProps> = ({
@@ -20,11 +22,13 @@ const ArticleActions: React.FC<ArticleActionsProps> = ({
   variant = 'light',
   size = 'md',
   showSource = true,
-  showReadMore = true,
   showActions = true,
-  className = '',
+  showReadMore = true,
   onLike,
   onDislike,
+  onReadMore,
+  isExpanded = false,
+  className = '',
 }) => {
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -71,14 +75,14 @@ const ArticleActions: React.FC<ArticleActionsProps> = ({
     },
     dark: {
       source: 'text-gray-300',
-      readMore: 'text-white hover:underline',
+      readMore: 'text-blue-600 dark:text-blue-400 hover:underline',
       button: 'text-gray-300 hover:text-white',
       likeHover: 'hover:text-[#49E8C6]',
       dislikeHover: 'hover:text-red-400'
     },
     overlay: {
       source: 'text-white/80',
-      readMore: 'text-white hover:underline',
+      readMore: 'text-teal-400 dark:text-blue-400 hover:underline',
       button: 'text-gray-300 hover:text-white',
       likeHover: 'hover:text-teal-400',
       dislikeHover: 'hover:text-red-400'
@@ -94,7 +98,7 @@ const ArticleActions: React.FC<ArticleActionsProps> = ({
       <div className="flex items-center space-x-2">
         {showSource && (
           <span className={`${sizes.text} font-semibold ${colors.source}`}>
-            {variant === 'overlay' ? `Source: ${article.source}` : article.source}
+            {variant === 'overlay' ? `Source: ${article.source}` :`Source: ${article.source}`}
           </span>
         )}
       </div>
@@ -121,17 +125,20 @@ const ArticleActions: React.FC<ArticleActionsProps> = ({
           </div>
         )}
 
-        {/* Read More link */}
+        {/* Read More button */}
         {showReadMore && (
-          <Link
-            href={`/article/${article.id}`}
-            className={`${sizes.text} font-semibold ${colors.readMore} flex items-center ${sizes.gap}`}
-            onClick={(e) => e.stopPropagation()}
-            title="Read full article"
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onReadMore) {
+                onReadMore(article.id);
+              }
+            }}
+            className={`${sizes.text} font-semibold ${colors.readMore} flex items-center ${sizes.gap} transition-all`}
+            title={isExpanded ? "Show less" : "Read full article"}
           >
-            Read More
-            {/* <ExternalLink className={`${sizes.icon} ml-1`} /> */}
-          </Link>
+            {isExpanded ? "Show Less" : "Read More"}
+          </button>
         )}
       </div>
     </div>
