@@ -8,7 +8,7 @@ import {
   SidebarTrigger 
 } from '@/components/ui/sidebar'
 import { Earth, Settings, Smile, TrendingUp } from 'lucide-react';
-import React, { useState } from 'react'
+import React, { useCallback, Suspense } from 'react'
 import Image from 'next/image';
 import AllTiles from '@/components/news-tiles/AllTiles';
 import { useArticles, useUserFeed } from '@/hooks/useArticles';
@@ -18,10 +18,38 @@ import ErrorMessage from '@/components/ui/error-message';
 import { LoadingState } from '@/types';
 import SettingsPanel from '@/components/settings/SettingsPanel';
 import ProtectedRoute from '@/components/ProtectedRoute';
-const Homepage = () => {
-  const [activeTab, setActiveTab] = useState<'personal' | 'explore' | 'settings'>('personal');
-  const [personalSubTab, setPersonalSubTab] = useState<'feed' | 'trending'>('feed');
+import { useRouter, useSearchParams } from 'next/navigation';
+const HomepageContent = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+
+  // URL-based state management to prevent unnecessary re-renders
+  const activeTab = (searchParams.get('tab') || 'personal') as 'personal' | 'explore' | 'settings';
+  const personalSubTab = (searchParams.get('subTab') || 'feed') as 'feed' | 'trending';
+
+  // Optimized navigation functions with shallow routing
+  const setActiveTab = useCallback((tab: 'personal' | 'explore' | 'settings') => {
+    const params = new URLSearchParams(searchParams);
+    params.set('tab', tab);
+    if (tab === 'personal') {
+      // Preserve existing subTab for personal, or default to 'feed'
+      if (!params.get('subTab')) {
+        params.set('subTab', 'feed');
+      }
+    } else {
+      // Remove subTab for non-personal tabs
+      params.delete('subTab');
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
+  const setPersonalSubTab = useCallback((subTab: 'feed' | 'trending') => {
+    const params = new URLSearchParams(searchParams);
+    params.set('tab', 'personal');
+    params.set('subTab', subTab);
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
 
   // Hooks for different tabs
   const personalFeed = useUserFeed(user?.id || null, {
@@ -214,7 +242,6 @@ const Homepage = () => {
 };
 
   return (
-    <ProtectedRoute>
       <SidebarProvider>
         <Sidebar>
           <SidebarHeader>
@@ -282,6 +309,15 @@ const Homepage = () => {
           </main>
         </SidebarInset>
       </SidebarProvider>
+  );
+};
+
+const Homepage = () => {
+  return (
+    <ProtectedRoute>
+      <Suspense fallback={<LoadingSkeleton type="articles" count={6} />}>
+        <HomepageContent />
+      </Suspense>
     </ProtectedRoute>
   );
 };

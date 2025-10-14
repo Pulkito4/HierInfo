@@ -1,6 +1,4 @@
 import { Article } from "@/types";
-import { ThumbsDown, ThumbsUp, ExternalLink } from "lucide-react";
-import Link from "next/link";
 import ArticleActions from "./ArticleActions";
 import { useState } from "react";
 
@@ -9,7 +7,7 @@ const CompactFeaturedTile: React.FC<{ article: Article }> = ({ article }) => {
   const [fullContent, setFullContent] = useState<string | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
 
-  const handleReadMore = async (articleId: string) => {
+  const handleReadMore = async () => {
     if (!isExpanded && !fullContent) {
       setIsLoadingContent(true);
       try {
@@ -36,7 +34,7 @@ const CompactFeaturedTile: React.FC<{ article: Article }> = ({ article }) => {
 
   return (
     <div
-      className={`w-full ${isExpanded ? 'h-auto min-h-64' : 'h-64'} rounded-lg bg-cover bg-center text-white p-6 flex flex-col justify-end relative overflow-hidden group transition-all duration-300`}
+      className={`w-full ${isExpanded ? 'h-auto min-h-64' : 'h-84'} rounded-lg bg-cover bg-center text-white p-6 flex flex-col justify-end relative overflow-hidden group transition-all duration-300`}
     >
       <div
         className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
@@ -52,7 +50,7 @@ const CompactFeaturedTile: React.FC<{ article: Article }> = ({ article }) => {
         <div className="mb-4">
           {!isExpanded ? (
             article.summary && (
-              <p className="text-sm opacity-90">
+              <p className="text-sm backdrop-blur-2xl font-medium opacity-90">
                 {article.summary.length > 120 ? `${article.summary.substring(0, 120)}...` : article.summary}
               </p>
             )

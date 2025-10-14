@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Article } from '@/types';
-import { ThumbsDown, ThumbsUp, ExternalLink } from 'lucide-react';
 import ArticleActions from './ArticleActions';
 
 interface StandardArticleTileProps {
@@ -15,7 +15,7 @@ const StandardArticleTile: React.FC<StandardArticleTileProps> = ({ article }) =>
   const [fullContent, setFullContent] = useState<string | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
 
-  const handleReadMore = async (articleId: string) => {
+  const handleReadMore = async () => {
     if (!isExpanded && !fullContent) {
       // Fetch full article content
       setIsLoadingContent(true);
@@ -39,13 +39,16 @@ const StandardArticleTile: React.FC<StandardArticleTileProps> = ({ article }) =>
   return (
     <div  style={{ background: "linear-gradient(45deg, #141e30 0%, #243b55 100%)" }} className=" dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col">
       {article.image_url && (
-        <Link href={`/article/${article.id}`} className="block">
-          <img
+  
+          <Image
             src={article.image_url}
             alt={article.title}
+            width={400}
+            height={192}
             className="w-full h-48 object-cover"
+            unoptimized // Since external URLs might not be compatible with Next.js Image optimization
           />
-        </Link>
+       
       )}
       <div className="p-4 flex flex-col flex-grow">
         {/* <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">{article.source}</p> */}

@@ -11,6 +11,7 @@ export type Article = {
   trending_score?: number;
   is_critical?: boolean;
   created_at: string; // ISO date string
+  keywords?: string[] | null; // Keywords/tags for the article
   categories?: Category[]; // For when we join with categories
 };
 

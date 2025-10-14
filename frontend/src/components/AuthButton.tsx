@@ -1,6 +1,6 @@
 "use client";
 import { useAuthNavigation } from '@/hooks/useAuth';
-import { CheckCircle2, User, Clock } from 'lucide-react';
+import { CheckCircle2, Clock } from 'lucide-react';
 
 interface AuthButtonProps {
   className?: string;
@@ -9,7 +9,7 @@ interface AuthButtonProps {
 }
 
 export default function AuthButton({ 
-  className = "text-white hover:underline transition-all duration-200", 
+  className = "text-white transition-all duration-200", 
   children = "Get Started",
   showStatus = true
 }: AuthButtonProps) {
@@ -28,13 +28,13 @@ export default function AuthButton({
     if (isAuthenticated) {
       return (
         <div className="flex flex-col items-end gap-1">
-          {showStatus && (
-            <div className="flex items-center gap-2 text-green-300 text-xs">
+          {/* {showStatus && (
+            <div className="flex items-center gap-2 text-white text-xs">
               <CheckCircle2 className="w-3 h-3" />
               <span>Welcome back!</span>
             </div>
-          )}
-          <span className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-md font-medium">
+          )} */}
+          <span className="border-2 p-3 rounded-2xl hover:border-teal-400 hover:text-teal-400   border-white">
             Continue to Home
           </span>
         </div>
@@ -49,7 +49,7 @@ export default function AuthButton({
             <span>Sign in to personalize</span>
           </div>
         )} */}
-        <span className="pt-4 pr-4">{children}</span>
+        <span className=" border-2 p-3 rounded-2xl hover:border-teal-400 hover:text-teal-400   border-white">{children}</span>
       </div>
     );
   };

@@ -2,7 +2,7 @@
 import { useAuth } from '@/lib/authContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getCurrentUser } from '@/lib/supabaseAuth';
+import { validateUserSession as validateUser, isUserAuthenticated } from '@/lib/authManager';
 
 interface UseAuthNavigationOptions {
   protectedRoutes?: string[];
@@ -23,24 +23,20 @@ export function useAuthNavigation(options: UseAuthNavigationOptions = {}) {
   const router = useRouter();
   const [sessionValid, setSessionValid] = useState<boolean | null>(null);
   const [isValidating, setIsValidating] = useState(false);
-  const [lastValidatedAt, setLastValidatedAt] = useState<number>(0);
 
-  // Session validation
+  // Session validation using centralized auth manager
   const validateUserSession = async () => {
     if (!user || !validateSession) return !!user;
 
-    // Throttle validation to once every 60s to reduce Auth requests
-    const now = Date.now();
-    if (sessionValid === true && now - lastValidatedAt < 60_000) {
+    // Check if we already have a cached valid result
+    if (isUserAuthenticated() && sessionValid === true) {
       return true;
     }
 
     setIsValidating(true);
     try {
-      const { user: currentUser, error } = await getCurrentUser();
-      const isValid = !error && !!currentUser;
+      const { isValid } = await validateUser(user.id);
       setSessionValid(isValid);
-      setLastValidatedAt(now);
       return isValid;
     } catch {
       setSessionValid(false);

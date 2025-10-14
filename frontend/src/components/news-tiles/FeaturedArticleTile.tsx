@@ -20,7 +20,7 @@ const FeaturedArticleTile: React.FC<FeaturedArticleTileProps> = ({ article }) =>
         background: 'linear-gradient(45deg, #0d1b2a 0%, #2a3a5c 100%)', // Fallback gradient
       };
 
-  const handleReadMore = async (articleId: string) => {
+  const handleReadMore = async () => {
     if (!isExpanded && !fullContent) {
       setIsLoadingContent(true);
       try {

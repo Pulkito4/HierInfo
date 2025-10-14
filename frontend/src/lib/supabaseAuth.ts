@@ -110,7 +110,7 @@ export const signUpWithEmail = async (email: string, password: string, username:
     }
 
     // If immediate session (email confirmation disabled), create profile now
-    const { profile, error: profileError } = await createUserProfile(data.user.id, username);
+    const { error: profileError } = await createUserProfile(data.user.id, username);
     
     if (profileError) {
       // Profile creation failed but signup succeeded - profile can be created later
@@ -121,7 +121,9 @@ export const signUpWithEmail = async (email: string, password: string, username:
   } catch (err) {
     return { user: null, error: err as Error, isNewUser: false };
   }
-};export const signInWithGoogle = async () => {
+};
+
+export const signInWithGoogle = async () => {
   // Get redirect parameter from current URL
   const urlParams = new URLSearchParams(window.location.search);
   const redirectPath = urlParams.get('redirect') || '/home';
@@ -148,7 +150,7 @@ export const handleAuthCallback = async () => {
     }
 
     // Check if profile exists
-    const { profile, error: profileCheckError } = await checkUserProfile(user.id);
+    const { profile } = await checkUserProfile(user.id);
     
     const isNewUser = !profile;
 
@@ -157,7 +159,7 @@ export const handleAuthCallback = async () => {
       // Extract username from email as fallback
       const username = user.email?.split('@')[0] || 'user';
       
-      const { profile: newProfile, error: profileError } = await createUserProfile(user.id, username);
+      const { error: profileError } = await createUserProfile(user.id, username);
       
       if (profileError) {
         // Continue anyway - profile can be created later
@@ -190,9 +192,6 @@ export const getCategories = async () => {
   return { categories: data, error };
 };
 
-// ...existing code...
-
-// Function to update user preferences (single category - for backward compatibility)
 // Function to get user preferences
 export const getUserPreferences = async (userId: string) => {
   try {
@@ -212,9 +211,6 @@ export const getUserPreferences = async (userId: string) => {
   }
 };
 
-// export const updateUserPreferences = async (userId: string, categoryId: string) => {
-//   return updateUserMultiplePreferences(userId, [categoryId]);
-// };
 
 // Function to update user preferences (multiple categories)
 export const updateUserMultiplePreferences = async (userId: string, categoryIds: string[]) => {
@@ -230,7 +226,7 @@ export const updateUserMultiplePreferences = async (userId: string, categoryIds:
                       user.user?.email?.split('@')[0] || 
                       'User';
       
-      const { profile: newProfile, error: createError } = await createUserProfile(userId, username);
+      const { error: createError } = await createUserProfile(userId, username);
       if (createError) {
         return { profile: null, error: createError };
       }

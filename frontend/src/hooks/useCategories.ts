@@ -38,7 +38,7 @@ export function useCategories(): UseCategoriesReturn {
     if (loading === 'idle') {
       fetchCategories();
     }
-  }, [fetchCategories]);
+  }, [loading, fetchCategories]);
 
   return {
     categories,

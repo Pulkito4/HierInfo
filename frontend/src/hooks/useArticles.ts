@@ -96,14 +96,14 @@ export function useArticles(options: UseArticlesOptions = {}): UseArticlesReturn
     if (enabled && loading === 'idle') {
       fetchArticles(true);
     }
-  }, [enabled, fetchOptions.categoryId, fetchOptions.onlyTrending, fetchOptions.onlyCritical, fetchArticles]);
+  }, [enabled, loading, fetchOptions.categoryId, fetchOptions.onlyTrending, fetchOptions.onlyCritical, fetchArticles]);
 
   // Fetch more when page changes
   useEffect(() => {
     if (page > 0 && loading !== 'loading') {
       fetchArticles(false);
     }
-  }, [page, fetchArticles]);
+  }, [page, loading, fetchArticles]);
 
   // Auto-refetch interval
   useEffect(() => {
@@ -201,14 +201,14 @@ export function useUserFeed(userId: string | null, options: Omit<UseArticlesOpti
     if (userId && options.enabled !== false && loading === 'idle') {
       fetchUserFeed(true);
     }
-  }, [userId, restOptions.categoryId, restOptions.onlyTrending, restOptions.onlyCritical, fetchUserFeed, options.enabled]);
+  }, [userId, loading, restOptions.categoryId, restOptions.onlyTrending, restOptions.onlyCritical, fetchUserFeed, options.enabled]);
 
   // Fetch more when page changes
   useEffect(() => {
     if (page > 0 && userId && loading !== 'loading') {
       fetchUserFeed(false);
     }
-  }, [page, userId, fetchUserFeed]);
+  }, [page, userId, loading, fetchUserFeed]);
 
   return {
     articles,

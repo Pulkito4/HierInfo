@@ -81,7 +81,7 @@ const AllTiles: React.FC<AllTilesProps> = ({ articles }) => {
             
             {section.type === 'standard-pair' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {section.articles.map((article, i) => (
+                {section.articles.map((article) => (
                   <StandardArticleTile key={article.id} article={article} />
                 ))}
               </div>
@@ -93,7 +93,7 @@ const AllTiles: React.FC<AllTilesProps> = ({ articles }) => {
             
             {section.type === 'compact-featured-pair' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {section.articles.map((article, i) => (
+                {section.articles.map((article) => (
                   <CompactFeaturedTile key={article.id} article={article} />
                 ))}
               </div>

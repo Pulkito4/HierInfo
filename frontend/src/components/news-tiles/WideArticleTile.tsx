@@ -1,13 +1,14 @@
 import { Article } from "@/types";
 import ArticleActions from "./ArticleActions";
 import { useState } from "react";
+import Image from "next/image";
 
 const WideArticleTile: React.FC<{ article: Article }> = ({ article }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [fullContent, setFullContent] = useState<string | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
 
-  const handleReadMore = async (articleId: string) => {
+  const handleReadMore = async () => {
     if (!isExpanded && !fullContent) {
       setIsLoadingContent(true);
       try {
@@ -29,21 +30,24 @@ const WideArticleTile: React.FC<{ article: Article }> = ({ article }) => {
       style={{ background: "linear-gradient(45deg, #16222A 0%, #3a2d5b 100%)" }} 
       className={`dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex ${
         isExpanded 
-          ? 'h-auto min-h-48 flex-col' 
-          : 'h-auto min-h-32 sm:h-48 flex-col sm:flex-row'
+          ? 'h-auto min-h-80 flex-col' 
+          : 'h-auto min-h-48 sm:min-h-64 flex-col sm:flex-row'
       } transition-all duration-300`}
     >
       {/* Only render image section if image exists */}
       {article.image_url && (
-        <div className={`${
+        <div className={`relative overflow-hidden ${
           isExpanded 
-            ? 'w-full h-48' 
-            : 'w-full h-32 sm:w-1/3 sm:h-48'
+            ? 'w-full h-56' 
+            : 'w-full h-40 sm:w-1/3 sm:h-64'
         }`}>
-          <img
+          <Image
             src={article.image_url}
             alt={article.title}
+            width={400}
+            height={195}
             className="w-full h-full object-cover"
+            unoptimized
           />
         </div>
       )}

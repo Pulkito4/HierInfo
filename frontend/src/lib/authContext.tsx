@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getCurrentUser } from '@/lib/supabaseAuth';
+import { getAuthenticatedUser, invalidateAuthCache } from '@/lib/authManager';
 
 interface User {
   id: string;
@@ -22,11 +22,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const { user: currentUser } = await getCurrentUser();
+      const { user: currentUser, loading: isValidating } = await getAuthenticatedUser();
       setUser(currentUser);
+      setLoading(isValidating);
     } catch {
       setUser(null);
-    } finally {
       setLoading(false);
     }
   };
@@ -46,7 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { signOut } = await import('@/lib/supabaseAuth');
       await signOut();
       
-      // Clear user state immediately
+      // Clear centralized cache and local state
+      invalidateAuthCache();
       setUser(null);
       
       // Clear any cached data and force a hard navigation
