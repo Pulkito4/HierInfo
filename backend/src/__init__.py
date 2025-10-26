@@ -10,9 +10,8 @@ from .processing import (
     cluster_and_deduplicate,
     generate_summaries,
     set_critical_flag,
-    generate_keywords,
     generate_categories,
-    apply_nlp_processing,
+    generate_topic_tags,
 )
 
 # Scrapers
@@ -33,9 +32,8 @@ __all__ = [
     "cluster_and_deduplicate",
     "generate_summaries",
     "set_critical_flag",
-    "generate_keywords",
     "generate_categories",
-    "apply_nlp_processing",
+    "generate_topic_tags",
     # Scrapers
     "parse_articles_batch",
     # Config modules

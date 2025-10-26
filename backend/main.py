@@ -1,17 +1,18 @@
 from dotenv import load_dotenv
-from utils.logging_config import setup_logging
 from src.api_clients import fetch_gnews_metadata, fetch_rss_metadata
-from src.scrapers import parse_articles_batch
-from utils.dataframe_utils import create_main_dataframe
+from src.database import SupabaseManager
 from src.processing import (
     generate_embeddings,
     cluster_and_deduplicate,
     generate_summaries,
     set_critical_flag,
-    generate_keywords,
     generate_categories,
+    generate_topic_tags,
 )
-from src.database import SupabaseManager
+from src.scrapers import parse_articles_batch
+from utils import check_title_content_alignment
+from utils.dataframe_utils import create_main_dataframe
+from utils.logging_config import setup_logging
 
 # Load environment variables FIRST
 load_dotenv()
@@ -48,17 +49,63 @@ def run_pipeline_logic():
         url = meta.get("url")
         if not url:
             continue
+
         scraped = scraped_content_map.get(url)
-        if scraped:
-            final_data = meta.copy()
-            final_data["raw_content"] = scraped.get("raw_content")
-            final_data["image_url"] = final_data.get("image_url") or scraped.get(
-                "image_url"
+        if not scraped:
+            logger.warning(
+                "Skipping article, content could not be scraped for: %s", url
             )
-            final_data["parsing_method"] = scraped.get("parsing_method")
-            if not final_data.get("title"):
-                final_data["title"] = scraped.get("title")
-            final_articles_data.append(final_data)
+            continue
+
+        final_data = meta.copy()
+        final_data["raw_content"] = scraped.get("raw_content")
+
+        # --- Semantic Consistency Guardrail ("Bouncer") ---
+        try:
+            metadata_title = meta.get("title")
+            scraped_content = scraped.get("raw_content")
+
+            is_consistent, similarity, reason = check_title_content_alignment(
+                metadata_title, scraped_content
+            )
+
+            if reason == "content_too_short":
+                logger.debug(
+                    "Skipping similarity check for %s because raw_content is short.",
+                    url,
+                )
+
+            if not is_consistent:
+                if reason == "missing_content":
+                    logger.warning(
+                        "Skipping article %s due to unusable raw_content.", url
+                    )
+                else:
+                    snippet = (scraped_content or "")[:60].replace("\n", " ")
+                    sim_display = (
+                        f"{similarity:.2f}" if similarity is not None else "N/A"
+                    )
+                    logger.warning(
+                        (
+                            "CONTENT MISMATCH DETECTED for %s. Title: '%s', "
+                            "Content snippet: '%s...'. Similarity: %s. Skipping."
+                        ),
+                        url,
+                        metadata_title,
+                        snippet,
+                        sim_display,
+                    )
+                continue
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.error("Error during consistency check for %s: %s", url, exc)
+
+        final_data["image_url"] = final_data.get("image_url") or scraped.get(
+            "image_url"
+        )
+        final_data["parsing_method"] = scraped.get("parsing_method")
+        final_data["title"] = scraped.get("title") or final_data.get("title")
+
+        final_articles_data.append(final_data)
 
     main_df = create_main_dataframe(final_articles_data)
     if main_df.empty:
@@ -72,9 +119,12 @@ def run_pipeline_logic():
     unique_articles_df = cluster_and_deduplicate(main_df)
     unique_articles_df = generate_summaries(unique_articles_df)
     unique_articles_df = set_critical_flag(unique_articles_df)
-    unique_articles_df = generate_keywords(unique_articles_df)
     unique_articles_df = generate_categories(unique_articles_df)
+    unique_articles_df = generate_topic_tags(unique_articles_df)
     logger.info("✅ NLP Processing complete.")
+    logger.info(
+        "--- Final DataFrame Head ---\n%s", unique_articles_df.head().to_string()
+    )
 
     # --- 3. DATABASE STORAGE ---
     logger.info("--- PHASE 3: DATABASE STORAGE ---")

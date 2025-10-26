@@ -74,7 +74,23 @@ RSS_FEEDS = {
 
 
 # ======================================================================
-# OTHER CONSTANTS
+# SCRAPPER CONSTANTS
+# ======================================================================
+
+# A list of phrases that indicate a page is blocked or region-locked.
+# The scraper will fail if it finds any of these in the extracted text.
+# All checks are case-insensitive.
+BLOCKING_PHRASES = [
+    "not available in your country",
+    "not available in your region",
+    "access is denied",
+    "content is not available",
+    "enable javascript to view this site",
+    "site is not available",
+]
+
+# ======================================================================
+#   CRITICAL NEWS DETECTION CONSTANTS
 # ======================================================================
 
 # Phrases that will flag an article as "critical".
@@ -102,6 +118,10 @@ CRITICAL_NEWS_PHRASES = [
 CRITICAL_TRENDING_THRESHOLD = 5
 
 
+# ======================================================================
+#   ARTICLE CATEGORIZATION CONSTANTS
+# ======================================================================
+
 # Categories for Zero-Shot Classification
 ARTICLE_CATEGORIES = [
     "Politics",
@@ -124,14 +144,289 @@ ARTICLE_CATEGORIES = [
     "Human Rights",
 ]
 
-# A list of phrases that indicate a page is blocked or region-locked.
-# The scraper will fail if it finds any of these in the extracted text.
-# All checks are case-insensitive.
-BLOCKING_PHRASES = [
-    "not available in your country",
-    "not available in your region",
-    "access is denied",
-    "content is not available",
-    "enable javascript to view this site",
-    "site is not available",
+# Topic Tags for the 'keywords' field
+# Mid-level tags for the hierarchical zero-shot tagger
+TOPIC_TAGS = [
+    # Health & Science
+    "Public Health",
+    "Medical Research",
+    "Nutrition",
+    "Diet",
+    "Mental Health",
+    "Genetics",
+    "Space Exploration",
+    "Environmental Science",
+    "Climate Change",
+    "Epidemiology",
+    "Vaccines",
+    "Pharmaceuticals",
+    "Neuroscience",
+    "Healthcare Policy",
+    "Biotechnology",
+    "Sustainability",
+    "Renewable Energy",
+    # Technology
+    "Artificial Intelligence",
+    "Cybersecurity",
+    "Software Development",
+    "Data Privacy",
+    "Robotics",
+    "Cloud Computing",
+    "Blockchain",
+    "Tech Innovation",
+    "Quantum Computing",
+    "Gadgets",
+    "Startups",
+    "Mobile Tech",
+    "Gaming",
+    "5G Networks",
+    # Business & Economy
+    "Stock Market",
+    "Corporate News",
+    "Global Economy",
+    "Inflation",
+    "Trade",
+    "Entrepreneurship",
+    "Venture Capital",
+    "Mergers & Acquisitions",
+    "Real Estate",
+    "Employment",
+    "Economic Policy",
+    "Personal Finance",
+    "Banking",
+    "Cryptocurrency",
+    "Market Regulation",
+    # Politics / Governance / World
+    "Elections",
+    "International Relations",
+    "Government Policy",
+    "Public Administration",
+    "Diplomacy",
+    "Corruption",
+    "Legislation",
+    "Conflict",
+    "Political Parties",
+    "Protests",
+    "Foreign Policy",
+    "Geopolitics",
+    "Defense & Security",
+    # Environment
+    "Biodiversity",
+    "Climate Policy",
+    "Wildlife Conservation",
+    "Energy Policy",
+    "Oceanography",
+    "Pollution Control",
+    "Natural Resources",
+    "Environmental Policy",
+    # Society / Culture / Education
+    "Social Issues",
+    "Social Justice",
+    "Gender Equality",
+    "Migration",
+    "Youth",
+    "Education",
+    "Higher Education",
+    "Online Learning",
+    "School Policy",
+    "Demographics",
+    "Cultural Heritage",
+    "Arts & Culture",
+    "Pop Culture",
+    "Fashion",
+    "Literature",
+    "Music",
+    "Movies",
+    "Television",
+    "Performing Arts",
+    # Sports
+    "Football",
+    "Cricket",
+    "Basketball",
+    "Tennis",
+    "Olympics",
+    "Athletics",
+    "Esports",
+    "Team Sports",
+    "Individual Sports",
+    "Sports Business",
+    "Sports Science",
+    "Sports Medicine",
+    # Travel & Food
+    "Travel",
+    "Tourism Industry",
+    "Sustainable Travel",
+    "Adventure Travel",
+    "Food & Drink",
+    "Culinary Trends",
+    "Local Cuisine",
+    "Hospitality Industry",
+    "Lifestyle",
+    "Wellness Tourism",
+    # Law / Crime / Human Rights
+    "Law & Crime",
+    "Judiciary",
+    "Legal Reform",
+    "Civil Rights",
+    "Privacy Rights",
+    "International Law",
+    "Cybercrime",
+    "Justice System",
+    "Human Rights",
+    "Gender Rights",
+    "Freedom of Speech",
+    "Refugee Rights",
 ]
+
+
+# Mapping from broad category to specific topic tags ---
+CATEGORY_TO_TAG_SUBSET = {
+    "Health": [
+        "Public Health",
+        "Medical Research",
+        "Nutrition",
+        "Diet",
+        "Mental Health",
+        "Vaccines",
+        "Healthcare Policy",
+        "Pharmaceuticals",
+    ],
+    "Science": [
+        "Genetics",
+        "Space Exploration",
+        "Neuroscience",
+        "Biotechnology",
+        "Environmental Science",
+        "Sustainability",
+        "Renewable Energy",
+    ],
+    "Technology": [
+        "Artificial Intelligence",
+        "Cybersecurity",
+        "Software Development",
+        "Data Privacy",
+        "Robotics",
+        "Blockchain",
+        "Cloud Computing",
+        "Tech Innovation",
+        "Quantum Computing",
+    ],
+    "Business": [
+        "Stock Market",
+        "Corporate News",
+        "Entrepreneurship",
+        "Venture Capital",
+        "Mergers & Acquisitions",
+        "Real Estate",
+        "Banking",
+        "Employment",
+    ],
+    "Economy": [
+        "Global Economy",
+        "Inflation",
+        "Trade",
+        "Economic Policy",
+        "Market Regulation",
+        "Cryptocurrency",
+        "Personal Finance",
+    ],
+    "Politics": [
+        "Elections",
+        "Government Policy",
+        "Legislation",
+        "Corruption",
+        "Public Administration",
+        "Political Parties",
+        "Diplomacy",
+        "Defense & Security",
+    ],
+    "World News": [
+        "International Relations",
+        "Conflict",
+        "Foreign Policy",
+        "Geopolitics",
+        "Human Rights",
+        "Global Economy",
+        "Diplomacy",
+    ],
+    "Environment": [
+        "Climate Change",
+        "Environmental Policy",
+        "Biodiversity",
+        "Renewable Energy",
+        "Wildlife Conservation",
+        "Energy Policy",
+        "Pollution Control",
+    ],
+    "Law": [
+        "Law & Crime",
+        "Judiciary",
+        "Legal Reform",
+        "International Law",
+        "Civil Rights",
+        "Privacy Rights",
+    ],
+    "Crime": ["Law & Crime", "Cybercrime", "Corruption", "Justice System"],
+    "Social Issues": [
+        "Social Issues",
+        "Social Justice",
+        "Gender Equality",
+        "Migration",
+        "Youth",
+        "Demographics",
+    ],
+    "Human Rights": [
+        "Human Rights",
+        "Civil Rights",
+        "Gender Rights",
+        "Refugee Rights",
+        "Freedom of Speech",
+    ],
+    "Culture": [
+        "Arts & Culture",
+        "Cultural Heritage",
+        "Literature",
+        "Fashion",
+        "Music",
+        "Movies",
+        "Performing Arts",
+        "Pop Culture",
+    ],
+    "Entertainment": [
+        "Movies",
+        "Television",
+        "Music",
+        "Pop Culture",
+        "Fashion",
+        "Performing Arts",
+    ],
+    "Education": [
+        "Education",
+        "Higher Education",
+        "Online Learning",
+        "School Policy",
+        "Youth",
+    ],
+    "Sports": [
+        "Football",
+        "Cricket",
+        "Basketball",
+        "Tennis",
+        "Olympics",
+        "Team Sports",
+        "Individual Sports",
+        "Esports",
+        "Sports Science",
+    ],
+    "Travel": [
+        "Travel",
+        "Tourism Industry",
+        "Adventure Travel",
+        "Sustainable Travel",
+        "Hospitality Industry",
+        "Lifestyle",
+        "Wellness Tourism",
+    ],
+    "Food": ["Food & Drink", "Culinary Trends", "Local Cuisine", "Nutrition"],
+    "default": TOPIC_TAGS,
+}
