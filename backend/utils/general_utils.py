@@ -1,4 +1,5 @@
 from __future__ import annotations
+from urllib.parse import urlparse, urlunparse
 
 from typing import Optional, Tuple, TYPE_CHECKING
 
@@ -44,3 +45,27 @@ def check_title_content_alignment(
         return False, similarity, "low_similarity"
 
     return True, similarity, None
+
+
+def clean_image_url(raw_url: Optional[str]) -> Optional[str]:
+    """
+    Strips all query parameters and fragments from a URL.
+    e.g., 'image.jpg?width=100&crop=true' -> 'image.jpg'
+    """
+    if not raw_url:
+        return None
+    try:
+        parsed_url = urlparse(raw_url)
+        # Reconstruct the URL with only the essential parts
+        clean_url = urlunparse((
+            parsed_url.scheme,
+            parsed_url.netloc,
+            parsed_url.path,
+            '',  # No params
+            '',  # No query
+            ''   # No fragment
+        ))
+        return clean_url
+    except Exception:
+        # Fallback to the raw URL if parsing fails for any reason
+        return raw_url

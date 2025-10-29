@@ -13,7 +13,7 @@ from newspaper import Article
 from playwright.sync_api import sync_playwright
 from utils import get_logger
 from src import constants as C
-
+from utils.general_utils import clean_image_url
 # Initialize logger
 logger = get_logger(__name__)
 
@@ -60,6 +60,9 @@ def parse_with_newspaper3k(url: str, timeout: int = 15) -> Optional[Dict]:
         logger.debug("🔍 Parsing article structure...")
         article.parse()
 
+        # Clean the image URL
+        clean_img_url = clean_image_url(article.top_image)
+
         # Extract content in standardized format for DataFrame compatibility
         content = {
             "url": url,
@@ -67,7 +70,7 @@ def parse_with_newspaper3k(url: str, timeout: int = 15) -> Optional[Dict]:
             "raw_content": article.text.strip() if article.text else "",
             "authors": article.authors or [],
             "published_at": article.publish_date,
-            "image_url": article.top_image or "",
+            "image_url": clean_img_url or "",
             "source_name": "",  # Will be populated from GNews API data
             "parsing_method": "newspaper3k",
             "domain": urlparse(url).netloc,
@@ -209,6 +212,9 @@ def parse_with_playwright(url: str, timeout: int = 30) -> Optional[Dict]:
             article.set_html(html_content)
             article.parse()
 
+            # Clean the image URL
+            clean_img_url = clean_image_url(article.top_image)
+
             # Extract content in standardized format for DataFrame compatibility
             content = {
                 "url": url,
@@ -216,7 +222,7 @@ def parse_with_playwright(url: str, timeout: int = 30) -> Optional[Dict]:
                 "raw_content": article.text.strip() if article.text else "",
                 "authors": article.authors or [],
                 "published_at": article.publish_date,
-                "image_url": article.top_image or "",
+                "image_url": clean_img_url or "",
                 "source_name": "",  # Will be populated from GNews API data
                 "parsing_method": "playwright",
                 "domain": urlparse(url).netloc,
