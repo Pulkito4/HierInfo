@@ -2,7 +2,6 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Helper function to check if user profile exists
@@ -68,7 +67,9 @@ const createUserProfile = async (userId: string, username: string) => {
   } catch (err) {
     return { profile: null, error: err as Error };
   }
-};export const signInWithEmail = async (email: string, password: string) => {
+};
+
+export const signInWithEmail = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   
   if (error || !data.user) {
@@ -163,6 +164,7 @@ export const handleAuthCallback = async () => {
       
       if (profileError) {
         // Continue anyway - profile can be created later
+        // nope.. profile creation needs to be there
       }
     }
 
