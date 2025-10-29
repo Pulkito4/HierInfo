@@ -118,6 +118,12 @@ def run_pipeline_logic():
     main_df = generate_embeddings(main_df)
     unique_articles_df = cluster_and_deduplicate(main_df)
     unique_articles_df = generate_summaries(unique_articles_df)
+    
+    # Early exit if no articles have valid summaries
+    if unique_articles_df.empty:
+        logger.warning("No articles remain after summarization. Exiting pipeline.")
+        return None
+    
     unique_articles_df = set_critical_flag(unique_articles_df)
     unique_articles_df = generate_categories(unique_articles_df)
     unique_articles_df = generate_topic_tags(unique_articles_df)

@@ -102,5 +102,20 @@ def generate_summaries(df: pd.DataFrame) -> pd.DataFrame:
 
     df["summary"] = df.progress_apply(safe_summarize, axis=1)
 
-    logger.info("✅ Summary generation complete.")
+    # Filter out articles that failed to generate a summary
+    initial_count = len(df)
+    df = df[df["summary"].notna() & (df["summary"].str.strip() != "")]
+    filtered_count = initial_count - len(df)
+    
+    if filtered_count > 0:
+        logger.warning(
+            f"⚠️  Filtered out {filtered_count} articles with no valid summary. "
+            f"Remaining: {len(df)} articles."
+        )
+    
+    if df.empty:
+        logger.warning("❌ No articles remain after summary filtering.")
+        return df
+
+    logger.info(f"✅ Summary generation complete for {len(df)} articles.")
     return df
