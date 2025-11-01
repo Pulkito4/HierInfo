@@ -132,7 +132,7 @@ const HomepageContent = () => {
                       No articles to show
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                      We couldn&apos;t find any articles matching your selected categories. Try adding more categories in your settings or check back later for new content.
+                      {personalFeed.message ?? "We couldn't find any articles matching your selected categories. Try adding more categories in your settings or check back later for new content."}
                     </p>
                     <div className="space-x-2">
                       <button

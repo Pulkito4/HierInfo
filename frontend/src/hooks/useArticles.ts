@@ -133,45 +133,40 @@ export function useUserFeed(userId: string | null, options: Omit<UseArticlesOpti
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState<LoadingState>('idle');
   const [error, setError] = useState<Error | null>(null);
-  const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [message, setMessage] = useState<string | undefined>();
+  const [metadata, setMetadata] = useState<Record<string, unknown> | undefined>();
 
   const { limit = 20, ...restOptions } = options;
 
   const pagination: PaginationState = useMemo(() => ({
-    page,
+    page: 0,
     limit,
     total: totalCount,
-    hasNextPage: (page + 1) * limit < totalCount,
-    hasPreviousPage: page > 0,
-  }), [page, limit, totalCount]);
+    hasNextPage: false,
+    hasPreviousPage: false,
+  }), [limit, totalCount]);
 
-  const fetchUserFeed = useCallback(async (reset: boolean = false) => {
+  const fetchUserFeed = useCallback(async () => {
     if (!userId || loading === 'loading') return;
 
     setLoading('loading');
     setError(null);
 
     try {
-      const currentOffset = reset ? 0 : page * limit;
       const response = await NewsService.fetchUserFeedArticles(userId, {
         ...restOptions,
         limit,
-        offset: currentOffset,
       });
       
       if (response.error) {
         throw response.error;
       }
 
-      if (reset) {
-        setArticles(response.articles);
-        setPage(0);
-      } else {
-        setArticles(prev => [...prev, ...response.articles]);
-      }
-
-      setTotalCount(response.count || 0);
+      setArticles(response.articles);
+      setTotalCount(response.count || response.articles.length);
+      setMessage(response.message);
+      setMetadata(response.metadata);
       setLoading('success');
     } catch (err) {
       console.error('Error fetching user feed:', {
@@ -182,43 +177,38 @@ export function useUserFeed(userId: string | null, options: Omit<UseArticlesOpti
       setError(err as Error);
       setLoading('error');
     }
-  }, [userId, restOptions, limit, page, loading]);
+  }, [userId, restOptions, limit, loading]);
 
   const fetchMore = useCallback(async () => {
-    if (!pagination.hasNextPage || loading === 'loading') return;
-    setPage(prev => prev + 1);
-  }, [pagination.hasNextPage, loading]);
+    return;
+  }, []);
 
   const refresh = useCallback(async () => {
     setArticles([]);
-    setPage(0);
     setTotalCount(0);
-    await fetchUserFeed(true);
+    setMessage(undefined);
+    setMetadata(undefined);
+    await fetchUserFeed();
   }, [fetchUserFeed]);
 
   // Initial fetch
   useEffect(() => {
     if (userId && options.enabled !== false && loading === 'idle') {
-      fetchUserFeed(true);
+      fetchUserFeed();
     }
   }, [userId, loading, restOptions.categoryId, restOptions.onlyTrending, restOptions.onlyCritical, fetchUserFeed, options.enabled]);
-
-  // Fetch more when page changes
-  useEffect(() => {
-    if (page > 0 && userId && loading !== 'loading') {
-      fetchUserFeed(false);
-    }
-  }, [page, userId, loading, fetchUserFeed]);
 
   return {
     articles,
     loading,
     error,
     pagination,
-    refetch: () => fetchUserFeed(true),
+    refetch: () => fetchUserFeed(),
     fetchMore,
-    hasMore: pagination.hasNextPage,
+    hasMore: false,
     refresh,
+    message,
+    metadata,
   };
 }
 

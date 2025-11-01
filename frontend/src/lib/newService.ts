@@ -12,12 +12,58 @@ export interface FetchArticlesOptions {
   onlyCritical?: boolean;
 }
 
+export interface FetchArticlesResult {
+  articles: Article[];
+  error: Error | null;
+  count: number;
+  message?: string;
+  pagination?: {
+    limit: number;
+    offset: number;
+    total: number;
+    hasMore: boolean;
+  };
+  metadata?: Record<string, unknown>;
+}
+
+const DEFAULT_FETCH_LIMIT = 20;
+
+function parseCategoryPreferences(preferences: unknown): string[] {
+  if (!preferences) return [];
+
+  if (typeof preferences === 'string') {
+    return preferences ? [preferences] : [];
+  }
+
+  if (Array.isArray(preferences)) {
+    return preferences.filter((value): value is string => typeof value === 'string' && value.length > 0);
+  }
+
+  if (typeof preferences === 'object' && preferences !== null) {
+    const maybeCategoryIds = (preferences as { categoryIds?: unknown }).categoryIds;
+    if (Array.isArray(maybeCategoryIds)) {
+      return maybeCategoryIds.filter((value): value is string => typeof value === 'string' && value.length > 0);
+    }
+  }
+
+  return [];
+}
+
+function getDayBoundaries() {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return { start, end };
+}
+
 export class NewsService {
 
  
  //Fetch latest articles with optional filtering
 
-static async fetchArticles(options: FetchArticlesOptions = {}) {
+static async fetchArticles(options: FetchArticlesOptions = {}): Promise<FetchArticlesResult> {
   const {
     limit = 20,
     offset = 0,
@@ -27,6 +73,14 @@ static async fetchArticles(options: FetchArticlesOptions = {}) {
     onlyTrending = false,
     onlyCritical = false
   } = options;
+
+  if (!categoryId && onlyTrending && !onlyCritical) {
+    return this.fetchTrendingArticles({ limit, offset });
+  }
+
+  if (!categoryId && onlyCritical) {
+    return this.fetchCriticalArticles({ limit, offset });
+  }
 
   try {
     let query;
@@ -98,33 +152,17 @@ static async fetchArticles(options: FetchArticlesOptions = {}) {
   /**
    * Fetch user's personalized feed articles - fallback to client-side approach
    */
-  static async fetchUserFeedArticles(userId: string, options: Omit<FetchArticlesOptions, 'userId'> = {}) {
+  static async fetchUserFeedArticles(userId: string, options: Omit<FetchArticlesOptions, 'userId'> = {}): Promise<FetchArticlesResult> {
     try {
-      // Build query parameters for API approach
-      const params = new URLSearchParams({
-        limit: options.limit?.toString() || '20',
-        offset: options.offset?.toString() || '0',
-        sortBy: options.sortBy || 'published_at',
-        sortOrder: options.sortOrder || 'desc',
-      });
+      const limit = options.limit ?? DEFAULT_FETCH_LIMIT;
+      const params = new URLSearchParams({ limit: String(Math.max(1, Math.min(limit, 50))) });
 
-      if (options.onlyTrending) {
-        params.append('onlyTrending', 'true');
-      }
-      if (options.onlyCritical) {
-        params.append('onlyCritical', 'true');
-      }
-
-      // Try API route first
       const response = await fetch(`/api/feed?${params.toString()}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include cookies for authentication
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
 
-      // If API route fails with auth error, fallback to client-side approach
       if (response.status === 401) {
         console.log('Feed API auth failed, using fallback approach');
         return this.fetchUserFeedFallback(userId, options);
@@ -136,15 +174,18 @@ static async fetchArticles(options: FetchArticlesOptions = {}) {
       }
 
       const data = await response.json();
-      return {
-        articles: data.articles || [],
-        count: data.count || 0,
-        error: null,
-      };
+      const articles = (data.articles ?? []) as Article[];
+      const count = typeof data.count === 'number' ? data.count : articles.length;
 
+      return {
+        articles,
+        count,
+        error: null,
+        message: data.message,
+        metadata: data.metadata,
+      };
     } catch (err) {
       console.error('Error fetching user feed:', err);
-      // If there's any error, try the fallback approach
       console.log('Feed API error, using fallback approach');
       return this.fetchUserFeedFallback(userId, options);
     }
@@ -153,48 +194,99 @@ static async fetchArticles(options: FetchArticlesOptions = {}) {
   /**
    * Fallback method using client-side Supabase calls
    */
-  static async fetchUserFeedFallback(userId: string, options: Omit<FetchArticlesOptions, 'userId'> = {}) {
+  static async fetchUserFeedFallback(userId: string, options: Omit<FetchArticlesOptions, 'userId'> = {}): Promise<FetchArticlesResult> {
     try {
-      // First, get user preferences using client-side Supabase
+      const limit = options.limit ?? DEFAULT_FETCH_LIMIT;
+      const candidateLimit = limit * 3;
+
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('preferences')
         .eq('id', userId)
         .single();
 
-      if (profileError || !profile?.preferences) {
-        return { articles: [], error: null, count: 0 };
+      if (profileError) {
+        throw new Error(profileError.message);
       }
 
-      let categoryIds: string[] = [];
-      
-      // Parse preferences - handle both old single category and new multiple categories format
-      if (typeof profile.preferences === 'string') {
-        categoryIds = [profile.preferences];
-      } else if (typeof profile.preferences === 'object' && profile.preferences.categoryIds) {
-        categoryIds = profile.preferences.categoryIds;
-      } else {
-        return { articles: [], error: null, count: 0 };
-      }
+      const categoryIds = parseCategoryPreferences(profile?.preferences);
 
       if (categoryIds.length === 0) {
-        return { articles: [], error: null, count: 0 };
+        return {
+          articles: [],
+          error: null,
+          count: 0,
+          message: 'No categories selected. Please update your preferences to receive a personalized digest.',
+        };
       }
 
-      // Fetch articles from user's selected categories using existing method
-      return this.fetchArticlesByCategories(categoryIds, options);
+      const [{ data: trendingCache }, { data: criticalCache }] = await Promise.all([
+        supabase.from('trending_articles_cache').select('article_id'),
+        supabase.from('critical_articles_cache').select('article_id'),
+      ]);
+
+      const excludedIds = new Set<string>([
+        ...(((trendingCache ?? []) as { article_id: string }[]).map((row) => row.article_id)),
+        ...(((criticalCache ?? []) as { article_id: string }[]).map((row) => row.article_id)),
+      ]);
+
+      const { start, end } = getDayBoundaries();
+
+      const { data: candidates, error: candidateError } = await supabase
+        .from('news_articles')
+        .select('id, title, summary, url, source, image_url, published_at, trending_score, is_critical, created_at, keywords, article_categories!inner(category_id)')
+        .in('article_categories.category_id', categoryIds)
+        .gte('created_at', start.toISOString())
+        .lt('created_at', end.toISOString())
+        .order('trending_score', { ascending: false })
+        .order('published_at', { ascending: false })
+        .range(0, Math.max(candidateLimit - 1, 0));
+
+      if (candidateError) {
+        throw new Error(candidateError.message);
+      }
+
+      const seen = new Set<string>();
+      const articles: Article[] = [];
+
+      for (const candidate of candidates ?? []) {
+        const articleId = (candidate as { id: string }).id;
+        if (!articleId) continue;
+        if (excludedIds.has(articleId) || seen.has(articleId)) {
+          continue;
+        }
+
+        seen.add(articleId);
+        const { article_categories, ...rest } = candidate as Record<string, unknown>;
+        articles.push(rest as Article);
+
+        if (articles.length >= limit) {
+          break;
+        }
+      }
+
+      const message = articles.length === 0
+        ? 'No personalized articles available for today. Check back later or update your preferences.'
+        : undefined;
+
+      return {
+        articles,
+        error: null,
+        count: articles.length,
+        message,
+      };
     } catch (err) {
       console.error('Error in fallback feed fetch:', err);
-      return { 
-        articles: [], 
-        error: err as Error, 
-        count: 0 
+      return {
+        articles: [],
+        error: err as Error,
+        count: 0,
       };
     }
   }  /**
    * Fetch articles from multiple categories
    */
-  static async fetchArticlesByCategories(categoryIds: string[], options: FetchArticlesOptions = {}) {
+  static async fetchArticlesByCategories(categoryIds: string[], options: FetchArticlesOptions = {}): Promise<FetchArticlesResult> {
     const {
       limit = 20,
       offset = 0,
@@ -253,25 +345,75 @@ static async fetchArticles(options: FetchArticlesOptions = {}) {
   /**
    * Fetch trending articles
    */
-  static async fetchTrendingArticles(limit: number = 10) {
-    return this.fetchArticles({
-      limit,
-      sortBy: 'trending_score',
-      sortOrder: 'desc',
-      onlyTrending: true
-    });
+  static async fetchTrendingArticles({ limit = DEFAULT_FETCH_LIMIT, offset = 0 }: { limit?: number; offset?: number } = {}): Promise<FetchArticlesResult> {
+    try {
+      const params = new URLSearchParams({
+        limit: String(limit),
+        offset: String(offset)
+      });
+
+      const response = await fetch(`/api/feed/trending?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Trending feed request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const articles = (data.articles ?? []) as Article[];
+      const pagination = data.pagination as FetchArticlesResult['pagination'];
+      const total = pagination?.total ?? articles.length;
+
+      return {
+        articles,
+        pagination,
+        count: typeof total === 'number' ? total : articles.length,
+        error: null,
+      };
+    } catch (err) {
+      return { articles: [], error: err as Error, count: 0 };
+    }
   }
 
   /**
    * Fetch critical/breaking news articles
    */
-  static async fetchCriticalArticles(limit: number = 5) {
-    return this.fetchArticles({
-      limit,
-      sortBy: 'published_at',
-      sortOrder: 'desc',
-      onlyCritical: true
-    });
+  static async fetchCriticalArticles({ limit = DEFAULT_FETCH_LIMIT, offset = 0 }: { limit?: number; offset?: number } = {}): Promise<FetchArticlesResult> {
+    try {
+      const params = new URLSearchParams({
+        limit: String(limit),
+        offset: String(offset)
+      });
+
+      const response = await fetch(`/api/feed/critical?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Critical feed request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const articles = (data.articles ?? []) as Article[];
+      const pagination = data.pagination as FetchArticlesResult['pagination'];
+      const total = pagination?.total ?? articles.length;
+
+      return {
+        articles,
+        pagination,
+        count: typeof total === 'number' ? total : articles.length,
+        error: null,
+      };
+    } catch (err) {
+      return { articles: [], error: err as Error, count: 0 };
+    }
   }
 
 

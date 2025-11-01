@@ -1,10 +1,12 @@
+'use client';
+
 // src/components/StandardArticleTile.tsx
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { Article } from '@/types';
 import ArticleActions from './ArticleActions';
+import { useArticleImpression } from '@/hooks/useArticleImpression';
 
 interface StandardArticleTileProps {
   article: Article;
@@ -14,6 +16,7 @@ const StandardArticleTile: React.FC<StandardArticleTileProps> = ({ article }) =>
   const [isExpanded, setIsExpanded] = useState(false);
   const [fullContent, setFullContent] = useState<string | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const { ref: impressionRef } = useArticleImpression(article.id);
 
   const handleReadMore = async () => {
     if (!isExpanded && !fullContent) {
@@ -37,7 +40,11 @@ const StandardArticleTile: React.FC<StandardArticleTileProps> = ({ article }) =>
   };
 
   return (
-    <div  style={{ background: "linear-gradient(45deg, #141e30 0%, #243b55 100%)" }} className=" dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col">
+    <div
+      ref={impressionRef}
+      style={{ background: "linear-gradient(45deg, #141e30 0%, #243b55 100%)" }}
+      className=" dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col"
+    >
       {article.image_url && (
   
           <Image

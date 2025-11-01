@@ -3,72 +3,79 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { Article } from '@/types';
 
+const DEFAULT_LIMIT = 20;
+const CANDIDATE_MULTIPLIER = 3;
+
+function parseCategoryPreferences(preferences: unknown): string[] {
+  if (!preferences) return [];
+
+  if (typeof preferences === 'string') {
+    return preferences ? [preferences] : [];
+  }
+
+  if (Array.isArray(preferences)) {
+    return preferences.filter((value): value is string => typeof value === 'string' && value.length > 0);
+  }
+
+  if (typeof preferences === 'object' && preferences !== null) {
+    const maybeCategoryIds = (preferences as { categoryIds?: unknown }).categoryIds;
+    if (Array.isArray(maybeCategoryIds)) {
+      return maybeCategoryIds.filter((value): value is string => typeof value === 'string' && value.length > 0);
+    }
+  }
+
+  return [];
+}
+
+function getDayBoundaries() {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return { start, end };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    
-    // Debug: Log available cookies
-    const allCookies = cookieStore.getAll();
-    console.log('Feed API - Available cookies:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })));
-    
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           getAll() {
-            return cookieStore.getAll()
+            return cookieStore.getAll();
           },
           setAll(cookiesToSet) {
             try {
               cookiesToSet.forEach(({ name, value, options }) =>
                 cookieStore.set(name, value, options)
-              )
+              );
             } catch {
-              // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing
-              // user sessions.
+              /* ignore SSR cookie warnings */
             }
           },
         },
       }
     );
 
-    // Get authenticated user
-    console.log('Feed API - Attempting to get user...');
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    console.log('Feed API - Auth result:', { 
-      hasUser: !!user, 
-      userId: user?.id,
-      authError: authError?.message 
-    });
-    
-    if (authError) {
-      console.error('Feed API auth error:', authError);
-      return NextResponse.json({ 
-        error: 'Authentication failed', 
-        details: authError.message 
-      }, { status: 401 });
-    }
-    
-    if (!user) {
-      console.error('Feed API: No user found in session');
-      return NextResponse.json({ 
-        error: 'No authenticated user found' 
-      }, { status: 401 });
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
     }
 
-    // Parse query parameters
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
-    const sortBy = searchParams.get('sortBy') || 'published_at';
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
-    const onlyTrending = searchParams.get('onlyTrending') === 'true';
-    const onlyCritical = searchParams.get('onlyCritical') === 'true';
+    const limitParam = parseInt(searchParams.get('limit') || '', 10);
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 50) : DEFAULT_LIMIT;
 
-    // First, get user preferences
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('preferences')
@@ -76,99 +83,96 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (profileError) {
-      console.error('Profile fetch error:', profileError);
-      return NextResponse.json({ 
-        error: 'Failed to fetch user profile',
-        details: profileError.message 
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: 'Failed to fetch user profile',
+          details: profileError.message,
+        },
+        { status: 500 }
+      );
     }
 
-    if (!profile?.preferences) {
-      return NextResponse.json({ 
-        articles: [], 
-        count: 0,
-        message: 'No user preferences found. Please set up your categories first.'
-      });
-    }
-
-    // Parse user preferences
-    let categoryIds: string[] = [];
-    if (typeof profile.preferences === 'string') {
-      categoryIds = [profile.preferences];
-    } else if (typeof profile.preferences === 'object' && profile.preferences.categoryIds) {
-      categoryIds = profile.preferences.categoryIds;
-    }
+    const categoryIds = parseCategoryPreferences(profile?.preferences);
 
     if (categoryIds.length === 0) {
-      return NextResponse.json({ 
-        articles: [], 
+      return NextResponse.json({
+        articles: [],
         count: 0,
-        message: 'No categories selected in preferences'
+        message: 'No categories selected. Please update your preferences to receive a personalized digest.',
       });
     }
 
-    // Fetch articles with efficient single query using array contains
-    let articlesQuery = supabase
+    const [{ data: trendingCache }, { data: criticalCache }] = await Promise.all([
+      supabase.from('trending_articles_cache').select('article_id'),
+      supabase.from('critical_articles_cache').select('article_id'),
+    ]);
+
+    const excludedIds = new Set<string>([
+      ...(((trendingCache ?? []) as { article_id: string }[]).map((row) => row.article_id)),
+      ...(((criticalCache ?? []) as { article_id: string }[]).map((row) => row.article_id)),
+    ]);
+
+    const { start, end } = getDayBoundaries();
+    const candidateLimit = limit * CANDIDATE_MULTIPLIER;
+
+    const { data: candidates, error: candidateError } = await supabase
       .from('news_articles')
-      .select(`
-        id,
-        title,
-        summary,
-        url,
-        source,
-        image_url,
-        published_at,
-        trending_score,
-        is_critical,
-        created_at,
-        keywords,
-        article_categories!inner(category_id)
-      `, { count: 'exact' })
-      .in('article_categories.category_id', categoryIds);
+      .select(
+        'id, title, summary, url, source, image_url, published_at, trending_score, is_critical, created_at, keywords, article_categories!inner(category_id)'
+      )
+      .in('article_categories.category_id', categoryIds)
+      .gte('created_at', start.toISOString())
+      .lt('created_at', end.toISOString())
+      .order('trending_score', { ascending: false })
+      .order('published_at', { ascending: false })
+      .range(0, Math.max(candidateLimit - 1, 0));
 
-    // Apply filters
-    if (onlyTrending) {
-      articlesQuery = articlesQuery.gt('trending_score', 0.7);
-    }
-    
-    if (onlyCritical) {
-      articlesQuery = articlesQuery.eq('is_critical', true);
+    if (candidateError) {
+      return NextResponse.json(
+        { error: 'Failed to load personalized articles' },
+        { status: 500 }
+      );
     }
 
-    // Apply sorting and pagination
-    articlesQuery = articlesQuery
-      .order(sortBy as 'created_at' | 'published_at' | 'trending_score', { ascending: sortOrder === 'asc' })
-      .range(offset, offset + limit - 1);
+    const seen = new Set<string>();
+    const articles: Article[] = [];
 
-    const { data: articles, error: articlesError, count } = await articlesQuery;
-
-    if (articlesError) {
-      console.error('Articles fetch error:', articlesError);
-      return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 });
-    }
-
-    // Deduplicate articles (in case an article belongs to multiple user-selected categories)
-    const uniqueArticles = articles?.reduce((acc: Article[], article: Article) => {
-      if (!acc.find(a => a.id === article.id)) {
-        acc.push(article);
+    for (const candidate of candidates ?? []) {
+      const articleId = (candidate as { id: string }).id;
+      if (!articleId) continue;
+      if (excludedIds.has(articleId) || seen.has(articleId)) {
+        continue;
       }
-      return acc;
-    }, [] as Article[]) || [];
+
+      seen.add(articleId);
+      const { article_categories, ...rest } = candidate as Record<string, unknown>;
+      articles.push(rest as Article);
+
+      if (articles.length >= limit) {
+        break;
+      }
+    }
+
+    const message = articles.length === 0
+      ? 'No personalized articles available for today. Check back later or update your preferences.'
+      : undefined;
 
     return NextResponse.json({
-      articles: uniqueArticles,
-      count: count || 0,
-      pagination: {
-        limit,
-        offset,
-        hasMore: (offset + limit) < (count || 0)
-      }
+      articles,
+      count: articles.length,
+      message,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        excludedCount: excludedIds.size,
+      },
     });
-
   } catch (error) {
-    console.error('Feed API error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
   }
 }

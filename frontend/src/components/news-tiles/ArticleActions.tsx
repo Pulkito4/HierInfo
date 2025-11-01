@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Article } from '@/types';
+import { useArticleActivity } from '@/hooks/useArticleActivity';
 
 interface ArticleActionsProps {
   article: Article;
@@ -31,15 +34,19 @@ const ArticleActions: React.FC<ArticleActionsProps> = ({
   isExpanded = false,
   className = '',
 }) => {
+  const { trackActivity } = useArticleActivity(article.id);
+
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+  trackActivity('like');
     onLike?.(article.id);
   };
 
   const handleDislike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+  trackActivity('dislike');
     onDislike?.(article.id);
   };
 
@@ -155,9 +162,10 @@ const ArticleActions: React.FC<ArticleActionsProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (onReadMore) {
-                  onReadMore(article.id);
+                if (!isExpanded) {
+                  trackActivity('view');
                 }
+                onReadMore?.(article.id);
               }}
               className={`${sizes.text} font-semibold ${colors.readMore} flex items-center ${sizes.gap} transition-all`}
               title={isExpanded ? "Show less" : "Read full article"}

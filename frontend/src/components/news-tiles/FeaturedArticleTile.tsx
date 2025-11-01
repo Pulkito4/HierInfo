@@ -1,6 +1,9 @@
+'use client';
+
 import React, { useState } from "react";
 import { Article } from "@/types"; 
 import ArticleActions from "./ArticleActions";
+import { useArticleImpression } from "@/hooks/useArticleImpression";
 
 interface FeaturedArticleTileProps {
   article: Article;
@@ -10,6 +13,7 @@ const FeaturedArticleTile: React.FC<FeaturedArticleTileProps> = ({ article }) =>
   const [isExpanded, setIsExpanded] = useState(false);
   const [fullContent, setFullContent] = useState<string | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const { ref: impressionRef } = useArticleImpression(article.id);
 
   // If no image, use a gradient background instead
   const tileStyle = article.image_url 
@@ -40,6 +44,7 @@ const FeaturedArticleTile: React.FC<FeaturedArticleTileProps> = ({ article }) =>
 
   return (
     <div
+      ref={impressionRef}
       className={`w-full ${isExpanded ? 'h-auto min-h-96' : 'h-96'} rounded-lg bg-cover bg-center text-white p-8 flex flex-col justify-end relative overflow-hidden group transition-all duration-300`}
     >
       <div
