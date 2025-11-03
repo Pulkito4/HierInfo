@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { createRouteSupabaseClient } from "@/lib/server/auth";
 import type {
   UserActivityEventType,
   UserActivityRequestPayload,
@@ -23,44 +21,7 @@ function normalizeEventType(value?: string): UserActivityEventType | null {
     : null;
 }
 
-type ServerSupabaseClient = ReturnType<typeof createServerClient>;
-
-async function resolveUser(
-  request: NextRequest,
-  supabase: ServerSupabaseClient
-) {
-  const authorization = request.headers.get("authorization");
-  const bearerToken = authorization?.startsWith("Bearer ")
-    ? authorization.slice("Bearer ".length)
-    : null;
-
-  if (bearerToken) {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/auth/v1/user`,
-        {
-          headers: {
-            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            Authorization: `Bearer ${bearerToken}`,
-          },
-          cache: "no-store",
-        }
-      );
-
-      if (response.ok) {
-        const data = (await response.json()) as User;
-        if (data?.id) {
-          return { user: data, error: null, accessToken: bearerToken } as const;
-        }
-      }
-    } catch {
-      // Ignore bearer resolution failures and fall back to cookie-based lookup.
-    }
-  }
-
-  const { data, error } = await supabase.auth.getUser();
-  return { user: data.user, error, accessToken: null } as const;
-}
+// Build one per-request Supabase client (cookie-bound) and fetch user once when needed.
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,26 +43,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const cookieStore = await cookies();
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          },
-        },
-      }
-    );
-
-  const { user, error: authError, accessToken } = await resolveUser(request, supabase);
+  const supabase = await createRouteSupabaseClient(request);
+  const { data: userData, error: authError } = await supabase.auth.getUser();
+  const user = userData?.user ?? null;
 
     if (authError && authError.message && authError.message !== "Auth session missing") {
       return NextResponse.json(
@@ -124,21 +68,7 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
     };
 
-    const writerClient: SupabaseClient = accessToken
-      ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-          },
-          global: {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          },
-        })
-      : (supabase as unknown as SupabaseClient);
-
-    const { error: upsertError } = await writerClient
+    const { error: upsertError } = await supabase
       .from("user_activity")
       .upsert(payload, {
         onConflict: "user_id,article_id,event_type",

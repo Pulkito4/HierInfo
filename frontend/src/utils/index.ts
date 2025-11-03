@@ -1,2 +1,1 @@
-export * from "./general";
-export * from "./preferences";
+export * from "./general_utils";
