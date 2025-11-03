@@ -335,9 +335,16 @@ static async fetchArticles(options: FetchArticlesOptions = {}): Promise<FetchArt
         offset: String(offset)
       });
 
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
       const response = await fetch(`/api/feed/trending?${params.toString()}`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
       });
 
@@ -372,9 +379,16 @@ static async fetchArticles(options: FetchArticlesOptions = {}): Promise<FetchArt
         offset: String(offset)
       });
 
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
       const response = await fetch(`/api/feed/critical?${params.toString()}`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
       });
 

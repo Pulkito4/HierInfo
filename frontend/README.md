@@ -34,3 +34,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Backend prerequisites (Supabase)
+
+This app expects a Supabase backend with the following database objects already created:
+
+- Table: `profiles` with columns at minimum: `id uuid primary key references auth.users`, `username text`, `preferences jsonb`.
+- SQL functions used by the Explore feed:
+	- `get_similar_articles(liked_article_ids uuid[], excluded_article_ids uuid[], result_limit int)`
+	- `get_discovery_articles(excluded_article_ids uuid[], result_limit int)`
+
+Make sure Row Level Security (RLS) policies allow authenticated users to read from your article tables and the cache tables used by Trending/Critical feeds.
+
+Without these functions/tables, the Explore feed and personalization features will not work. See the backend README or database setup docs in this repo for the exact SQL definitions.

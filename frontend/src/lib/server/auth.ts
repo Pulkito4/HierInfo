@@ -42,8 +42,42 @@ function buildRouteClient(cookieStore: CookieStore): SupabaseClient {
  * Create a Supabase client bound to this request's cookies.
  * Use this for routes that do NOT need to know the user (public data).
  */
-export async function createRouteSupabaseClient(_request: NextRequest): Promise<SupabaseClient> {
+export async function createRouteSupabaseClient(request: NextRequest): Promise<SupabaseClient> {
   const cookieStore = await cookies();
+  // Support Authorization: Bearer <token> for API calls that include it (e.g., client fetches)
+  const authorization = request.headers.get('authorization');
+  const bearer = authorization && authorization.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length)
+    : null;
+
+  // If we have a bearer, prefer attaching it so auth.getUser() works even without cookies
+  if (bearer) {
+    // create a client with global header
+    // We reuse buildRouteClient by temporarily augmenting cookieStore via a wrapper
+    // Simpler: we clone buildRouteClient here to inject headers using createServerClient options
+    return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options: cookieOptions }) => {
+            cookieStore.set(name, value, cookieOptions as CookieOptions);
+          });
+        },
+      },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${bearer}`,
+        },
+      },
+    });
+  }
+
   return buildRouteClient(cookieStore);
 }
 

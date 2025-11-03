@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteSupabaseClient } from "@/lib/server/auth";
+import { CRITICAL_API_MAX_LIMIT } from "@/lib/constants";
 import type { CriticalCacheRow } from "@/types/api";
 import type { Article } from "@/types/articles";
 
@@ -8,7 +9,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createRouteSupabaseClient(request);
 
     const { searchParams } = new URL(request.url);
-  const limit = Math.max(1, Math.min(parseInt(searchParams.get("limit") || "10", 10), 10));
+  const limit = Math.max(1, Math.min(parseInt(searchParams.get("limit") || String(CRITICAL_API_MAX_LIMIT), 10), CRITICAL_API_MAX_LIMIT));
     const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
     const { data: cacheData, error: cacheError } = await supabase
@@ -61,6 +62,7 @@ export async function GET(request: NextRequest) {
     );
     const hasMore = offset + paginatedArticles.length < total;
 
+    console.info('[critical] source=cache total=%d page=%d size=%d', total, offset, paginatedArticles.length);
     return NextResponse.json({
       articles: paginatedArticles,
       pagination: {

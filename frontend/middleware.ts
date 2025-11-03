@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
   const isApiRoute = pathname.startsWith('/api/');
   
   // Define protected routes
-  const protectedRoutes = ['/home', '/categories', '/api/feed', '/api/user-activity'];
+  const protectedRoutes = ['/home', '/categories', '/api/feed', '/api/user-activity', '/api/explore'];
   const authRoutes = ['/login', '/sign-up'];
   // Note: Public routes are not processed by middleware to avoid extra work
   
@@ -24,9 +24,11 @@ export async function middleware(request: NextRequest) {
   );
   
   if (isProtectedRoute || isAuthRoute) {
-    // Fast short-circuit using cookies: avoid calling Supabase if unnecessary
-    const accessToken = request.cookies.get('sb-access-token')?.value;
-    const hasSessionCookie = Boolean(accessToken);
+  // Fast short-circuit using cookies or Authorization header: avoid calling Supabase if unnecessary
+  const accessToken = request.cookies.get('sb-access-token')?.value;
+  const hasSessionCookie = Boolean(accessToken);
+  const authHeader = request.headers.get('authorization') || '';
+  const hasBearer = authHeader.startsWith('Bearer ');
 
     // If accessing auth routes while having a session cookie, skip SSR auth call and redirect
     if (isAuthRoute && hasSessionCookie) {
@@ -35,8 +37,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(homeUrl);
     }
 
-    // If accessing protected route without any session cookie, immediately redirect
-    if (isProtectedRoute && !hasSessionCookie) {
+    // If accessing protected route without any session cookie or bearer, immediately block
+    if (isProtectedRoute && !hasSessionCookie && !hasBearer) {
       if (isApiRoute) {
         return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
       }
@@ -101,13 +103,15 @@ export async function middleware(request: NextRequest) {
       // or for auth routes without a cookie we already handled above.
       let user: User | null = null;
 
-      if (hasSessionCookie && isProtectedRoute) {
+      // For API routes with Bearer, skip server-side validation (route will handle getUser) to avoid extra call
+      const shouldValidate = isProtectedRoute && (hasSessionCookie && !hasBearer);
+      if (shouldValidate) {
         const { data } = await supabase.auth.getUser();
         user = data.user ?? null;
       }
 
       // If no user and trying to access protected route, redirect to home
-      if (isProtectedRoute && !user) {
+      if (isProtectedRoute && !user && !(isApiRoute && hasBearer)) {
         if (isApiRoute) {
           return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
         }
@@ -163,6 +167,7 @@ export const config = {
     '/categories/:path*',
     '/api/feed/:path*',
     '/api/user-activity',
+    '/api/explore',
     '/login',
     '/sign-up',
   ],

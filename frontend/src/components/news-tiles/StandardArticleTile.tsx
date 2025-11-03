@@ -13,28 +13,8 @@ type StandardArticleTileProps = {
 
 const StandardArticleTile: React.FC<StandardArticleTileProps> = ({ article }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [fullContent, setFullContent] = useState<string | null>(null);
-  const [isLoadingContent, setIsLoadingContent] = useState(false);
-
-  const handleReadMore = async () => {
-    if (!isExpanded && !fullContent) {
-      // Fetch full article content
-      setIsLoadingContent(true);
-      try {
-        // You can fetch the full content from your API here
-        // For now, I'll simulate with a timeout and use the summary + URL
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setFullContent(
-          `${article.summary || ''}\n`
-        );
-      } catch (error) {
-        console.error('Error loading full content:', error);
-        setFullContent('Error loading full content. Please try again.');
-      } finally {
-        setIsLoadingContent(false);
-      }
-    }
-    setIsExpanded(!isExpanded);
+  const handleReadMore = () => {
+    setIsExpanded((v) => !v);
   };
 
   return (
@@ -71,17 +51,7 @@ const StandardArticleTile: React.FC<StandardArticleTileProps> = ({ article }) =>
           ) : (
             // Show full content when expanded
             <div className="text-gray-200 dark:text-gray-300 text-sm">
-              {isLoadingContent ? (
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-600 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-600 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-600 rounded w-3/4"></div>
-                </div>
-              ) : (
-                <>
-                  <p className="whitespace-pre-line">{fullContent}</p>
-                </>
-              )}
+              <p className="whitespace-pre-line">{article.summary || ''}</p>
             </div>
           )}
         </div>

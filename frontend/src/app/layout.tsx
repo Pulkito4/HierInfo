@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { QueryProvider } from "@/lib/react-query";
+import { QueryProvider, RealtimeCacheInvalidator } from "@/lib/react-query";
 import { AuthProvider } from "@/lib/authContext";
 import { Toaster } from "sonner";
 
@@ -32,6 +32,7 @@ export default function RootLayout({
       >
         <QueryProvider>
           <AuthProvider>
+            <RealtimeCacheInvalidator />
             {children}
           </AuthProvider>
         </QueryProvider>

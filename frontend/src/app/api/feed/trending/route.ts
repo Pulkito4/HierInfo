@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteSupabaseClient } from "@/lib/server/auth";
+import { TRENDING_API_MAX_LIMIT } from "@/lib/constants";
 import type { TrendingCacheRow } from "@/types/api";
 import type { Article } from "@/types/articles";
 
@@ -8,7 +9,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createRouteSupabaseClient(request);
 
     const { searchParams } = new URL(request.url);
-    const limit = Math.max(1, Math.min(parseInt(searchParams.get("limit") || "10", 10), 10));
+  const limit = Math.max(1, Math.min(parseInt(searchParams.get("limit") || String(TRENDING_API_MAX_LIMIT), 10), TRENDING_API_MAX_LIMIT));
     const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
     const {
@@ -27,6 +28,14 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    console.info(
+      '[trending] cache fetch rows=%d offset=%d limit=%d error=%o',
+      (cacheRows ?? []).length,
+      offset,
+      limit,
+      cacheError
+    );
 
     const articleIds = ((cacheRows ?? []) as TrendingCacheRow[]).map(
       (row) => row.article_id
@@ -86,6 +95,7 @@ export async function GET(request: NextRequest) {
         articles = (fallbackArticles ?? []) as Article[];
         source = 'fallback';
 
+        console.info('[trending] source=fallback cacheSize=%d missingIds=%o', articleIds.length, missingIds);
         return NextResponse.json({
           articles,
           pagination: {
@@ -93,11 +103,6 @@ export async function GET(request: NextRequest) {
             offset,
             total: fallbackArticles?.length ?? 0,
             hasMore: false,
-          },
-          metadata: {
-            source,
-            cacheSize: articleIds.length,
-            missingIds,
           },
         });
       }
@@ -127,6 +132,7 @@ export async function GET(request: NextRequest) {
     const total = count ?? 0;
     const hasMore = offset + articles.length < total;
 
+    console.info('[trending] source=%s cacheSize=%d missingIds=%o', source, articleIds.length, missingIds);
     return NextResponse.json({
       articles,
       pagination: {
@@ -134,11 +140,6 @@ export async function GET(request: NextRequest) {
         offset,
         total,
         hasMore,
-      },
-      metadata: {
-        source,
-        cacheSize: articleIds.length,
-        missingIds,
       },
     });
   } catch (error) {

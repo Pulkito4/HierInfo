@@ -11,25 +11,8 @@ type WideArticleTileProps = {
 
 const WideArticleTile: React.FC<WideArticleTileProps> = ({ article }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [fullContent, setFullContent] = useState<string | null>(null);
-  const [isLoadingContent, setIsLoadingContent] = useState(false);
-
-  const handleReadMore = async () => {
-    if (!isExpanded && !fullContent) {
-      setIsLoadingContent(true);
-      try {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setFullContent(
-          `${article.summary || ''}\n`
-        );
-      } catch (error) {
-        console.error('Error loading full content:', error);
-        setFullContent('Error loading full content. Please try again.');
-      } finally {
-        setIsLoadingContent(false);
-      }
-    }
-    setIsExpanded(!isExpanded);
+  const handleReadMore = () => {
+    setIsExpanded((v) => !v);
   };
   return (
     <div 
@@ -89,17 +72,7 @@ const WideArticleTile: React.FC<WideArticleTileProps> = ({ article }) => {
             )
           ) : (
             <div className="text-gray-200 dark:text-gray-300 text-lg sm:text-base">
-              {isLoadingContent ? (
-                <div className="animate-pulse">
-                  <div className="h-3 sm:h-4 bg-gray-600 rounded mb-2"></div>
-                  <div className="h-3 sm:h-4 bg-gray-600 rounded mb-2"></div>
-                  <div className="h-3 sm:h-4 bg-gray-600 rounded w-3/4"></div>
-                </div>
-              ) : (
-                <>
-                  <p className="whitespace-pre-line mb-4 leading-relaxed">{fullContent}</p>
-                </>
-              )}
+              <p className="whitespace-pre-line mb-4 leading-relaxed">{article.summary || ''}</p>
             </div>
           )}
         </div>

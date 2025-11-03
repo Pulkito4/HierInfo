@@ -11,7 +11,8 @@ import { Earth, Settings, Smile, TrendingUp } from 'lucide-react';
 import React, { useCallback, Suspense } from 'react'
 import Image from 'next/image';
 import AllTiles from '@/components/news-tiles/AllTiles';
-import { useArticles, useUserFeed } from '@/hooks/useArticles';
+import { useForYouFeed, useTrendingFeed, useExploreFeed } from '@/lib/react-query/feeds';
+import { SKELETON_ARTICLES_COUNT, SKELETON_EXPLORE_COUNT } from '@/lib/constants';
 import { useAuth } from '@/lib/authContext';
 import LoadingSkeleton from '@/components/ui/loading-skeleton';
 import ErrorMessage from '@/components/ui/error-message';
@@ -52,25 +53,11 @@ const HomepageContent = () => {
   }, [router, searchParams]);
 
   // Hooks for different tabs
-  const personalFeed = useUserFeed(user?.id || null, {
-    enabled: activeTab === 'personal' && personalSubTab === 'feed' && !!user?.id,
-    limit: 15
-  });
+  const personalFeed = useForYouFeed(15);
 
-  const trendingNews = useArticles({
-    enabled: activeTab === 'personal' && personalSubTab === 'trending',
-    limit: 10,
-    onlyTrending: true,
-    sortBy: 'trending_score',
-    sortOrder: 'desc'
-  });
+  const trendingNews = useTrendingFeed(10);
 
-  const exploreArticles = useArticles({
-    enabled: activeTab === 'explore',
-    limit: 20,
-    sortBy: 'trending_score',
-    sortOrder: 'desc'
-  });
+  const exploreFeed = useExploreFeed(20);
 
   const PersonalTabNavigation = () => (
     <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mb-6">
@@ -121,7 +108,7 @@ const HomepageContent = () => {
           {personalSubTab === 'feed' ? (
             <div>
               {isLoading(personalFeed.loading) && personalFeed.articles.length === 0 ? (
-                <LoadingSkeleton type="articles" count={6} />
+                <LoadingSkeleton type="articles" count={SKELETON_ARTICLES_COUNT} />
               ) : personalFeed.error ? (
                 <ErrorMessage error={personalFeed.error} onRetry={personalFeed.refetch} />
               ) : personalFeed.articles.length === 0 && personalFeed.loading === 'success' ? (
@@ -132,7 +119,7 @@ const HomepageContent = () => {
                       No articles to show
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                      {personalFeed.message ?? "We couldn't find any articles matching your selected categories. Try adding more categories in your settings or check back later for new content."}
+                      {personalFeed.message ?? "You're all caught up for today! Check back later, or adjust your categories in Settings to see more."}
                     </p>
                     <div className="space-x-2">
                       <button
@@ -168,10 +155,7 @@ const HomepageContent = () => {
                     </button> */}
                   </div>
                   <AllTiles 
-                    articles={personalFeed.articles} 
-                    onLoadMore={personalFeed.fetchMore}
-                    hasMore={personalFeed.hasMore}
-                    loading={personalFeed.loading === 'loading'}
+                    articles={personalFeed.articles}
                   />
                 </div>
               )}
@@ -179,10 +163,28 @@ const HomepageContent = () => {
           ) : (
             <div>
               {/* <CriticalNewsIndicator /> */}
-              {isLoading(trendingNews.loading) && trendingNews.articles.length === 0 ? (
-                <LoadingSkeleton type="articles" count={6} />
+              {isLoading(trendingNews.loading as LoadingState) && trendingNews.articles.length === 0 ? (
+                <LoadingSkeleton type="articles" count={SKELETON_ARTICLES_COUNT} />
               ) : trendingNews.error ? (
                 <ErrorMessage error={trendingNews.error} onRetry={trendingNews.refetch} />
+              ) : trendingNews.articles.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 px-4">
+                  <div className="text-center space-y-4">
+                    <div className="text-6xl mb-4">🔥</div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      No trending stories right now
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                      We’ll refresh this soon. Try again in a bit.
+                    </p>
+                    <button
+                      onClick={() => trendingNews.refetch()}
+                      className="inline-flex items-center px-4 py-2 bg-gray-700 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
@@ -202,10 +204,7 @@ const HomepageContent = () => {
                     </button> */}
                   </div>
                   <AllTiles 
-                    articles={trendingNews.articles} 
-                    onLoadMore={trendingNews.fetchMore}
-                    hasMore={trendingNews.hasMore}
-                    loading={trendingNews.loading === 'loading'}
+                    articles={trendingNews.articles}
                   />
                 </div>
               )}
@@ -215,23 +214,41 @@ const HomepageContent = () => {
       );
 
     case 'explore':
-      if (isLoading(exploreArticles.loading) && exploreArticles.articles.length === 0) {
-        return <LoadingSkeleton type="articles" count={8} />;
+      if (isLoading(exploreFeed.loading as LoadingState) && exploreFeed.articles.length === 0) {
+        return <LoadingSkeleton type="articles" count={SKELETON_EXPLORE_COUNT} />;
       }
-      if (exploreArticles.error) {
-        return <ErrorMessage error={exploreArticles.error} onRetry={exploreArticles.refetch} />;
+      if (exploreFeed.error) {
+        return <ErrorMessage error={exploreFeed.error} onRetry={exploreFeed.refetch} />;
+      }
+      if (exploreFeed.articles.length === 0) {
+        return (
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="text-center space-y-4">
+              <div className="text-6xl mb-4">🧭</div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Nothing to explore yet</h3>
+              <p className="text-gray-600 dark:text-gray-400 max-w-md">We’ll curate fresh picks soon. Try again in a moment.</p>
+              <button
+                onClick={() => exploreFeed.refetch()}
+                className="inline-flex items-center px-4 py-2 bg-gray-700 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        );
       }
       return (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Trending & Latest</h2>
+            <h2 className="text-2xl font-bold">Curated Shuffle</h2>
             {/* Add CategoryFilter component here when ready */}
           </div>
           <AllTiles 
-            articles={exploreArticles.articles}
-            onLoadMore={exploreArticles.fetchMore}
-            hasMore={exploreArticles.hasMore}
-            loading={exploreArticles.loading === 'loading'}
+            articles={exploreFeed.articles}
+            onLoadMore={exploreFeed.fetchMore}
+            hasMore={exploreFeed.hasMore}
+            loading={exploreFeed.loading === 'loading'}
+            infiniteScroll
           />
         </div>
       );
@@ -315,7 +332,7 @@ const HomepageContent = () => {
 const Homepage = () => {
   return (
     <ProtectedRoute>
-      <Suspense fallback={<LoadingSkeleton type="articles" count={6} />}>
+      <Suspense fallback={<LoadingSkeleton type="articles" count={SKELETON_ARTICLES_COUNT} />}>
         <HomepageContent />
       </Suspense>
     </ProtectedRoute>

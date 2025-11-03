@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ThumbsUp } from 'lucide-react';
 import { useArticleActivity } from '@/hooks/useArticleActivity';
 import type { Article } from '@/types/articles';
 
@@ -43,12 +43,7 @@ const ArticleActions: React.FC<ArticleActionsProps> = ({
     onLike?.(article.id);
   };
 
-  const handleDislike = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  trackActivity('dislike');
-    onDislike?.(article.id);
-  };
+  // Dislike is disabled per product decision; keep enum intact in DB but do not emit events
 
   // Size variants
   const sizeClasses = {
@@ -146,13 +141,6 @@ const ArticleActions: React.FC<ArticleActionsProps> = ({
                 title="Like this article"
               >
                 <ThumbsUp className={sizes.icon} />
-              </button>
-              <button
-                onClick={handleDislike}
-                className={`${sizes.button} ${colors.button} ${colors.dislikeHover} transition-colors rounded`}
-                title="Dislike this article"
-              >
-                <ThumbsDown className={sizes.icon} />
               </button>
             </div>
           )}

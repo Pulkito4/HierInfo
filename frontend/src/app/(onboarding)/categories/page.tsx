@@ -13,6 +13,9 @@ import LoadingSkeleton from "@/components/ui/loading-skeleton";
 import ErrorMessage from "@/components/ui/error-message";
 import { useAuth } from "@/lib/authContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useQueryClient } from "@tanstack/react-query";
+import { feedQueryKeys } from "@/lib/react-query";
+import { CATEGORY_SKELETON_COUNT } from "@/lib/constants";
 
 const CategoriesPage = () => {
   const { user } = useAuth();
@@ -21,6 +24,7 @@ const CategoriesPage = () => {
   const [saving, setSaving] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     categories,
@@ -87,6 +91,8 @@ const CategoriesPage = () => {
         selectedCategories
       );
       if (result.error) throw result.error;
+      // Proactively invalidate the For You feed so updates reflect immediately
+      queryClient.invalidateQueries({ queryKey: feedQueryKeys.forYou(user.id) });
       toast.success("Preferences saved successfully!");
       router.push("/home");
     } catch (error) {
@@ -165,7 +171,7 @@ const CategoriesPage = () => {
               />
             ) : categoriesLoading === "loading" ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {Array.from({ length: 8 }).map((_, i) => (
+                {Array.from({ length: CATEGORY_SKELETON_COUNT }).map((_, i) => (
                   <div
                     key={i}
                     className="h-20 bg-[#121C3F] rounded-lg animate-pulse"

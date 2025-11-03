@@ -152,20 +152,21 @@ export const handleAuthCallback = async () => {
 
     // Check if profile exists
     const { profile } = await checkUserProfile(user.id);
-    
-    const isNewUser = !profile;
+    let isNewUser = !profile;
 
-    // If new user and email is confirmed, create profile
-    if (isNewUser && user.email_confirmed_at) {
-      // Extract username from email as fallback
-      const username = user.email?.split('@')[0] || 'user';
-      
-      const { error: profileError } = await createUserProfile(user.id, username);
-      
+    // Ensure profile exists for ALL new users (email or OAuth) before redirecting
+    if (isNewUser) {
+      const usernameFromMeta =
+        (user.user_metadata as Record<string, unknown>)?.['username'] as string | undefined ||
+        (user.user_metadata as Record<string, unknown>)?.['full_name'] as string | undefined ||
+        user.email?.split('@')[0] ||
+        'user';
+
+      const { error: profileError } = await createUserProfile(user.id, usernameFromMeta);
       if (profileError) {
-        // Continue anyway - profile can be created later
-        // nope.. profile creation needs to be there
+        return { user: null, error: profileError, isNewUser: false };
       }
+      isNewUser = true;
     }
 
     return { user, error: null, isNewUser };

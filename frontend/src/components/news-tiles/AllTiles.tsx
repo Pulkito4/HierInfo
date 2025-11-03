@@ -1,4 +1,5 @@
-import React from 'react';
+"use client";
+import React, { useEffect, useRef } from 'react';
 import StandardArticleTile from './StandardArticleTile';
 import FeaturedArticleTile from './FeaturedArticleTile';
 import WideArticleTile from './WideArticleTile';
@@ -11,6 +12,7 @@ type AllTilesProps = {
   hasMore?: boolean;
   loading?: boolean;
   showFeatured?: boolean;
+  infiniteScroll?: boolean;
 };
 
 type LayoutSection = {
@@ -19,7 +21,27 @@ type LayoutSection = {
   className: string;
 };
 
-const AllTiles: React.FC<AllTilesProps> = ({ articles }) => {
+const AllTiles: React.FC<AllTilesProps> = ({ articles, onLoadMore, hasMore, loading, infiniteScroll }) => {
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // IntersectionObserver-based infinite scroll (used for Explore feed)
+  useEffect(() => {
+    if (!infiniteScroll || !onLoadMore || !hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    let triggered = false;
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (entry.isIntersecting && !triggered && !loading) {
+        triggered = true;
+        onLoadMore();
+      }
+    }, { root: null, rootMargin: '200px', threshold: 0 });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [infiniteScroll, onLoadMore, hasMore, loading]);
   const createLayoutPattern = (articleList: Article[]): LayoutSection[] => {
     const layout: LayoutSection[] = [];
     let index = 0;
@@ -106,8 +128,25 @@ const AllTiles: React.FC<AllTilesProps> = ({ articles }) => {
           </div>
         ))}
       </div>
-      
-      {/* Load more button and other existing code */}
+      {/* Infinite scroll sentinel (Explore only) */}
+      {infiniteScroll && hasMore && (
+        <div ref={sentinelRef} className="h-8 flex items-center justify-center text-sm text-gray-400">
+          {loading ? 'Loading…' : ''}
+        </div>
+      )}
+
+      {/* Fallback Load More button (not used for Explore). Avoid passing onLoadMore for Trending/For You */}
+      {!infiniteScroll && onLoadMore && hasMore && (
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={onLoadMore}
+            disabled={loading}
+            className="px-4 py-2 rounded-md bg-gray-900 text-white disabled:opacity-60 disabled:cursor-not-allowed hover:bg-gray-800 transition-colors"
+          >
+            {loading ? 'Loading…' : 'Load More'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

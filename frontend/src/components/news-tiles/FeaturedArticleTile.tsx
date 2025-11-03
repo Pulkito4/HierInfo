@@ -10,8 +10,6 @@ type FeaturedArticleTileProps = {
 
 const FeaturedArticleTile: React.FC<FeaturedArticleTileProps> = ({ article }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [fullContent, setFullContent] = useState<string | null>(null);
-  const [isLoadingContent, setIsLoadingContent] = useState(false);
 
   // If no image, use a gradient background instead
   const tileStyle = article.image_url 
@@ -22,22 +20,8 @@ const FeaturedArticleTile: React.FC<FeaturedArticleTileProps> = ({ article }) =>
         background: 'linear-gradient(45deg, #0d1b2a 0%, #2a3a5c 100%)', // Fallback gradient
       };
 
-  const handleReadMore = async () => {
-    if (!isExpanded && !fullContent) {
-      setIsLoadingContent(true);
-      try {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setFullContent(
-          `${article.summary || ''}\n`
-        );
-      } catch (error) {
-        console.error('Error loading full content:', error);
-        setFullContent('Error loading full content. Please try again.');
-      } finally {
-        setIsLoadingContent(false);
-      }
-    }
-    setIsExpanded(!isExpanded);
+  const handleReadMore = () => {
+    setIsExpanded((v) => !v);
   };
 
   return (
@@ -66,20 +50,9 @@ const FeaturedArticleTile: React.FC<FeaturedArticleTileProps> = ({ article }) =>
           ) : (
             // Show full content when expanded
             <div className="text-sm opacity-90 max-h-64 overflow-y-auto">
-              {isLoadingContent ? (
-                <div className="animate-pulse">
-                  <div className="h-4 bg-white/30 rounded mb-2"></div>
-                  <div className="h-4 bg-white/30 rounded mb-2"></div>
-                  <div className="h-4 bg-white/30 rounded w-3/4"></div>
-                </div>
-              ) : (
-                <>
-                  <p className="whitespace-pre-line bg-black/60 backdrop-blur-lg text-white font-medium p-4 rounded-lg">
-  {fullContent}
-</p>
-                  
-                </>
-              )}
+              <p className="whitespace-pre-line bg-black/60 backdrop-blur-lg text-white font-medium p-4 rounded-lg">
+                {article.summary || ''}
+              </p>
             </div>
           )}
         </div>

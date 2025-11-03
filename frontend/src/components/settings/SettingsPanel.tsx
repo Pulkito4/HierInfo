@@ -13,6 +13,10 @@ const SettingsPanel = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [profile, setProfile] = useState<{ username?: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [usernameInput, setUsernameInput] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -29,6 +33,7 @@ const SettingsPanel = () => {
           console.error('Error fetching profile:', error);
         } else {
           setProfile(data);
+          setUsernameInput(data?.username ?? '');
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -70,6 +75,31 @@ const SettingsPanel = () => {
     }
   };
 
+  const handleSaveUsername = async () => {
+    if (!user) return;
+    setSaving(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ username: usernameInput })
+        .eq('id', user.id);
+      if (error) {
+        setSaveError(error.message ?? 'Failed to update username');
+        return;
+      }
+      setProfile((p) => ({ ...(p ?? {}), username: usernameInput }));
+      setSaveSuccess('Username updated');
+      // hide success after a short delay
+      setTimeout(() => setSaveSuccess(null), 2000);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="max-w-2xl mx-auto p-6">
@@ -98,12 +128,30 @@ const SettingsPanel = () => {
             User Profile
           </h3>
         </div>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600 dark:text-gray-400">Username:</span>
-            <span className="text-sm text-gray-900 dark:text-gray-100">
-              {loading ? 'Loading...' : (profile?.username || 'Not set')}
-            </span>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Username
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                placeholder={loading ? 'Loading…' : 'Enter a username'}
+                className="flex-1 rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading || saving}
+              />
+              <Button onClick={handleSaveUsername} disabled={loading || saving}>
+                {saving ? 'Saving…' : 'Save'}
+              </Button>
+            </div>
+            {saveError && (
+              <p className="text-sm text-red-500 mt-2">{saveError}</p>
+            )}
+            {saveSuccess && (
+              <p className="text-sm text-green-500 mt-2">{saveSuccess}</p>
+            )}
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600 dark:text-gray-400">Email:</span>

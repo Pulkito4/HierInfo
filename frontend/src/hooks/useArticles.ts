@@ -160,7 +160,7 @@ export function useUserFeed(userId: string | null, options: Omit<UseArticlesOpti
         ...restOptions,
         limit,
       });
-      
+
       if (response.error) {
         throw response.error;
       }
@@ -229,7 +229,7 @@ export function useArticle(articleId: string | null) {
 
     try {
       const response = await NewsService.fetchArticleById(articleId);
-      
+
       if (response.error) {
         throw response.error;
       }
