@@ -1,15 +1,17 @@
 'use client';
 
-import { Article } from "@/types";
 import ArticleActions from "./ArticleActions";
 import { useState } from "react";
-import { useArticleImpression } from "@/hooks/useArticleImpression";
+import type { Article } from "@/types/articles";
 
-const CompactFeaturedTile: React.FC<{ article: Article }> = ({ article }) => {
+type CompactFeaturedTileProps = {
+  article: Article;
+};
+
+const CompactFeaturedTile: React.FC<CompactFeaturedTileProps> = ({ article }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [fullContent, setFullContent] = useState<string | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
-  const { ref: impressionRef } = useArticleImpression(article.id);
 
   const handleReadMore = async () => {
     if (!isExpanded && !fullContent) {
@@ -38,7 +40,6 @@ const CompactFeaturedTile: React.FC<{ article: Article }> = ({ article }) => {
 
   return (
     <div
-      ref={impressionRef}
       className={`w-full ${isExpanded ? 'h-auto min-h-64' : 'h-84'} rounded-lg bg-cover bg-center text-white p-6 flex flex-col justify-end relative overflow-hidden group transition-all duration-300`}
     >
       <div

@@ -1,7 +1,9 @@
 import { supabase } from './supabase';
-import { Article, Category } from '@/types';
+import { getDayBoundaries, parseCategoryPreferences } from '@/utils';
+import type { Article } from '@/types/articles';
+import type { Category } from '@/types/categories';
 
-export interface FetchArticlesOptions {
+export type FetchArticlesOptions = {
   limit?: number;
   offset?: number;
   categoryId?: string;
@@ -10,9 +12,9 @@ export interface FetchArticlesOptions {
   sortOrder?: 'asc' | 'desc';
   onlyTrending?: boolean;
   onlyCritical?: boolean;
-}
+};
 
-export interface FetchArticlesResult {
+export type FetchArticlesResult = {
   articles: Article[];
   error: Error | null;
   count: number;
@@ -24,39 +26,9 @@ export interface FetchArticlesResult {
     hasMore: boolean;
   };
   metadata?: Record<string, unknown>;
-}
+};
 
 const DEFAULT_FETCH_LIMIT = 20;
-
-function parseCategoryPreferences(preferences: unknown): string[] {
-  if (!preferences) return [];
-
-  if (typeof preferences === 'string') {
-    return preferences ? [preferences] : [];
-  }
-
-  if (Array.isArray(preferences)) {
-    return preferences.filter((value): value is string => typeof value === 'string' && value.length > 0);
-  }
-
-  if (typeof preferences === 'object' && preferences !== null) {
-    const maybeCategoryIds = (preferences as { categoryIds?: unknown }).categoryIds;
-    if (Array.isArray(maybeCategoryIds)) {
-      return maybeCategoryIds.filter((value): value is string => typeof value === 'string' && value.length > 0);
-    }
-  }
-
-  return [];
-}
-
-function getDayBoundaries() {
-  const now = new Date();
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { start, end };
-}
 
 export class NewsService {
 
@@ -157,9 +129,19 @@ static async fetchArticles(options: FetchArticlesOptions = {}): Promise<FetchArt
       const limit = options.limit ?? DEFAULT_FETCH_LIMIT;
       const params = new URLSearchParams({ limit: String(Math.max(1, Math.min(limit, 50))) });
 
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const response = await fetch(`/api/feed?${params.toString()}`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
       });
 
@@ -256,9 +238,10 @@ static async fetchArticles(options: FetchArticlesOptions = {}): Promise<FetchArt
           continue;
         }
 
-        seen.add(articleId);
-        const { article_categories, ...rest } = candidate as Record<string, unknown>;
-        articles.push(rest as Article);
+  seen.add(articleId);
+  const { article_categories: articleCategoriesJoin, ...rest } = candidate as Record<string, unknown>;
+  void articleCategoriesJoin;
+  articles.push(rest as Article);
 
         if (articles.length >= limit) {
           break;

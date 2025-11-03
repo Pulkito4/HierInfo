@@ -22,7 +22,7 @@ export function ContainerTextFlipDemo() {
       <div className="inline-block p-3">
         <h1 className="mb-2">Welcome to <span className="text-teal-400">HeirInfo</span></h1>
         
-        <h2 className="text-7xl gap-x-1">Stay ahead with news that's <br/> <ContainerTextFlip words={words} /></h2> 
+  <h2 className="text-7xl gap-x-1">Stay ahead with news that&apos;s <br/> <ContainerTextFlip words={words} /></h2> 
         {/* <Blips /> */}
       </div>
     </motion.h1>

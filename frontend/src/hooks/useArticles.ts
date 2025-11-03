@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import { Article, LoadingState, PaginationState } from '@/types';
-import { FetchArticlesOptions, NewsService } from '@/lib/newService';
+import type { Article } from '@/types/articles';
+import type { LoadingState, PaginationState } from '@/types/shared';
+import { NewsService } from '@/lib/newService';
+import type { FetchArticlesOptions } from '@/lib/newService';
 
-interface UseArticlesOptions extends FetchArticlesOptions {
+type UseArticlesOptions = FetchArticlesOptions & {
   enabled?: boolean; // Whether to auto-fetch on mount
   refetchInterval?: number; // Auto-refetch interval in ms
-}
+};
 
-interface UseArticlesReturn {
+type UseArticlesReturn = {
   articles: Article[];
   loading: LoadingState;
   error: Error | null;
@@ -17,7 +19,7 @@ interface UseArticlesReturn {
   fetchMore: () => Promise<void>;
   hasMore: boolean;
   refresh: () => Promise<void>;
-}
+};
 
 export function useArticles(options: UseArticlesOptions = {}): UseArticlesReturn {
   const {

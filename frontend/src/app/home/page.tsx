@@ -15,9 +15,9 @@ import { useArticles, useUserFeed } from '@/hooks/useArticles';
 import { useAuth } from '@/lib/authContext';
 import LoadingSkeleton from '@/components/ui/loading-skeleton';
 import ErrorMessage from '@/components/ui/error-message';
-import { LoadingState } from '@/types';
 import SettingsPanel from '@/components/settings/SettingsPanel';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import type { LoadingState } from '@/types/shared';
 import { useRouter, useSearchParams } from 'next/navigation';
 const HomepageContent = () => {
   const router = useRouter();
@@ -59,9 +59,9 @@ const HomepageContent = () => {
 
   const trendingNews = useArticles({
     enabled: activeTab === 'personal' && personalSubTab === 'trending',
-    limit: 20,
-    onlyCritical: true,
-    sortBy: 'published_at',
+    limit: 10,
+    onlyTrending: true,
+    sortBy: 'trending_score',
     sortOrder: 'desc'
   });
 

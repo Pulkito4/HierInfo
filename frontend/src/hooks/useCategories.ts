@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 
-import { Category, LoadingState } from '@/types';
+import type { Category } from '@/types/categories';
+import type { LoadingState } from '@/types/shared';
 import { NewsService } from '@/lib/newService';
 
-interface UseCategoriesReturn {
+type UseCategoriesReturn = {
   categories: Category[];
   loading: LoadingState;
   error: Error | null;
   refetch: () => Promise<void>;
-}
+};
 
 export function useCategories(): UseCategoriesReturn {
   const [categories, setCategories] = useState<Category[]>([]);

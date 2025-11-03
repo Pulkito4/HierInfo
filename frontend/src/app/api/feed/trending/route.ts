@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { Article } from "@/types";
-
-type TrendingCacheRow = {
-  rank: number;
-  article_id: string;
-};
+import type { TrendingCacheRow } from "@/types/api";
+import type { Article } from "@/types/articles";
 
 async function createSupabaseClient() {
   const cookieStore = await cookies();
@@ -37,20 +33,8 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseClient();
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
-    const limit = Math.max(1, Math.min(parseInt(searchParams.get("limit") || "20", 10), 50));
+    const limit = Math.max(1, Math.min(parseInt(searchParams.get("limit") || "10", 10), 10));
     const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
     const {
@@ -73,7 +57,9 @@ export async function GET(request: NextRequest) {
     const articleIds = ((cacheRows ?? []) as TrendingCacheRow[]).map(
       (row) => row.article_id
     );
-    let articles: Article[] = [];
+  let articles: Article[] = [];
+  let source: 'cache' | 'fallback' = 'cache';
+  let missingIds: string[] = [];
 
     if (articleIds.length > 0) {
       const {
@@ -100,6 +86,68 @@ export async function GET(request: NextRequest) {
       articles = articleIds
         .map((id) => articleMap.get(id))
         .filter((item): item is Article => Boolean(item));
+
+  missingIds = articleIds.filter((id) => !articleMap.has(id));
+      if (missingIds.length > 0) {
+        source = 'fallback';
+      }
+
+      if (articles.length === 0) {
+        const { data: fallbackArticles, error: fallbackError } = await supabase
+          .from("news_articles")
+          .select(
+            "id, title, summary, url, source, image_url, published_at, trending_score, is_critical, created_at, keywords"
+          )
+          .order("trending_score", { ascending: false })
+          .order("published_at", { ascending: false })
+          .range(offset, offset + limit - 1);
+
+        if (fallbackError) {
+          return NextResponse.json(
+            { error: "Failed to load trending fallback" },
+            { status: 500 }
+          );
+        }
+
+        articles = (fallbackArticles ?? []) as Article[];
+        source = 'fallback';
+
+        return NextResponse.json({
+          articles,
+          pagination: {
+            limit,
+            offset,
+            total: fallbackArticles?.length ?? 0,
+            hasMore: false,
+          },
+          metadata: {
+            source,
+            cacheSize: articleIds.length,
+            missingIds,
+          },
+        });
+      }
+    }
+
+    if (articleIds.length === 0) {
+      const { data: fallbackArticles, error: fallbackError } = await supabase
+        .from("news_articles")
+        .select(
+          "id, title, summary, url, source, image_url, published_at, trending_score, is_critical, created_at, keywords"
+        )
+        .order("trending_score", { ascending: false })
+        .order("published_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (fallbackError) {
+        return NextResponse.json(
+          { error: "Failed to load trending fallback" },
+          { status: 500 }
+        );
+      }
+
+      articles = (fallbackArticles ?? []) as Article[];
+      source = 'fallback';
     }
 
     const total = count ?? 0;
@@ -112,6 +160,11 @@ export async function GET(request: NextRequest) {
         offset,
         total,
         hasMore,
+      },
+      metadata: {
+        source,
+        cacheSize: articleIds.length,
+        missingIds,
       },
     });
   } catch (error) {

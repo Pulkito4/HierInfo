@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { validateUserSession as validateUser, isUserAuthenticated } from '@/lib/authManager';
 
-interface UseAuthNavigationOptions {
+type UseAuthNavigationOptions = {
   protectedRoutes?: string[];
   redirectOnAuth?: string;
   redirectOnNoAuth?: string;
   validateSession?: boolean;
-}
+};
 
 export function useAuthNavigation(options: UseAuthNavigationOptions = {}) {
   const {

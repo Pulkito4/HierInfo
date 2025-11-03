@@ -1,15 +1,14 @@
 import React from 'react';
-import { Category } from '@/types';
 import { Button } from '@/components/ui/button';
+import type { Category } from '@/types/categories';
 
-
-interface CategoryFilterProps {
+type CategoryFilterProps = {
   categories: Category[];
   selectedCategory: string | null;
   onCategoryChange: (categoryId: string | null) => void;
   loading?: boolean;
   className?: string;
-}
+};
 
 const CategoryFilter: React.FC<CategoryFilterProps> = ({
   categories,

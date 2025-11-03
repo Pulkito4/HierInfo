@@ -6,10 +6,10 @@ import { useArticleActivity } from '@/hooks/useArticleActivity';
 
 const DEFAULT_IMPRESSION_DELAY = 1000; // milliseconds
 
-interface UseArticleImpressionOptions {
+type UseArticleImpressionOptions = {
   delay?: number;
   threshold?: number;
-}
+};
 
 export function useArticleImpression(
   articleId: string,

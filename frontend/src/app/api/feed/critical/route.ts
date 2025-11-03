@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { Article } from "@/types";
-
-type CriticalCacheRow = {
-  article_id: string;
-};
+import type { CriticalCacheRow } from "@/types/api";
+import type { Article } from "@/types/articles";
 
 async function createSupabaseClient() {
   const cookieStore = await cookies();
@@ -36,20 +33,8 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseClient();
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
-    const limit = Math.max(1, Math.min(parseInt(searchParams.get("limit") || "10", 10), 50));
+  const limit = Math.max(1, Math.min(parseInt(searchParams.get("limit") || "10", 10), 10));
     const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
     const { data: cacheData, error: cacheError } = await supabase

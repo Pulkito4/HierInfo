@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { Article } from '@/types';
 import { useArticleActivity } from '@/hooks/useArticleActivity';
+import type { Article } from '@/types/articles';
 
-interface ArticleActionsProps {
+type ArticleActionsProps = {
   article: Article;
   variant?: 'light' | 'dark' | 'overlay';
   size?: 'sm' | 'md' | 'lg';
@@ -18,7 +18,7 @@ interface ArticleActionsProps {
   onReadMore?: (articleId: string) => void; // New prop for handling expansion
   isExpanded?: boolean; // New prop to track expansion state
   className?: string;
-}
+};
 
 const ArticleActions: React.FC<ArticleActionsProps> = ({
   article,
@@ -163,7 +163,7 @@ const ArticleActions: React.FC<ArticleActionsProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 if (!isExpanded) {
-                  trackActivity('view');
+                  trackActivity('impression');
                 }
                 onReadMore?.(article.id);
               }}

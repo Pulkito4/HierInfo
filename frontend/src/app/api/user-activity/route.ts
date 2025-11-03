@@ -1,31 +1,72 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import type {
+  UserActivityEventType,
+  UserActivityRequestPayload,
+  UserActivityUpsertPayload,
+} from "@/types/api";
 
-const ALLOWED_EVENT_TYPES = new Set([
+const ALLOWED_EVENT_TYPES: Set<UserActivityEventType> = new Set([
   "like",
   "dislike",
   "view",
   "impression",
 ]);
 
-type RequestPayload = {
-  articleId?: string;
-  eventType?: string;
-};
+function normalizeEventType(value?: string): UserActivityEventType | null {
+  if (!value) return null;
+  const lowered = value.trim().toLowerCase();
+  return ALLOWED_EVENT_TYPES.has(lowered as UserActivityEventType)
+    ? (lowered as UserActivityEventType)
+    : null;
+}
 
-type UpsertPayload = {
-  user_id: string;
-  article_id: string;
-  event_type: string;
-  created_at: string;
-};
+type ServerSupabaseClient = ReturnType<typeof createServerClient>;
+
+async function resolveUser(
+  request: NextRequest,
+  supabase: ServerSupabaseClient
+) {
+  const authorization = request.headers.get("authorization");
+  const bearerToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : null;
+
+  if (bearerToken) {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/auth/v1/user`,
+        {
+          headers: {
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            Authorization: `Bearer ${bearerToken}`,
+          },
+          cache: "no-store",
+        }
+      );
+
+      if (response.ok) {
+        const data = (await response.json()) as User;
+        if (data?.id) {
+          return { user: data, error: null, accessToken: bearerToken } as const;
+        }
+      }
+    } catch {
+      // Ignore bearer resolution failures and fall back to cookie-based lookup.
+    }
+  }
+
+  const { data, error } = await supabase.auth.getUser();
+  return { user: data.user, error, accessToken: null } as const;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as RequestPayload;
+    const body = (await request.json()) as UserActivityRequestPayload;
     const articleId = body.articleId?.trim();
-    const eventType = body.eventType?.trim().toLowerCase();
+    const eventType = normalizeEventType(body.eventType);
 
     if (!articleId) {
       return NextResponse.json(
@@ -34,7 +75,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!eventType || !ALLOWED_EVENT_TYPES.has(eventType)) {
+    if (!eventType) {
       return NextResponse.json(
         { error: "Invalid event type" },
         { status: 400 }
@@ -60,12 +101,9 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+  const { user, error: authError, accessToken } = await resolveUser(request, supabase);
 
-    if (authError) {
+    if (authError && authError.message && authError.message !== "Auth session missing") {
       return NextResponse.json(
         { error: "Authentication failed", details: authError.message },
         { status: 401 }
@@ -79,14 +117,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const payload: UpsertPayload = {
+    const payload: UserActivityUpsertPayload = {
       user_id: user.id,
       article_id: articleId,
       event_type: eventType,
       created_at: new Date().toISOString(),
     };
 
-    const { error: upsertError } = await supabase
+    const writerClient: SupabaseClient = accessToken
+      ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+          },
+          global: {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        })
+      : (supabase as unknown as SupabaseClient);
+
+    const { error: upsertError } = await writerClient
       .from("user_activity")
       .upsert(payload, {
         onConflict: "user_id,article_id,event_type",

@@ -1,12 +1,15 @@
 import { createServerClient } from '@supabase/ssr';
+import type { CookieOptions } from '@supabase/ssr';
+import type { User } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isApiRoute = pathname.startsWith('/api/');
   
   // Define protected routes
-  const protectedRoutes = ['/home', '/categories'];
+  const protectedRoutes = ['/home', '/categories', '/api/feed', '/api/user-activity'];
   const authRoutes = ['/login', '/sign-up'];
   // Note: Public routes are not processed by middleware to avoid extra work
   
@@ -34,6 +37,9 @@ export async function middleware(request: NextRequest) {
 
     // If accessing protected route without any session cookie, immediately redirect
     if (isProtectedRoute && !hasSessionCookie) {
+      if (isApiRoute) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      }
       // Back navigation or direct access: send to landing
       return NextResponse.redirect(new URL('/', request.url));
     }
@@ -52,7 +58,7 @@ export async function middleware(request: NextRequest) {
           get(name: string) {
             return request.cookies.get(name)?.value;
           },
-          set(name: string, value: string, options: any) {
+          set(name: string, value: string, options: CookieOptions) {
             request.cookies.set({
               name,
               value,
@@ -69,7 +75,7 @@ export async function middleware(request: NextRequest) {
               ...options,
             });
           },
-          remove(name: string, options: any) {
+          remove(name: string, options: CookieOptions) {
             request.cookies.set({
               name,
               value: '',
@@ -93,12 +99,18 @@ export async function middleware(request: NextRequest) {
     try {
       // Only call Supabase for protected routes when a session cookie exists to validate it,
       // or for auth routes without a cookie we already handled above.
-      const { data: { user } } = hasSessionCookie && isProtectedRoute
-        ? await supabase.auth.getUser()
-        : { data: { user: null } as any };
+      let user: User | null = null;
+
+      if (hasSessionCookie && isProtectedRoute) {
+        const { data } = await supabase.auth.getUser();
+        user = data.user ?? null;
+      }
 
       // If no user and trying to access protected route, redirect to home
       if (isProtectedRoute && !user) {
+        if (isApiRoute) {
+          return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
         // Check if this is a navigation from a logged-out state
         const referer = request.headers.get('referer');
         const isBackNavigation = referer && new URL(referer).pathname === pathname;
@@ -128,6 +140,9 @@ export async function middleware(request: NextRequest) {
       
       // If there's an error and trying to access protected route, redirect to login
       if (isProtectedRoute) {
+        if (isApiRoute) {
+          return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('redirect', pathname);
         return NextResponse.redirect(loginUrl);
@@ -146,6 +161,8 @@ export const config = {
     '/home/:path*',
     '/(onboarding)/categories/:path*',
     '/categories/:path*',
+    '/api/feed/:path*',
+    '/api/user-activity',
     '/login',
     '/sign-up',
   ],

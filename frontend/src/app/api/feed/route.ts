@@ -1,39 +1,50 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { Article } from '@/types';
+import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
+import type { Article } from '@/types/articles';
+import { getDayBoundaries, parseCategoryPreferences } from '@/utils';
 
 const DEFAULT_LIMIT = 20;
 const CANDIDATE_MULTIPLIER = 3;
 
-function parseCategoryPreferences(preferences: unknown): string[] {
-  if (!preferences) return [];
+type ServerSupabaseClient = ReturnType<typeof createServerClient>;
 
-  if (typeof preferences === 'string') {
-    return preferences ? [preferences] : [];
-  }
+async function resolveUser(
+  request: NextRequest,
+  supabase: ServerSupabaseClient
+) {
+  const authorization = request.headers.get('authorization');
+  const bearerToken = authorization?.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length)
+    : null;
 
-  if (Array.isArray(preferences)) {
-    return preferences.filter((value): value is string => typeof value === 'string' && value.length > 0);
-  }
+  if (bearerToken) {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/auth/v1/user`,
+        {
+          headers: {
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            Authorization: `Bearer ${bearerToken}`,
+          },
+          cache: 'no-store',
+        }
+      );
 
-  if (typeof preferences === 'object' && preferences !== null) {
-    const maybeCategoryIds = (preferences as { categoryIds?: unknown }).categoryIds;
-    if (Array.isArray(maybeCategoryIds)) {
-      return maybeCategoryIds.filter((value): value is string => typeof value === 'string' && value.length > 0);
+      if (response.ok) {
+        const data = (await response.json()) as User;
+        if (data?.id) {
+          return { user: data, error: null, accessToken: bearerToken } as const;
+        }
+      }
+    } catch {
+      // Ignore bearer resolution failures and fall back to cookie-based lookup.
     }
   }
 
-  return [];
-}
-
-function getDayBoundaries() {
-  const now = new Date();
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { start, end };
+  const { data, error } = await supabase.auth.getUser();
+  return { user: data.user, error, accessToken: null } as const;
 }
 
 export async function GET(request: NextRequest) {
@@ -60,23 +71,44 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+  const { user, error: authError, accessToken } = await resolveUser(request, supabase);
 
-    if (authError || !user) {
+    if (authError && authError.message && authError.message !== 'Auth session missing') {
+      return NextResponse.json(
+        {
+          error: 'Authentication failed',
+          details: authError.message,
+        },
+        { status: 401 }
+      );
+    }
+
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
+    const databaseClient: SupabaseClient = accessToken
+      ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+          },
+          global: {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        })
+      : (supabase as unknown as SupabaseClient);
+
     const { searchParams } = new URL(request.url);
     const limitParam = parseInt(searchParams.get('limit') || '', 10);
     const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 50) : DEFAULT_LIMIT;
 
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await databaseClient
       .from('profiles')
       .select('preferences')
       .eq('id', user.id)
@@ -103,36 +135,88 @@ export async function GET(request: NextRequest) {
     }
 
     const [{ data: trendingCache }, { data: criticalCache }] = await Promise.all([
-      supabase.from('trending_articles_cache').select('article_id'),
-      supabase.from('critical_articles_cache').select('article_id'),
+      databaseClient
+        .from('trending_articles_cache')
+        .select('article_id, rank')
+        .order('rank', { ascending: true })
+        .limit(10),
+      databaseClient
+        .from('critical_articles_cache')
+        .select('article_id')
+        .limit(10),
     ]);
 
-    const excludedIds = new Set<string>([
+    const excludedIdsArray = [
       ...(((trendingCache ?? []) as { article_id: string }[]).map((row) => row.article_id)),
       ...(((criticalCache ?? []) as { article_id: string }[]).map((row) => row.article_id)),
-    ]);
-
+    ];
+    const excludedIds = new Set<string>(excludedIdsArray);
     const { start, end } = getDayBoundaries();
+    // Temporarily show articles across all dates; re-enable day boundaries when daily digests return.
     const candidateLimit = limit * CANDIDATE_MULTIPLIER;
 
-    const { data: candidates, error: candidateError } = await supabase
-      .from('news_articles')
-      .select(
-        'id, title, summary, url, source, image_url, published_at, trending_score, is_critical, created_at, keywords, article_categories!inner(category_id)'
-      )
-      .in('article_categories.category_id', categoryIds)
-      .gte('created_at', start.toISOString())
-      .lt('created_at', end.toISOString())
-      .order('trending_score', { ascending: false })
-      .order('published_at', { ascending: false })
-      .range(0, Math.max(candidateLimit - 1, 0));
+    const { data: categoryLinks, error: categoryLinkError } = await databaseClient
+      .from('article_categories')
+      .select('article_id')
+      .in('category_id', categoryIds);
 
-    if (candidateError) {
+    if (categoryLinkError) {
       return NextResponse.json(
-        { error: 'Failed to load personalized articles' },
+        {
+          error: 'Failed to load personalized articles',
+          details: categoryLinkError.message ?? categoryLinkError.code ?? 'Unknown error',
+        },
         { status: 500 }
       );
     }
+
+    const candidateArticleIds = Array.from(
+      new Set(
+        ((categoryLinks ?? []) as { article_id: string }[])
+          .map((row) => row.article_id)
+          .filter((articleId): articleId is string => Boolean(articleId))
+      )
+    ).filter((articleId) => !excludedIds.has(articleId));
+
+    if (candidateArticleIds.length === 0) {
+      return NextResponse.json({
+        articles: [],
+        count: 0,
+        message: 'No personalized articles available for your categories yet. Check back later or update your preferences.',
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          excludedCount: excludedIds.size,
+          window: 'all',
+          windowBounds: {
+            start: start.toISOString(),
+            end: end.toISOString(),
+            active: false,
+          },
+        },
+      });
+    }
+
+    const fetchIdsForQuery = candidateArticleIds.slice(0, Math.max(candidateLimit * 2, limit));
+
+    const { data: candidateRows, error: candidateError } = await databaseClient
+      .from('news_articles')
+      .select('id, title, summary, url, source, image_url, published_at, trending_score, is_critical, created_at, keywords')
+      .in('id', fetchIdsForQuery)
+      .order('trending_score', { ascending: false })
+      .order('published_at', { ascending: false });
+
+    if (candidateError) {
+      return NextResponse.json(
+        {
+          error: 'Failed to load personalized articles',
+          details: candidateError.message ?? candidateError.code ?? 'Unknown error',
+        },
+        { status: 500 }
+      );
+    }
+
+    const windowUsed: 'all' = 'all';
+    const candidates = candidateRows ?? [];
 
     const seen = new Set<string>();
     const articles: Article[] = [];
@@ -145,8 +229,7 @@ export async function GET(request: NextRequest) {
       }
 
       seen.add(articleId);
-      const { article_categories, ...rest } = candidate as Record<string, unknown>;
-      articles.push(rest as Article);
+      articles.push(candidate as Article);
 
       if (articles.length >= limit) {
         break;
@@ -154,7 +237,7 @@ export async function GET(request: NextRequest) {
     }
 
     const message = articles.length === 0
-      ? 'No personalized articles available for today. Check back later or update your preferences.'
+      ? 'No personalized articles available for your categories yet. Check back later or update your preferences.'
       : undefined;
 
     return NextResponse.json({
@@ -164,6 +247,12 @@ export async function GET(request: NextRequest) {
       metadata: {
         generatedAt: new Date().toISOString(),
         excludedCount: excludedIds.size,
+        window: windowUsed,
+        windowBounds: {
+          start: start.toISOString(),
+          end: end.toISOString(),
+          active: false,
+        },
       },
     });
   } catch (error) {
