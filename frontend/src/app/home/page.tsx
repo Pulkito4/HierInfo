@@ -5,8 +5,10 @@ import {
   SidebarContent, 
   SidebarHeader, 
   SidebarInset,
-  SidebarTrigger 
+  SidebarTrigger,
+  useSidebar
 } from '@/components/ui/sidebar'
+import { Separator } from '@/components/ui/separator'
 import { Earth, Settings, Smile, TrendingUp } from 'lucide-react';
 import React, { useCallback, Suspense } from 'react'
 import Image from 'next/image';
@@ -20,6 +22,7 @@ import SettingsPanel from '@/components/settings/SettingsPanel';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import type { LoadingState } from '@/types/shared';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 const HomepageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -258,64 +261,126 @@ const HomepageContent = () => {
   }
 };
 
+  // Sidebar content component that can use the useSidebar hook
+  const SidebarContentComponent = () => {
+    const { state, isMobile } = useSidebar();
+    const isCollapsed = state === 'collapsed' && !isMobile; // Never collapse on mobile
+
+    return (
+      <>
+        <SidebarHeader>
+          <div className="flex items-center py-3 px-2">
+            <Image 
+              src="/logoicon.png" 
+              alt="HeirInfo Logo" 
+              width={40} 
+              height={40} 
+              className="flex-shrink-0"
+            />
+            {!isCollapsed && (
+              <h2 className="text-2xl font-sans font-bold text-white ml-2">
+                HeirInfo
+              </h2>
+            )}
+          </div>
+        </SidebarHeader>
+        <hr className='border-white/70'/>
+        <SidebarContent className="flex flex-col justify-between h-full">
+          <div className="p-2 space-y-2">
+            {/* For You Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setActiveTab('personal')}
+                  className={`w-full flex items-center gap-3 p-3 rounded-md transition-all ${
+                    activeTab === 'personal' 
+                      ? 'bg-slate-600/70 text-white' 
+                      : 'text-white hover:bg-slate-600/40'
+                  }`}
+                >
+                  <Smile className="text-[#5B87F8] flex-shrink-0" size={20} />
+                  {!isCollapsed && (
+                    <span className="font-sans font-semibold">
+                      For You
+                    </span>
+                  )}
+                </button>
+              </TooltipTrigger>
+              {isCollapsed && (
+                <TooltipContent side="right">
+                  For You
+                </TooltipContent>
+              )}
+            </Tooltip>
+
+            {/* Discover Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setActiveTab('explore')}
+                  className={`w-full flex items-center gap-3 p-3 rounded-md transition-all ${
+                    activeTab === 'explore'
+                      ? 'bg-slate-600/70 text-white'
+                      : 'text-white hover:bg-slate-600/40'
+                  }`}
+                >
+                  <Earth className="text-[#49E8C6] flex-shrink-0" size={20} />
+                  {!isCollapsed && (
+                    <span className="font-sans font-semibold">
+                      Discover
+                    </span>
+                  )}
+                </button>
+              </TooltipTrigger>
+              {isCollapsed && (
+                <TooltipContent side="right">
+                  Discover
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </div>
+
+          {/* Settings at bottom */}
+          <div className="p-2 border-t border-white/20">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className={`w-full flex items-center gap-3 p-3 rounded-md transition-all ${
+                    activeTab === 'settings'
+                      ? 'bg-slate-600/70 text-white'
+                      : 'text-white hover:bg-slate-600/40'
+                  }`}
+                >
+                  <Settings className="text-[#E0E7FF] flex-shrink-0" size={20} />
+                  {!isCollapsed && (
+                    <span className="font-sans font-semibold">
+                      Settings
+                    </span>
+                  )}
+                </button>
+              </TooltipTrigger>
+              {isCollapsed && (
+                <TooltipContent side="right">
+                  Settings
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </div>
+        </SidebarContent>
+      </>
+    );
+  };
+
   return (
       <SidebarProvider>
-        <Sidebar>
-          <SidebarHeader>
-            <h2 className="text-2xl font-sans font-bold text-white text-left py-3">
-              <span>
-                <Image src="/logoicon.png" alt="HeirInfo Logo" width={50} height={50} className="inline-block mr-2" />
-              </span>
-              HeirInfo
-            </h2>
-          </SidebarHeader>
-          <hr className='border-white/70'/>
-          <SidebarContent className="flex flex-col justify-between h-full">
-            <div className="p-2 space-y-2">
-              <button
-                onClick={() => setActiveTab('personal')}
-                className={`w-full text-left p-2 rounded-md ${
-                  activeTab === 'personal' ? 'bg-slate-600/70 text-white' : ' text-white'
-                }`}
-              >
-                <div className='flex items-center font-sans font-semibold gap-2'>
-                  <Smile className=' text-[#5B87F8]' />
-                  For You
-                </div>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('explore')}
-                className={`w-full text-left p-2 rounded-md ${
-                  activeTab === 'explore' ? 'bg-slate-600/70 text-white' : ' text-white'
-                }`}
-              >
-                <div className='flex items-center font-sans font-semibold gap-2'>
-                  <Earth className=' text-[#49E8C6]'/>
-                  Discover
-                </div>
-              </button>
-            </div>
-
-            <div className="p-2 border-t">
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`w-full text-left p-2 rounded-md ${
-                  activeTab === 'settings' ? 'bg-slate-600/70 text-white' : ' text-white'
-                }`}
-              >
-                <div className='flex items-center font-sans font-semibold gap-2'>
-                  <Settings className=' text-[#E0E7FF]'/>
-                  Settings
-                  
-                </div>
-              </button>
-            </div>
-          </SidebarContent>
+        <Sidebar collapsible="icon">
+          <SidebarContentComponent />
         </Sidebar>
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger />
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="h-6" />
             <h1 className="text-xl font-semibold">
               {activeTab === 'personal' ? 'For You' : 
                activeTab === 'explore' ? 'Discover' : 'Settings'}
