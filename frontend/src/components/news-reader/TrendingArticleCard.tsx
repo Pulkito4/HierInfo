@@ -44,12 +44,12 @@ const TrendingArticleCard: React.FC<TrendingArticleCardProps> = ({ article, isSe
       {/* Source and Date */}
       <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
         <span className="font-medium">{article.source}</span>
-        <span>
+        {/* <span>
           {new Date(article.published_at).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric'
           })}
-        </span>
+        </span> */}
       </div>
 
       {/* Badges Row */}
