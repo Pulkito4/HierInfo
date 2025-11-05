@@ -151,3 +151,34 @@ export async function fetchExplorePage({
   }
   return res.json();
 }
+
+/**
+ * Check if a specific article is liked by the current user.
+ * @param articleId The ID of the article to check
+ * @returns boolean indicating if the article is liked
+ */
+export async function checkArticleLiked(articleId: string): Promise<boolean> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.access_token) {
+    return false; // Not logged in, can't have liked it
+  }
+
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  headers.Authorization = `Bearer ${session.access_token}`;
+
+  const res = await fetch(`/api/user-activity/check?articleId=${articleId}&eventType=like`, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    return false; // If error, assume not liked
+  }
+
+  const data = await res.json();
+  return data.exists || false;
+}

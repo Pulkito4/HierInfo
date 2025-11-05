@@ -23,6 +23,8 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import type { LoadingState } from '@/types/shared';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { NewsReaderLayout } from '@/components/news-reader';
+
 const HomepageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -110,9 +112,7 @@ const HomepageContent = () => {
           
           {personalSubTab === 'feed' ? (
             <div>
-              {isLoading(personalFeed.loading) && personalFeed.articles.length === 0 ? (
-                <LoadingSkeleton type="articles" count={SKELETON_ARTICLES_COUNT} />
-              ) : personalFeed.error ? (
+              {personalFeed.error ? (
                 <ErrorMessage error={personalFeed.error} onRetry={personalFeed.refetch} />
               ) : personalFeed.articles.length === 0 && personalFeed.loading === 'success' ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4">
@@ -141,26 +141,10 @@ const HomepageContent = () => {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-2xl font-bold">Top Stories for You</h2>
-                      {/* <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        Based on your preferences
-                      </p> */}
-                    </div>
-                    {/* <button 
-                      onClick={personalFeed.refresh}
-                      className="text-sm text-blue-600 hover:underline"
-                      disabled={personalFeed.loading === 'loading'}
-                    >
-                      {personalFeed.loading === 'loading' ? 'Refreshing...' : 'Refresh'}
-                    </button> */}
-                  </div>
-                  <AllTiles 
-                    articles={personalFeed.articles}
-                  />
-                </div>
+                <NewsReaderLayout 
+                  articles={personalFeed.articles}
+                  loading={isLoading(personalFeed.loading)}
+                />
               )}
             </div>
           ) : (
@@ -189,27 +173,11 @@ const HomepageContent = () => {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-2xl font-bold flex items-center gap-2">
-                      Critical updates and trending stories
-                        
-                      </h2>
-                     
-                    </div>
-                    {/* <button 
-                      onClick={trendingNews.refresh}
-                      className="text-sm text-red-600 hover:underline"
-                      disabled={trendingNews.loading === 'loading'}
-                    >
-                      {trendingNews.loading === 'loading' ? 'Refreshing...' : 'Refresh'}
-                    </button> */}
-                  </div>
-                  <AllTiles 
-                    articles={trendingNews.articles}
-                  />
-                </div>
+                <NewsReaderLayout 
+                  articles={trendingNews.articles}
+                  loading={isLoading(trendingNews.loading as LoadingState)}
+                  showBadges={true}
+                />
               )}
             </div>
           )}
@@ -386,7 +354,9 @@ const HomepageContent = () => {
                activeTab === 'explore' ? 'Discover' : 'Settings'}
             </h1>
           </header>
-          <main className="flex-1 overflow-auto p-6">
+          <main className={`flex-1 overflow-auto ${
+            (activeTab === 'personal' && (personalSubTab === 'feed' || personalSubTab === 'trending')) ? 'p-0' : 'p-6'
+          }`}>
             {renderContent()}
           </main>
         </SidebarInset>
