@@ -19,6 +19,25 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
   // Get the first article ID to use as a stable dependency
   const firstArticleId = useMemo(() => articles[0]?.id, [articles]);
 
+  // Get current article index
+  const currentIndex = useMemo(() => {
+    if (!selectedArticle) return -1;
+    return articles.findIndex(a => a.id === selectedArticle.id);
+  }, [selectedArticle, articles]);
+
+  // Navigation handlers
+  const handleNext = () => {
+    if (currentIndex < articles.length - 1) {
+      setSelectedArticle(articles[currentIndex + 1]);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setSelectedArticle(articles[currentIndex - 1]);
+    }
+  };
+
   // Auto-select first article on desktop when articles load or change (tab switch)
   useEffect(() => {
     if (!isMobile && articles.length > 0) {
@@ -44,7 +63,13 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
 
         {/* Right Panel - Article Detail (70%) */}
         <div className="flex-1 overflow-y-auto bg-slate-950">
-          <ArticleDetail article={selectedArticle} />
+          <ArticleDetail 
+            article={selectedArticle}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            hasNext={currentIndex < articles.length - 1}
+            hasPrevious={currentIndex > 0}
+          />
         </div>
       </div>
     );

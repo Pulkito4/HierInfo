@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { Article } from '@/types/articles';
 import ArticleCard from './ArticleCard';
 import TrendingArticleCard from './TrendingArticleCard';
@@ -19,6 +19,18 @@ const ArticleList: React.FC<ArticleListProps> = ({
   showBadges = false
 }) => {
   const CardComponent = showBadges ? TrendingArticleCard : ArticleCard;
+  const selectedArticleRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to selected article when it changes
+  useEffect(() => {
+    if (selectedArticleRef.current) {
+      selectedArticleRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
+  }, [selectedId]);
   if (loading) {
     return (
       <div className="p-4 space-y-3">
@@ -50,12 +62,16 @@ const ArticleList: React.FC<ArticleListProps> = ({
   return (
     <div className="p-4 space-y-3">
       {articles.map((article) => (
-        <CardComponent
+        <div 
           key={article.id}
-          article={article}
-          isSelected={article.id === selectedId}
-          onClick={() => onSelect(article)}
-        />
+          ref={article.id === selectedId ? selectedArticleRef : null}
+        >
+          <CardComponent
+            article={article}
+            isSelected={article.id === selectedId}
+            onClick={() => onSelect(article)}
+          />
+        </div>
       ))}
     </div>
   );

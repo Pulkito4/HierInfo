@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import type { Article } from '@/types/articles';
-import { ThumbsUp } from 'lucide-react';
+import { ThumbsUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useArticleActivity } from '@/hooks/useArticleActivity';
 import { useArticleImpression } from '@/hooks/useArticleImpression';
 import { useArticleLikeStatus } from '@/hooks/useArticleLikeStatus';
@@ -12,11 +12,22 @@ import { setArticleLikeStatus } from '@/hooks/useArticleLikeStatus';
 
 interface ArticleDetailProps {
   article: Article | null;
+  onNext?: () => void;
+  onPrevious?: () => void;
+  hasNext?: boolean;
+  hasPrevious?: boolean;
 }
 
-const ArticleDetail: React.FC<ArticleDetailProps> = ({ article }) => {
+const ArticleDetail: React.FC<ArticleDetailProps> = ({ 
+  article, 
+  onNext, 
+  onPrevious, 
+  hasNext = false, 
+  hasPrevious = false 
+}) => {
   const queryClient = useQueryClient();
   const { trackActivity, isPending } = useArticleActivity(article?.id || '');
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Use React Query hook to check like status with caching
   const { data: cachedIsLiked = false, isLoading: isCheckingLiked } = useArticleLikeStatus(article?.id);
@@ -36,6 +47,15 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article }) => {
       setLocalIsLiked(cachedIsLiked);
     }
   }, [cachedIsLiked, isCheckingLiked]);
+
+  // Reset scroll position when article changes
+  useEffect(() => {
+    // Scroll the parent container (NewsReaderLayout's right panel)
+    const parentContainer = containerRef.current?.parentElement;
+    if (parentContainer) {
+      parentContainer.scrollTop = 0;
+    }
+  }, [article?.id]);
 
   const handleLike = () => {
     if (!article || isPending || localIsLiked) return;
@@ -65,7 +85,11 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article }) => {
   }
 
   return (
-    <article ref={impressionRef} className="max-w-4xl mx-auto p-6 animate-in fade-in duration-300">
+    <div 
+      ref={containerRef}
+      className="relative min-h-full"
+    >
+      <article ref={impressionRef} className="max-w-4xl mx-auto p-6 animate-in fade-in duration-300">
       {/* Article Header */}
       <div className="mb-6">
         {/* Title */}
@@ -159,6 +183,35 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article }) => {
 
       </div>
     </article>
+
+      {/* Navigation Controls */}
+      <div className="max-w-4xl mx-auto px-6 pb-8">
+        {/* Navigation Buttons */}
+        <div className="flex gap-4 items-center justify-between pt-6 border-t border-slate-800">
+          {hasPrevious ? (
+            <button
+              onClick={onPrevious}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all"
+            >
+              <ChevronLeft size={20} />
+              <span>Previous</span>
+            </button>
+          ) : (
+            <div></div>
+          )}
+          
+          {hasNext && (
+            <button
+              onClick={onNext}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all"
+            >
+              <span>Next Article</span>
+              <ChevronRight size={20} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
