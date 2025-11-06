@@ -104,13 +104,13 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick, onLik
               </div>
 
               {/* Like Button */}
-              <button
+              {/* <button
                 onClick={handleLike}
                 className="p-2 md:p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
                 aria-label="Like article"
               >
                 <ThumbsUp size={18} className="md:w-5 md:h-5" />
-              </button>
+              </button> */}
             </div>
           </div>
         </motion.div>

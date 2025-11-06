@@ -15,13 +15,21 @@ const DiscoverGrid: React.FC<DiscoverGridProps> = ({ articles, onArticleClick })
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {articles.map((article) => (
-        <DiscoverCard
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 auto-rows-fr">
+      {articles.map((article, index) => (
+        <div 
           key={article.id}
-          article={article}
-          onClick={onArticleClick}
-        />
+          className={`
+            ${index % 7 === 0 ? 'md:col-span-2 md:row-span-2' : ''}
+            ${index % 11 === 0 && index !== 0 ? 'lg:col-span-2' : ''}
+          `}
+        >
+          <DiscoverCard
+            article={article}
+            onClick={onArticleClick}
+            featured={index % 7 === 0}
+          />
+        </div>
       ))}
     </div>
   );

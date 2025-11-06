@@ -118,16 +118,16 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
             {/* Meta */}
             <div className="flex flex-wrap items-center gap-3 mb-6 text-sm text-slate-400">
               <span className="font-semibold text-blue-400">{article.source}</span>
-              <div className="flex items-center gap-1">
-                {/* <Calendar size={14} />
+              {/* <div className="flex items-center gap-1">
+                <Calendar size={14} />
                 <time dateTime={article.published_at}>
                   {new Date(article.published_at).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric'
                   })}
-                </time> */}
-              </div>
+                </time>
+              </div> */}
             </div>
 
             {/* Summary */}

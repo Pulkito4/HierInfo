@@ -35,7 +35,7 @@ const PersonalTabNavigation: React.FC<PersonalTabNavigationProps> = ({
       >
         <div className="flex items-center justify-center gap-2">
           <TrendingUp size={16} />
-          Trending
+          Breaking & Trending News
         </div>
       </button>
     </div>

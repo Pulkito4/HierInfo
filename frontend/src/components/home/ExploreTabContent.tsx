@@ -69,19 +69,26 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
 
   return (
     <>
-      <div className="space-y-8 p-2 bg-slate-950">
+      <div className="space-y-10 p-4  lg:p-6">
       
         {/* Hero Banner */}
-        <HeroBanner
-          articles={heroArticles}
-          onArticleClick={handleArticleClick}
-          onLike={handleLike}
-        />
+        <div className="relative">
+          <HeroBanner
+            articles={heroArticles}
+            onArticleClick={handleArticleClick}
+            onLike={handleLike}
+          />
+        </div>
 
         {/* Grid of Cards */}
         {gridArticles.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-slate-50 mb-6">More Stories</h2>
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-100 via-white to-indigo-200 bg-clip-text text-transparent">
+                More Stories
+              </h2>
+              <div className="flex-1 h-px bg-gradient-to-r from-slate-800/50 to-slate-950" />
+            </div>
             <DiscoverGrid
               articles={gridArticles}
               onArticleClick={handleArticleClick}

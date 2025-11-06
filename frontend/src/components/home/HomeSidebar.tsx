@@ -19,10 +19,10 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
   const isCollapsed = state === 'collapsed' && !isMobile;
 
   const getButtonClasses = (isActive: boolean) =>
-    `w-full flex items-center gap-3 p-3 rounded-md transition-all ${
+    `w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-300 ${
       isActive
-        ? 'bg-slate-600/70 text-white'
-        : 'text-white hover:bg-slate-600/40'
+        ? 'bg-gradient-to-r from-blue-900/90 to-indigo-900/90 text-white shadow-lg shadow-blue-900/40 scale-[1.02] border border-blue-700/30'
+        : 'text-gray-300 hover:bg-slate-800/60 hover:text-white hover:scale-[1.01] border border-transparent'
     }`;
 
   const NavButton = ({

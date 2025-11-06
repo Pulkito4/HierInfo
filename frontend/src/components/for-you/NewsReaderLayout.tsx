@@ -5,6 +5,7 @@ import ArticleList from './ArticleList';
 import ArticleDetail from './ArticleDetail';
 import MobileArticleSheet from './MobileArticleSheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface NewsReaderLayoutProps {
   articles: Article[];
@@ -14,6 +15,7 @@ interface NewsReaderLayoutProps {
 
 const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, showBadges = false }) => {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [isListCollapsed, setIsListCollapsed] = useState(false);
   const isMobile = useIsMobile();
 
   // Get the first article ID to use as a stable dependency
@@ -49,9 +51,15 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
   // Desktop: Split View
   if (!isMobile) {
     return (
-      <div className="flex p-2 gap-0 h-[calc(100vh-5rem)] bg-slate-950">
-        {/* Left Panel - Article List (30%) */}
-        <div className="w-[30%] min-w-[320px] max-w-[400px] overflow-y-auto border-r border-slate-800 bg-slate-900/50">
+      <div className="flex p-2 gap-0 h-[calc(100vh-5rem)] bg-slate-950 relative">
+        {/* Left Panel - Article List */}
+        <div 
+          className={`
+            ${isListCollapsed ? 'w-0' : 'w-[30%] min-w-[320px] max-w-[400px]'}
+            overflow-y-auto border-r border-slate-800 bg-slate-900/50
+            transition-all duration-300 ease-in-out
+          `}
+        >
           <ArticleList
             articles={articles}
             selectedId={selectedArticle?.id}
@@ -61,8 +69,22 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
           />
         </div>
 
-        {/* Right Panel - Article Detail (70%) */}
-        <div className="flex-1 overflow-y-auto bg-slate-950">
+        {/* Collapse/Expand Button */}
+        <button
+          onClick={() => setIsListCollapsed(!isListCollapsed)}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-r-lg shadow-lg transition-all duration-300 group"
+          style={{ left: isListCollapsed ? '0' : 'calc(30% - 12px)' }}
+          title={isListCollapsed ? 'Expand article list' : 'Collapse article list'}
+        >
+          {isListCollapsed ? (
+            <ChevronRight className="w-5 h-5" />
+          ) : (
+            <ChevronLeft className="w-5 h-5" />
+          )}
+        </button>
+
+        {/* Right Panel - Article Detail */}
+        <div className="flex-1 overflow-y-auto bg-slate-950 transition-all duration-300">
           <ArticleDetail 
             article={selectedArticle}
             onNext={handleNext}

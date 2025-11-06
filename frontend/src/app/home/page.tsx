@@ -83,13 +83,17 @@ const HomepageContent = () => {
         <HomeSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-12 p-2 text-white bg-slate-900 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="h-6" />
-          <h1 className="text-xl font-semibold">{getHeaderTitle()}</h1>
+        <header className="flex h-16 p-2 text-white bg-gradient-to-r from-slate-950 via-blue-950/90 to-slate-950 shrink-0 items-center gap-3 border-b border-blue-900/20 px-6 backdrop-blur-sm">
+          <SidebarTrigger className="-ml-1 hover:bg-blue-900/20 rounded-lg transition-all" />
+          <Separator orientation="vertical" className="h-6 bg-blue-800/30" />
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-100 via-white to-indigo-200 bg-clip-text text-transparent">
+            {getHeaderTitle()}
+          </h1>
         </header>
-        <main className={`flex-1 bg-slate-900 overflow-auto ${shouldRemovePadding ? 'p-0' : 'p-6'}`}>
-          {renderContent()}
+        <main className={`flex-1 bg-gradient-to-br from-slate-950 via-blue-950/20 to-slate-950 overflow-auto ${shouldRemovePadding ? 'p-0' : 'p-6'}`}>
+          <div className={shouldRemovePadding ? '' : 'max-w-7xl mx-auto'}>
+            {renderContent()}
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
