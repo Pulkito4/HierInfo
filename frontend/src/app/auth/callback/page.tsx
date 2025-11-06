@@ -9,26 +9,43 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        // Exchange the code for a session (PKCE flow)
-        const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        // Check if this is a code-based auth callback (OAuth or email confirmation)
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
         
-        if (error) {
-          console.error('Auth callback error:', error);
-          router.push('/login?error=auth-failed');
-          return;
-        }
+        if (code) {
+          // Exchange code for session - this is automatic with @supabase/ssr
+          // but we call getSession to trigger the exchange
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Auth callback error:', error);
+            router.push('/login?error=auth-failed');
+            return;
+          }
 
-        if (!data.user) {
-          console.error('No user returned from callback');
-          router.push('/login?error=no-user');
-          return;
+          if (!session?.user) {
+            console.error('No session after code exchange');
+            router.push('/login?error=no-session');
+            return;
+          }
+          
+          console.log('User authenticated via code exchange:', session.user.id);
+        } else {
+          // Direct session (e.g., password login)
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error || !session?.user) {
+            console.error('No valid session in callback');
+            router.push('/login?error=no-session');
+            return;
+          }
+          
+          console.log('User authenticated via direct session:', session.user.id);
         }
 
         // Check for redirect parameter
-        const urlParams = new URLSearchParams(window.location.search);
         const redirectTo = urlParams.get('redirect');
-        
-        console.log('User authenticated:', data.user.id);
         
         if (redirectTo && redirectTo.startsWith('/')) {
           router.push(redirectTo);

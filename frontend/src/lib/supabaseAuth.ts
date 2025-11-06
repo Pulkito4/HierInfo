@@ -67,7 +67,10 @@ const createUserProfile = async (userId: string, username: string) => {
 };
 
 export const signInWithEmail = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ 
+    email, 
+    password 
+  });
   
   if (error || !data.user) {
     return { user: data.user, error, isNewUser: false };
