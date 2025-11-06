@@ -37,13 +37,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(homeUrl);
     }
 
-    // If accessing protected route without any session cookie or bearer, immediately block
+    // If accessing a protected API route without any session cookie or bearer, immediately block.
+    // For page routes, allow the request to continue; the client-side guard will handle redirects
+    // when the session is only in localStorage and not yet in cookies.
     if (isProtectedRoute && !hasSessionCookie && !hasBearer) {
       if (isApiRoute) {
         return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
       }
-      // Back navigation or direct access: send to landing
-      return NextResponse.redirect(new URL('/', request.url));
+      // Allow page navigation to proceed; client-side guards will redirect if needed.
     }
 
     let response = NextResponse.next({

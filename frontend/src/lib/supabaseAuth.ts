@@ -1,8 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Reuse the single browser Supabase client to avoid multiple GoTrue instances
+import { supabase } from '@/lib/supabase';
 
 // Helper function to check if user profile exists
 const checkUserProfile = async (userId: string) => {

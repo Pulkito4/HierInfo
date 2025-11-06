@@ -41,13 +41,8 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
     }
   };
 
-  // Auto-select first article on desktop when articles load or change (tab switch)
-  useEffect(() => {
-    if (!isMobile && articles.length > 0) {
-      // Always select first article when articles change (tab switch)
-      setSelectedArticle(articles[0]);
-    }
-  }, [firstArticleId, isMobile, articles]);
+  // Do not auto-open any article. Wait for explicit user click
+  // (prevents unintended impression tracking on initial load)
 
   // Desktop: Split View
   if (!isMobile) {
@@ -133,7 +128,9 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
                   <Image
                     src={article.image_url}
                     alt={article.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
                   />
                 </div>
               )}

@@ -60,6 +60,8 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
             width={40}
             height={40}
             className="flex-shrink-0"
+            // Ensure aspect ratio is maintained if any parent CSS adjusts one dimension
+            style={{ height: 'auto', width: 'auto' }}
           />
           {!isCollapsed && (
             <h2 className="text-2xl font-sans font-bold text-white ml-2">

@@ -49,7 +49,7 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-2 group cursor-pointer">
               <Image 
-                src="/Logo52.png" 
+                src="/logo52.png" 
                 alt="Logo" 
                 width={140} 
                 height={140} 
