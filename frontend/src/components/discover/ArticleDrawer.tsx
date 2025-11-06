@@ -13,8 +13,9 @@ import {
 } from '@/components/ui/sheet';
 import { useArticleActivity } from '@/hooks/useArticleActivity';
 import { useArticleImpression } from '@/hooks/useArticleImpression';
-import { checkArticleLiked } from '@/lib/react-query/queries';
+import { useArticleLikeStatus, setArticleLikeStatus } from '@/hooks/useArticleLikeStatus';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ArticleDrawerProps {
   article: Article | null;
@@ -27,10 +28,18 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
   open, 
   onClose 
 }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isCheckingLiked, setIsCheckingLiked] = useState(false);
+  const queryClient = useQueryClient();
   const { trackActivity, isPending } = useArticleActivity(article?.id || '');
   const isMobile = useIsMobile();
+  
+  // Use React Query hook to check like status with caching
+  const { data: cachedIsLiked = false, isLoading: isCheckingLiked } = useArticleLikeStatus(
+    article?.id,
+    open // Only fetch when drawer is open
+  );
+  
+  // Local state for optimistic updates
+  const [localIsLiked, setLocalIsLiked] = useState(false);
   
   // Track impression when drawer is open and content is viewed
   const { ref: impressionRef } = useArticleImpression(article?.id || '', {
@@ -38,32 +47,30 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
     threshold: 0.3,
   });
 
-  // Check if article is already liked when article changes
+  // Sync local state with cached data when it changes
   useEffect(() => {
-    if (!article?.id || !open) {
-      setIsLiked(false);
-      return;
+    if (!isCheckingLiked) {
+      setLocalIsLiked(cachedIsLiked);
     }
+  }, [cachedIsLiked, isCheckingLiked]);
 
-    setIsCheckingLiked(true);
-    checkArticleLiked(article.id)
-      .then((liked) => {
-        setIsLiked(liked);
-      })
-      .catch((error) => {
-        console.error('Error checking liked status:', error);
-        setIsLiked(false);
-      })
-      .finally(() => {
-        setIsCheckingLiked(false);
-      });
-  }, [article?.id, open]);
+  // Reset local state when drawer closes
+  useEffect(() => {
+    if (!open) {
+      setLocalIsLiked(false);
+    }
+  }, [open]);
 
   const handleLike = () => {
-    if (!article || isPending) return;
+    if (!article || isPending || localIsLiked) return;
     
+    // Optimistic update
+    setLocalIsLiked(true);
+    setArticleLikeStatus(queryClient, article.id, true);
+    
+    // Track activity (will save to backend)
     trackActivity('like');
-    setIsLiked(true);
+    
     console.log('Liked article:', article.title);
   };
 
@@ -144,15 +151,15 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
               <div className={`pt-4 border-t border-slate-800 ${isMobile ? 'flex flex-col gap-3' : 'flex gap-3'}`}>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleLike(); }}
-                  disabled={isPending || isCheckingLiked}
+                  disabled={isPending || isCheckingLiked || localIsLiked}
                   className={`flex items-center ${isMobile ? 'justify-center gap-2 px-4 py-3' : 'gap-2 px-4 py-2'} rounded-lg font-medium transition-all disabled:opacity-50 ${
-                    isLiked
+                    localIsLiked
                       ? 'bg-blue-500 text-white'
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
-                  <ThumbsUp size={18} className={isLiked ? 'fill-current' : ''} />
-                  {isLiked ? 'Liked' : 'Like'}
+                  <ThumbsUp size={18} className={localIsLiked ? 'fill-current' : ''} />
+                  {localIsLiked ? 'Liked' : 'Like'}
                 </button>
               </div>
             </div>

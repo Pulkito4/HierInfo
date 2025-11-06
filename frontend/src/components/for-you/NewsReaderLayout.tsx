@@ -31,7 +31,7 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
   // Desktop: Split View
   if (!isMobile) {
     return (
-      <div className="flex gap-0 h-[calc(100vh-2rem)] bg-slate-950">
+      <div className="flex p-2 gap-0 h-[calc(100vh-5rem)] bg-slate-950">
         {/* Left Panel - Article List (30%) */}
         <div className="w-[30%] min-w-[320px] max-w-[400px] overflow-y-auto border-r border-slate-800 bg-slate-900/50">
           <ArticleList

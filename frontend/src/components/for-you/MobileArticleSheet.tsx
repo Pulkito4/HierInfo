@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/sheet';
 import { useArticleActivity } from '@/hooks/useArticleActivity';
 import { useArticleImpression } from '@/hooks/useArticleImpression';
-import { checkArticleLiked } from '@/lib/react-query/queries';
+import { useArticleLikeStatus, setArticleLikeStatus } from '@/hooks/useArticleLikeStatus';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface MobileArticleSheetProps {
   article: Article | null;
@@ -25,9 +26,17 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
   open, 
   onClose 
 }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isCheckingLiked, setIsCheckingLiked] = useState(false);
+  const queryClient = useQueryClient();
   const { trackActivity, isPending } = useArticleActivity(article?.id || '');
+  
+  // Use React Query hook to check like status with caching
+  const { data: cachedIsLiked = false, isLoading: isCheckingLiked } = useArticleLikeStatus(
+    article?.id,
+    open // Only fetch when sheet is open
+  );
+  
+  // Local state for optimistic updates
+  const [localIsLiked, setLocalIsLiked] = useState(false);
   
   // Track impression when sheet is open and content is viewed
   const { ref: impressionRef } = useArticleImpression(article?.id || '', {
@@ -35,32 +44,30 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
     threshold: 0.3,
   });
 
-  // Check if article is already liked when article changes
+  // Sync local state with cached data when it changes
   useEffect(() => {
-    if (!article?.id || !open) {
-      setIsLiked(false);
-      return;
+    if (!isCheckingLiked) {
+      setLocalIsLiked(cachedIsLiked);
     }
+  }, [cachedIsLiked, isCheckingLiked]);
 
-    setIsCheckingLiked(true);
-    checkArticleLiked(article.id)
-      .then((liked) => {
-        setIsLiked(liked);
-      })
-      .catch((error) => {
-        console.error('Error checking liked status:', error);
-        setIsLiked(false);
-      })
-      .finally(() => {
-        setIsCheckingLiked(false);
-      });
-  }, [article?.id, open]);
+  // Reset local state when sheet closes
+  useEffect(() => {
+    if (!open) {
+      setLocalIsLiked(false);
+    }
+  }, [open]);
 
   const handleLike = () => {
-    if (!article || isPending) return;
+    if (!article || isPending || localIsLiked) return;
     
+    // Optimistic update
+    setLocalIsLiked(true);
+    setArticleLikeStatus(queryClient, article.id, true);
+    
+    // Track activity (will save to backend)
     trackActivity('like');
-    setIsLiked(true);
+    
     console.log('Liked article:', article.title);
   };
 
@@ -154,23 +161,23 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
               {/* Like Button */}
               <button
                 onClick={handleLike}
-                disabled={isPending || isLiked || isCheckingLiked}
+                disabled={isPending || localIsLiked || isCheckingLiked}
                 className={`
                   flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all
-                  ${isLiked 
+                  ${localIsLiked 
                     ? 'bg-teal-500/20 text-teal-400 cursor-default' 
                     : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-teal-400'
                   }
                   ${(isPending || isCheckingLiked) ? 'opacity-50 cursor-not-allowed' : ''}
                   focus:outline-none focus:ring-2 focus:ring-teal-500/50
                 `}
-                title={isLiked ? 'Liked' : 'Like this article'}
+                title={localIsLiked ? 'Liked' : 'Like this article'}
               >
                 <ThumbsUp 
                   size={18} 
-                  className={isLiked ? 'fill-current' : ''}
+                  className={localIsLiked ? 'fill-current' : ''}
                 />
-                <span>{isCheckingLiked ? 'Loading...' : isLiked ? 'Liked' : 'Like'}</span>
+                <span>{isCheckingLiked ? 'Loading...' : localIsLiked ? 'Liked' : 'Like'}</span>
               </button>
 
             </div>

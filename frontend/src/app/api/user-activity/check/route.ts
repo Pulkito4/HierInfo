@@ -36,7 +36,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ exists: false });
     }
 
-    return NextResponse.json({ exists: !!data });
+    // Return with caching headers to reduce repeated requests
+    return NextResponse.json(
+      { exists: !!data },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=300', // Cache for 5 minutes (client-side only)
+        }
+      }
+    );
   } catch (error) {
     console.error("Error in check endpoint:", error);
     return NextResponse.json(
