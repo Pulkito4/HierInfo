@@ -181,8 +181,10 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  return { user, error };
+  // Use getSession() instead of getUser() with @supabase/ssr
+  // This properly reads from cookies and refreshes the session
+  const { data: { session }, error } = await supabase.auth.getSession();
+  return { user: session?.user ?? null, error };
 };
 
 // Function to get categories
