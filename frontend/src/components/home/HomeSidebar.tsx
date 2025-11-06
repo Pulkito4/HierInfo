@@ -2,7 +2,6 @@ import React from 'react';
 import {
   SidebarContent,
   SidebarHeader,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Earth, Settings, Smile } from 'lucide-react';

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Clock, TrendingUp } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import type { Article } from '@/types/articles';
 
 interface DiscoverCardProps {
@@ -12,16 +12,16 @@ interface DiscoverCardProps {
 }
 
 const DiscoverCard: React.FC<DiscoverCardProps> = ({ article, onClick, featured = false }) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+  // const formatDate = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   const now = new Date();
+  //   const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
     
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 48) return 'Yesterday';
-    return `${Math.floor(diffInHours / 24)}d ago`;
-  };
+  //   if (diffInHours < 1) return 'Just now';
+  //   if (diffInHours < 24) return `${diffInHours}h ago`;
+  //   if (diffInHours < 48) return 'Yesterday';
+  //   return `${Math.floor(diffInHours / 24)}d ago`;
+  // };
 
   const getBadgeInfo = () => {
     // Show "Breaking" for critical articles

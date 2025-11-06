@@ -27,7 +27,7 @@ export function useTrendingFeed(limit: number = TRENDING_PAGE_SIZE_DEFAULT) {
     queryKey: feedQueryKeys.trending(limit),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastOffset) => {
-      const total = lastPage.pagination?.total ?? lastPage.articles.length;
+      // const total = lastPage.pagination?.total ?? lastPage.articles.length;
       const pageOffset = typeof lastOffset === "number" ? lastOffset : 0;
       const hasMore = Boolean(lastPage.pagination?.hasMore);
       return hasMore ? pageOffset + limit : undefined;

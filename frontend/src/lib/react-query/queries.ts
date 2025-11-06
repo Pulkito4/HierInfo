@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import type { Article } from "@/types/articles";
+// import type { Article } from "@/types/articles";
 import type { TrendingPage, CriticalPage, ForYouResponse, ExplorePage } from "@/types/api";
 import { EXPLORE_KEY_ROOT, FEED_KEY_ROOT } from "@/lib/constants";
 

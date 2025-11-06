@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ThumbsUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Article } from '@/types/articles';
 
 interface HeroBannerProps {
@@ -12,7 +12,7 @@ interface HeroBannerProps {
   onLike: (articleId: string) => void;
 }
 
-const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick, onLike }) => {
+const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => {
   const limitedArticles = articles.slice(0, 5);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -44,12 +44,12 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick, onLik
     setCurrentIndex(index);
   };
 
-  const handleLike = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (currentArticle) {
-      onLike(currentArticle.id);
-    }
-  };
+  // const handleLike = (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   if (currentArticle) {
+  //     onLike(currentArticle.id);
+  //   }
+  // };
 
   if (limitedArticles.length === 0) return null;
 
