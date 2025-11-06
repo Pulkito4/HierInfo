@@ -68,12 +68,12 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
             </h2>
             
           )}
-           <SidebarTrigger className={`${isCollapsed ? 'ml-5 bg-black rounded-full' : 'ml-12'} -mt-3 text-white hover:bg-slate-600/40 hover:text-white rounded-md transition-all`} />
+          
          
         </div>
         
       </SidebarHeader>
-      <hr className="border-white/70" />
+      <hr className="border-gray-200" />
       <SidebarContent className="flex flex-col justify-between h-full">
         <div className="p-2 space-y-2">
           <NavButton

@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const windowUsed: 'all' = 'all';
+    const windowUsed = 'all' as const;
     const candidates = candidateRows ?? [];
 
     const seen = new Set<string>();

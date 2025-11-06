@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { Article } from '@/types/articles';
-import { X, ExternalLink, Calendar, ThumbsUp } from 'lucide-react';
+import { X,  ThumbsUp } from 'lucide-react';
 import {
   Sheet,
   SheetContent,

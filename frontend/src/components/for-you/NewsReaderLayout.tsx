@@ -4,7 +4,6 @@ import type { Article } from '@/types/articles';
 import ArticleList from './ArticleList';
 import ArticleDetail from './ArticleDetail';
 import MobileArticleSheet from './MobileArticleSheet';
-import TrendingArticleCard from './TrendingArticleCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NewsReaderLayoutProps {

@@ -94,7 +94,7 @@ export async function fetchCriticalPage({
  * @param limit Max number of articles to return.
  * @returns A ForYouResponse containing the digest and metadata.
  */
-export async function fetchForYou({ userId, limit }: { userId: string; limit: number }): Promise<ForYouResponse> {
+export async function fetchForYou({  limit }: { userId: string; limit: number }): Promise<ForYouResponse> {
   const {
     data: { session },
   } = await supabase.auth.getSession();

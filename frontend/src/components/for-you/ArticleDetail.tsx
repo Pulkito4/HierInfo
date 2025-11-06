@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { Article } from '@/types/articles';
-import { ExternalLink, Calendar, ThumbsUp } from 'lucide-react';
+import { ThumbsUp } from 'lucide-react';
 import { useArticleActivity } from '@/hooks/useArticleActivity';
 import { useArticleImpression } from '@/hooks/useArticleImpression';
 import { useArticleLikeStatus } from '@/hooks/useArticleLikeStatus';

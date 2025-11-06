@@ -4,9 +4,8 @@ import {
   Sidebar, 
   SidebarProvider, 
   SidebarInset,
-  SidebarTrigger,
+  SidebarTrigger
 } from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
 import { useForYouFeed, useTrendingFeed, useExploreFeed, useCriticalFeed } from '@/lib/react-query/feeds';
 import { SKELETON_ARTICLES_COUNT } from '@/lib/constants';
 import LoadingSkeleton from '@/components/ui/loading-skeleton';
@@ -16,6 +15,7 @@ import { useTabNavigation } from '@/hooks/useTabNavigation';
 import HomeSidebar from '@/components/home/HomeSidebar';
 import PersonalTabContent from '@/components/home/PersonalTabContent';
 import ExploreTabContent from '@/components/home/ExploreTabContent';
+import { Separator } from '@/components/ui/separator';
 
 const HomepageContent = () => {
   const { activeTab, personalSubTab, setActiveTab, setPersonalSubTab } = useTabNavigation();
@@ -83,6 +83,11 @@ const HomepageContent = () => {
         <HomeSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       </Sidebar>
       <SidebarInset>
+        <header className="flex h-12 p-2 text-white bg-slate-900 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="h-6" />
+          <h1 className="text-xl font-semibold">{getHeaderTitle()}</h1>
+        </header>
         <main className={`flex-1 bg-slate-900 overflow-auto ${shouldRemovePadding ? 'p-0' : 'p-6'}`}>
           {renderContent()}
         </main>

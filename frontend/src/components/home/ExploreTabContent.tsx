@@ -24,8 +24,6 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
   articles,
   loading,
   error,
-  hasMore,
-  onLoadMore,
   onRetry,
 }) => {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
@@ -72,7 +70,7 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
   return (
     <>
       <div className="space-y-8 p-2 bg-slate-950">
-        <h1 className='text-white text-2xl font-semibold'>Discover</h1>
+      
         {/* Hero Banner */}
         <HeroBanner
           articles={heroArticles}

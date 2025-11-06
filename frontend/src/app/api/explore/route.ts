@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       Math.max((offset + 1) * limit * EXPLORE_CANDIDATE_MULTIPLIER, limit)
     );
 
-    let merged: Article[] = [];
+    const merged: Article[] = [];
     const seen = new Set<string>();
 
     const loadCandidates = async (limitForAttempt: number) => {
