@@ -67,8 +67,10 @@ def _fetch_gnews_page(
         from urllib.parse import urlparse
 
         host = urlparse(cfg.GNEWS_URL).netloc
+        logger.debug(f"🔄 Starting request for {country.upper()}-{category} page {page}")
         _throttle(host)
 
+        logger.debug(f"📡 Sending HTTP request for {country.upper()}-{category} page {page}")
         response = _session.get(cfg.GNEWS_URL, params=params, timeout=20)
         response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
         data = response.json()
@@ -158,7 +160,8 @@ def fetch_gnews_metadata() -> List[Dict]:
             continue
 
         # Fetch pages concurrently with a conservative worker count
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        # Reduced from 4 to 2 to avoid rate limiting issues
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_to_task = {
                 executor.submit(_fetch_gnews_page, api_key, category, country, page): (
                     category,
@@ -169,21 +172,38 @@ def fetch_gnews_metadata() -> List[Dict]:
             }
             batch_success = 0
             batch_fail = 0
-            for future in concurrent.futures.as_completed(future_to_task):
-                try:
-                    page_articles, ok = future.result()
-                    if ok:
-                        batch_success += 1
-                    else:
-                        batch_fail += 1
-                    if page_articles:
-                        all_articles.extend(page_articles)
-                except Exception as e:
+            
+            # Add timeout to as_completed to prevent infinite hanging
+            try:
+                for future in concurrent.futures.as_completed(future_to_task, timeout=30):
                     cat, ctry, pg = future_to_task[future]
-                    logger.error(
-                        f"❌ GNews task failed for {ctry.upper()}-{cat} page {pg}: {e}"
-                    )
-                    batch_fail += 1
+                    logger.debug(f"Processing result for {ctry.upper()}-{cat} page {pg}")
+                    try:
+                        page_articles, ok = future.result(timeout=5)  # Additional per-result timeout
+                        if ok:
+                            batch_success += 1
+                        else:
+                            batch_fail += 1
+                        if page_articles:
+                            all_articles.extend(page_articles)
+                    except concurrent.futures.TimeoutError:
+                        logger.error(
+                            f"⏱️ GNews request TIMEOUT for {ctry.upper()}-{cat} page {pg}"
+                        )
+                        batch_fail += 1
+                    except Exception as e:
+                        logger.error(
+                            f"❌ GNews task failed for {ctry.upper()}-{cat} page {pg}: {e}"
+                        )
+                        batch_fail += 1
+            except concurrent.futures.TimeoutError:
+                logger.error(
+                    f"⏱️ BATCH TIMEOUT for {country.upper()} - not all futures completed in time"
+                )
+                # Cancel any remaining futures
+                for future in future_to_task:
+                    future.cancel()
+                batch_fail += len([f for f in future_to_task if not f.done()])
 
         total = len(tasks)
         logger.info(
