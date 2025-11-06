@@ -117,16 +117,19 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
       {/* Featured Image */}
       {article.image_url && (
-        <div className="relative w-full h-64 md:h-96 mb-6 rounded-xl overflow-hidden bg-slate-800">
-          <Image
-            src={article.image_url}
-            alt={article.title}
-            fill
-            className="object-cover"
-            priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-          />
-        </div>
+        <figure className="group mb-6 rounded-xl bg-slate-900/40 border border-slate-800 overflow-hidden">
+          {/* Give the fill image a concrete height so it renders */}
+          <div className="relative w-full h-[220px] md:h-[420px] lg:h-[280px] max-h-[70vh] bg-slate-800">
+            <Image
+              src={article.image_url}
+              alt={article.title}
+              fill
+              className="object-contain group-hover:scale-[1.01] transition-transform duration-500"
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 960px"
+            />
+          </div>
+        </figure>
       )}
 
       {/* Article Summary */}

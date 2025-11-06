@@ -1,12 +1,10 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Article } from '@/types/articles';
-import ArticleList from './ArticleList';
 import ArticleDetail from './ArticleDetail';
 import MobileArticleSheet from './MobileArticleSheet';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Image from 'next/image';
+import ArticleCard from './ArticleCard';
 
 interface NewsReaderLayoutProps {
   articles: Article[];
@@ -16,7 +14,6 @@ interface NewsReaderLayoutProps {
 
 const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, showBadges = false }) => {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  const [isListCollapsed, setIsListCollapsed] = useState(false);
   const isMobile = useIsMobile();
 
   // Get the first article ID to use as a stable dependency
@@ -44,44 +41,28 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
   // Do not auto-open any article. Wait for explicit user click
   // (prevents unintended impression tracking on initial load)
 
-  // Desktop: Split View
+  // Desktop: Two-column grid (list) + docked detail panel (no auto-open)
   if (!isMobile) {
     return (
-      <div className="flex p-2 gap-0 h-[calc(100vh-5rem)] bg-slate-950 relative">
-        {/* Left Panel - Article List */}
-        <div 
-          className={`
-            ${isListCollapsed ? 'w-0' : 'w-[30%] min-w-[320px] max-w-[400px]'}
-            overflow-y-auto border-r border-slate-800 bg-slate-900/50
-            transition-all duration-300 ease-in-out
-          `}
-        >
-          <ArticleList
-            articles={articles}
-            selectedId={selectedArticle?.id}
-            onSelect={setSelectedArticle}
-            loading={loading}
-            showBadges={showBadges}
-          />
+      <div className="flex h-[calc(100vh-5rem)] bg-slate-950">
+        {/* Left: Two-column grid of articles */}
+        <div className="w-[58%] min-w-[520px] max-w-[900px] border-r border-slate-800 bg-slate-900/40 overflow-y-auto">
+          <div className="grid grid-cols-2 gap-4 p-4">
+            {articles.map((a) => (
+              <div key={a.id}>
+                <ArticleCard
+                  article={a}
+                  isSelected={selectedArticle?.id === a.id}
+                  onClick={() => setSelectedArticle(a)}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Collapse/Expand Button */}
-        <button
-          onClick={() => setIsListCollapsed(!isListCollapsed)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-r-lg shadow-lg transition-all duration-300 group"
-          style={{ left: isListCollapsed ? '0' : 'calc(30% - 12px)' }}
-          title={isListCollapsed ? 'Expand article list' : 'Collapse article list'}
-        >
-          {isListCollapsed ? (
-            <ChevronRight className="w-5 h-5" />
-          ) : (
-            <ChevronLeft className="w-5 h-5" />
-          )}
-        </button>
-
-        {/* Right Panel - Article Detail */}
-        <div className="flex-1 overflow-y-auto bg-slate-950 transition-all duration-300">
-          <ArticleDetail 
+        {/* Right: Docked detail panel */}
+        <div className="flex-1 overflow-y-auto bg-slate-950">
+          <ArticleDetail
             article={selectedArticle}
             onNext={handleNext}
             onPrevious={handlePrevious}
@@ -125,12 +106,10 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
             >
               {article.image_url && (
                 <div className="relative w-full h-40 mb-3 rounded-md overflow-hidden bg-slate-800">
-                  <Image
+                  <img
                     src={article.image_url}
                     alt={article.title}
-                    fill
-                    className="object-cover"
-                    sizes="100vw"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}

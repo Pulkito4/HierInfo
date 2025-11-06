@@ -22,13 +22,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSelected, onClick 
     >
       {/* Article Image */}
       {article.image_url && (
-        <div className="relative w-full h-32 mb-3 rounded-md overflow-hidden bg-slate-800">
+        <div className="relative aspect-video mb-3 rounded-md overflow-hidden bg-slate-800 flex items-center justify-center">
           <Image
             src={article.image_url}
             alt={article.title}
             fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 300px"
+            // Use object-contain to reduce aggressive cropping; fallback to cover if very tall
+            className="object-contain md:object-cover transition-opacity"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 300px"
+            loading="lazy"
           />
         </div>
       )}
