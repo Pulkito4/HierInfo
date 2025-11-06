@@ -1,7 +1,7 @@
 'use client'
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { handleAuthCallback } from '@/lib/supabaseAuth';
+import { supabase } from '@/lib/supabase';
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -9,17 +9,18 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        const { user, error, isNewUser } = await handleAuthCallback();
+        // Exchange the code for a session (PKCE flow)
+        const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
         
         if (error) {
           console.error('Auth callback error:', error);
-          router.push('/sign-in?error=auth-failed');
+          router.push('/login?error=auth-failed');
           return;
         }
 
-        if (!user) {
+        if (!data.user) {
           console.error('No user returned from callback');
-          router.push('/sign-in?error=no-user');
+          router.push('/login?error=no-user');
           return;
         }
 
@@ -27,18 +28,16 @@ export default function AuthCallback() {
         const urlParams = new URLSearchParams(window.location.search);
         const redirectTo = urlParams.get('redirect');
         
-        // Redirect based on user status
-        console.log('User authenticated:', { user: user.id, isNewUser });
-        if (isNewUser) {
-          router.push('/categories');
-        } else if (redirectTo && redirectTo.startsWith('/')) {
+        console.log('User authenticated:', data.user.id);
+        
+        if (redirectTo && redirectTo.startsWith('/')) {
           router.push(redirectTo);
         } else {
           router.push('/home');
         }
       } catch (error) {
         console.error('Callback handling error:', error);
-        router.push('/sign-in?error=callback-failed');
+        router.push('/login?error=callback-failed');
       }
     };
 
