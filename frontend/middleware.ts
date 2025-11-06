@@ -25,8 +25,11 @@ export async function middleware(request: NextRequest) {
   
   if (isProtectedRoute || isAuthRoute) {
   // Fast short-circuit using cookies or Authorization header: avoid calling Supabase if unnecessary
-  const accessToken = request.cookies.get('sb-access-token')?.value;
-  const hasSessionCookie = Boolean(accessToken);
+  // @supabase/ssr uses different cookie names - check for any auth-related cookies
+  const cookies = request.cookies;
+  const hasSessionCookie = cookies.getAll().some(cookie => 
+    cookie.name.startsWith('sb-') && cookie.value
+  );
   const authHeader = request.headers.get('authorization') || '';
   const hasBearer = authHeader.startsWith('Bearer ');
 
@@ -107,8 +110,9 @@ export async function middleware(request: NextRequest) {
       // For API routes with Bearer, skip server-side validation (route will handle getUser) to avoid extra call
       const shouldValidate = isProtectedRoute && (hasSessionCookie && !hasBearer);
       if (shouldValidate) {
-        const { data } = await supabase.auth.getUser();
-        user = data.user ?? null;
+        // Use getSession() instead of getUser() with @supabase/ssr to properly read from cookies
+        const { data } = await supabase.auth.getSession();
+        user = data.session?.user ?? null;
       }
 
       // If no user and trying to access protected route, redirect to home
