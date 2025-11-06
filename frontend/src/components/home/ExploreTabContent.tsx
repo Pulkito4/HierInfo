@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import LoadingSkeleton from '@/components/ui/loading-skeleton';
 import ErrorMessage from '@/components/ui/error-message';
 import EmptyState from './EmptyState';
@@ -24,11 +24,35 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
   articles,
   loading,
   error,
+  hasMore,
+  onLoadMore,
   onRetry,
 }) => {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { trackActivity } = useArticleActivity(selectedArticle?.id || '');
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  // Intersection Observer for infinite scroll
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    const [target] = entries;
+    if (target.isIntersecting && hasMore && !isLoading(loading)) {
+      onLoadMore();
+    }
+  }, [hasMore, loading, onLoadMore]);
+
+  React.useEffect(() => {
+    const element = observerTarget.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(handleObserver, {
+      threshold: 0.1,
+      rootMargin: '100px',
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [handleObserver]);
 
   const handleArticleClick = (article: Article) => {
     setSelectedArticle(article);
@@ -95,6 +119,19 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
             />
           </div>
         )}
+
+        {/* Infinite Scroll Trigger */}
+        <div ref={observerTarget} className="h-20 flex items-center justify-center">
+          {isLoading(loading) && hasMore && (
+            <div className="flex items-center gap-2 text-blue-400">
+              <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium">Loading more stories...</span>
+            </div>
+          )}
+          {!hasMore && articles.length > 0 && (
+            <p className="text-sm text-slate-500">You've reached the end</p>
+          )}
+        </div>
       </div>
 
       {/* Article Drawer (Right Side) */}
