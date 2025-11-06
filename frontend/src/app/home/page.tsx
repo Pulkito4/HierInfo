@@ -83,12 +83,7 @@ const HomepageContent = () => {
         <HomeSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="h-6" />
-          <h1 className="text-xl font-semibold">{getHeaderTitle()}</h1>
-        </header>
-        <main className={`flex-1 bg-black overflow-auto ${shouldRemovePadding ? 'p-0' : 'p-6'}`}>
+        <main className={`flex-1 bg-slate-900 overflow-auto ${shouldRemovePadding ? 'p-0' : 'p-6'}`}>
           {renderContent()}
         </main>
       </SidebarInset>

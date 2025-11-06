@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import LoadingSkeleton from '@/components/ui/loading-skeleton';
 import ErrorMessage from '@/components/ui/error-message';
 import EmptyState from './EmptyState';
-import { HeroBanner, DiscoverGrid, ArticleDrawer } from './discover';
+import { HeroBanner, DiscoverGrid, ArticleDrawer } from '../discover';
 import { SKELETON_EXPLORE_COUNT } from '@/lib/constants';
 import { isLoading } from '@/lib/utils/feedUtils';
 import { useArticleActivity } from '@/hooks/useArticleActivity';
@@ -71,7 +71,8 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
 
   return (
     <>
-      <div className="space-y-8 bg-slate-900">
+      <div className="space-y-8 p-2 bg-slate-950">
+        <h1 className='text-white text-2xl font-semibold'>Discover</h1>
         {/* Hero Banner */}
         <HeroBanner
           articles={heroArticles}

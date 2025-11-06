@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { Article } from '@/types/articles';
-import { X, ExternalLink, ThumbsUp } from 'lucide-react';
+import { ThumbsUp } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -14,6 +14,7 @@ import {
 import { useArticleActivity } from '@/hooks/useArticleActivity';
 import { useArticleImpression } from '@/hooks/useArticleImpression';
 import { checkArticleLiked } from '@/lib/react-query/queries';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ArticleDrawerProps {
   article: Article | null;
@@ -29,6 +30,7 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
   const [isLiked, setIsLiked] = useState(false);
   const [isCheckingLiked, setIsCheckingLiked] = useState(false);
   const { trackActivity, isPending } = useArticleActivity(article?.id || '');
+  const isMobile = useIsMobile();
   
   // Track impression when drawer is open and content is viewed
   const { ref: impressionRef } = useArticleImpression(article?.id || '', {
@@ -69,11 +71,15 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
 
   return (
     <>
-      {/* Desktop: Right Drawer */}
-      <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent 
-          side="right" 
-          className="hidden md:flex w-full sm:max-w-2xl p-0 bg-slate-900 border-l border-slate-800 overflow-y-auto flex-col"
+      {/* Single Sheet instance to avoid double overlays. Side is responsive. */}
+      <Sheet open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
+        <SheetContent
+          side={isMobile ? 'bottom' : 'right'}
+          className={
+            isMobile
+              ? 'h-[90vh] p-0 bg-slate-900 border-t border-slate-800'
+              : 'w-full sm:max-w-2xl p-0 bg-slate-900 border-l border-slate-800 overflow-y-auto flex-col'
+          }
         >
           <SheetHeader className="sr-only">
             <SheetTitle>{article.title}</SheetTitle>
@@ -81,17 +87,17 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
           </SheetHeader>
 
           {/* Scrollable Content */}
-          <div ref={impressionRef} className="h-full overflow-y-auto">
+          <div ref={impressionRef} className={`h-full p-3 overflow-y-auto ${isMobile ? 'rounded-2xl' : ''}`}>
             {/* Featured Image */}
             {article.image_url && (
-              <div className="relative w-full h-64 bg-slate-800">
+              <div className={`relative w-full ${isMobile ? 'h-56' : 'h-64'} bg-slate-800`}>
                 <Image
                   src={article.image_url}
                   alt={article.title}
                   fill
                   className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority={!isMobile}
+                  sizes={isMobile ? '100vw' : '(max-width: 768px) 100vw, 50vw'}
                 />
               </div>
             )}
@@ -99,7 +105,7 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
             {/* Article Content */}
             <div className="p-6">
               {/* Title */}
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-50 mb-4 leading-tight">
+              <h1 className={`font-bold text-slate-50 mb-4 leading-tight ${isMobile ? 'text-2xl' : 'text-2xl md:text-3xl'}`}>
                 {article.title}
               </h1>
 
@@ -111,7 +117,7 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
               {/* Summary */}
               {article.summary && (
                 <div className="mb-6">
-                  <p className="text-slate-300 leading-relaxed text-base">
+                  <p className={`text-slate-300 leading-relaxed ${isMobile ? '' : 'text-base'}`}>
                     {article.summary}
                   </p>
                 </div>
@@ -134,13 +140,12 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
                 </div>
               )}
 
-
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-slate-800">
+              <div className={`pt-4 border-t border-slate-800 ${isMobile ? 'flex flex-col gap-3' : 'flex gap-3'}`}>
                 <button
-                  onClick={handleLike}
+                  onClick={(e) => { e.stopPropagation(); handleLike(); }}
                   disabled={isPending || isCheckingLiked}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 ${
+                  className={`flex items-center ${isMobile ? 'justify-center gap-2 px-4 py-3' : 'gap-2 px-4 py-2'} rounded-lg font-medium transition-all disabled:opacity-50 ${
                     isLiked
                       ? 'bg-blue-500 text-white'
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
@@ -149,91 +154,6 @@ const ArticleDrawer: React.FC<ArticleDrawerProps> = ({
                   <ThumbsUp size={18} className={isLiked ? 'fill-current' : ''} />
                   {isLiked ? 'Liked' : 'Like'}
                 </button>
-              </div>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Mobile: Bottom Sheet */}
-      <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent 
-          side="bottom" 
-          className="md:hidden h-[90vh] p-0 bg-slate-900 border-t border-slate-800"
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>{article.title}</SheetTitle>
-            <SheetDescription>Article details</SheetDescription>
-          </SheetHeader>
-
-          {/* Scrollable Content */}
-          <div className="h-full rounded-2xl overflow-y-auto">
-            {/* Featured Image */}
-            {article.image_url && (
-              <div className="relative w-full h-56 bg-slate-800">
-                <Image
-                  src={article.image_url}
-                  alt={article.title}
-                  fill
-                  className="object-cover"
-                  sizes="100vw"
-                />
-              </div>
-            )}
-
-            {/* Article Content */}
-            <div className="p-6">
-              {/* Title */}
-              <h1 className="text-2xl font-bold text-slate-50 mb-4 leading-tight">
-                {article.title}
-              </h1>
-
-              {/* Meta */}
-              <div className="flex flex-wrap items-center gap-3 mb-6 text-sm text-slate-400">
-                <span className="font-semibold text-blue-400">{article.source}</span>
-              </div>
-
-              {/* Summary */}
-              {article.summary && (
-                <div className="mb-6">
-                  <p className="text-slate-300 leading-relaxed">
-                    {article.summary}
-                  </p>
-                </div>
-              )}
-
-              {/* Keywords */}
-              {article.keywords && article.keywords.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-slate-400 mb-3">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {article.keywords.map((keyword, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700"
-                      >
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-3 pt-4 border-t border-slate-800">
-                <button
-                  onClick={handleLike}
-                  disabled={isPending || isCheckingLiked}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all disabled:opacity-50 ${
-                    isLiked
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-slate-800 text-slate-300'
-                  }`}
-                >
-                  <ThumbsUp size={18} className={isLiked ? 'fill-current' : ''} />
-                  {isLiked ? 'Liked' : 'Like'}
-                </button>
-
               </div>
             </div>
           </div>

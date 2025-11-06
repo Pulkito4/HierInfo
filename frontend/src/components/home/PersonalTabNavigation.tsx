@@ -13,12 +13,12 @@ const PersonalTabNavigation: React.FC<PersonalTabNavigationProps> = ({
   const getButtonClasses = (isActive: boolean) =>
     `flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
       isActive
-        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+        ? 'bg-slate-800 dark:bg-gray-700 text-gray-200 dark:text-white shadow-sm'
+        : 'text-gray-200 dark:text-gray-400 hover:text-white dark:hover:text-white'
     }`;
 
   return (
-    <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mb-6">
+    <div className="flex space-x-1  bg-gray-700 dark:bg-gray-800 rounded-lg p-1 mb-6">
       <button
         onClick={() => onSubTabChange('feed')}
         className={getButtonClasses(activeSubTab === 'feed')}

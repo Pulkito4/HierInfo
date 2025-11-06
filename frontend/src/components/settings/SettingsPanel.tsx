@@ -114,9 +114,9 @@ const SettingsPanel = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl bg-slate-950 rounded-2xl mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-2">Settings</h1>
+        <h1 className="text-2xl text-white font-bold mb-2">Settings</h1>
         <p className="text-gray-600 dark:text-gray-400">Manage your account and preferences</p>
       </div>
 

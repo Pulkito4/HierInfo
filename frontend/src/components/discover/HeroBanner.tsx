@@ -24,7 +24,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick, onLik
 
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % limitedArticles.length);
-    }, 5000);
+    }, 7000);
 
     return () => clearInterval(timer);
   }, [isAutoPlaying, limitedArticles.length]);

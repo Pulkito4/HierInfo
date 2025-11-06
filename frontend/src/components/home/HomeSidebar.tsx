@@ -2,6 +2,7 @@ import React from 'react';
 import {
   SidebarContent,
   SidebarHeader,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Earth, Settings, Smile } from 'lucide-react';
@@ -51,7 +52,9 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
   return (
     <>
       <SidebarHeader>
+        
         <div className="flex items-center py-3 px-2">
+          
           <Image
             src="/logoicon.png"
             alt="HeirInfo Logo"
@@ -63,8 +66,12 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
             <h2 className="text-2xl font-sans font-bold text-white ml-2">
               HeirInfo
             </h2>
+            
           )}
+           <SidebarTrigger className={`${isCollapsed ? 'ml-5 bg-black rounded-full' : 'ml-12'} -mt-3 text-white hover:bg-slate-600/40 hover:text-white rounded-md transition-all`} />
+         
         </div>
+        
       </SidebarHeader>
       <hr className="border-white/70" />
       <SidebarContent className="flex flex-col justify-between h-full">

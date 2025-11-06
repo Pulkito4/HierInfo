@@ -1,5 +1,5 @@
 import React from 'react';
-import { NewsReaderLayout } from '@/components/news-reader';
+import { NewsReaderLayout } from '@/components/for-you';
 import LoadingSkeleton from '@/components/ui/loading-skeleton';
 import ErrorMessage from '@/components/ui/error-message';
 import EmptyState from './EmptyState';
@@ -115,7 +115,7 @@ const PersonalTabContent: React.FC<PersonalTabContentProps> = ({
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1 bg-slate-950">
       <PersonalTabNavigation
         activeSubTab={personalSubTab}
         onSubTabChange={onSubTabChange}
