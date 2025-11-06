@@ -6,6 +6,7 @@ import ArticleDetail from './ArticleDetail';
 import MobileArticleSheet from './MobileArticleSheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface NewsReaderLayoutProps {
   articles: Article[];
@@ -129,7 +130,7 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({ articles, loading, 
             >
               {article.image_url && (
                 <div className="relative w-full h-40 mb-3 rounded-md overflow-hidden bg-slate-800">
-                  <img
+                  <Image
                     src={article.image_url}
                     alt={article.title}
                     className="w-full h-full object-cover"

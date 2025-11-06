@@ -38,7 +38,7 @@ export function RealtimeCacheInvalidator() {
         { event: "UPDATE", schema: "public", table: "cache_versions" },
         (payload) => {
           try {
-            const row = (payload as any).new as Partial<CacheVersionRow> | undefined;
+            const row = (payload).new as Partial<CacheVersionRow> | undefined;
             const feed = row?.feed_name;
             if (!feed) return;
             if (feed === FEED_NAME_TRENDING) {
@@ -66,7 +66,7 @@ export function RealtimeCacheInvalidator() {
         { event: "UPDATE", schema: "public", table: "profiles" },
         (payload) => {
           try {
-            const row = (payload as any).new as Partial<Profile> | undefined;
+            const row = (payload).new as Partial<Profile> | undefined;
             if (row?.id && row.id === user?.id) {
               qc.invalidateQueries({ queryKey: [FEED_KEY_ROOT, "forYou", row.id] });
             }

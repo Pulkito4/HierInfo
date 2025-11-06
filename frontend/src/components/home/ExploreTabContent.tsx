@@ -129,7 +129,7 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
             </div>
           )}
           {!hasMore && articles.length > 0 && (
-            <p className="text-sm text-slate-500">You've reached the end</p>
+            <p className="text-sm text-slate-500">You&apos;ve reached the end</p>
           )}
         </div>
       </div>
