@@ -9,10 +9,13 @@ from src.processing import (
     generate_categories,
     generate_topic_tags,
 )
+from src.processing.categorizer import generate_categories_parallel
 from src.scrapers import parse_articles_batch
 from utils import check_title_content_alignment
 from utils.dataframe_utils import create_main_dataframe
 from utils.logging_config import setup_logging
+from src import config as cfg
+from src.processing.summarizer import generate_summaries_parallel
 
 # Load environment variables FIRST
 load_dotenv()
@@ -117,7 +120,11 @@ def run_pipeline_logic():
     logger.info("--- PHASE 2: NLP PROCESSING ---")
     main_df = generate_embeddings(main_df)
     unique_articles_df = cluster_and_deduplicate(main_df)
-    unique_articles_df = generate_summaries(unique_articles_df)
+    # Use parallel summarization when configured (workers > 1)
+    if getattr(cfg, "PARALLEL_SUMMARIZER_WORKERS", None) and cfg.PARALLEL_SUMMARIZER_WORKERS > 1:
+        unique_articles_df = generate_summaries_parallel(unique_articles_df, max_workers=cfg.PARALLEL_SUMMARIZER_WORKERS)
+    else:
+        unique_articles_df = generate_summaries(unique_articles_df)
     
     # Early exit if no articles have valid summaries
     if unique_articles_df.empty:
@@ -125,7 +132,13 @@ def run_pipeline_logic():
         return None
     
     unique_articles_df = set_critical_flag(unique_articles_df)
-    unique_articles_df = generate_categories(unique_articles_df)
+    
+    # Use parallel categorization when configured (workers > 1)
+    if getattr(cfg, "PARALLEL_CATEGORIZER_WORKERS", None) and cfg.PARALLEL_CATEGORIZER_WORKERS > 1:
+        unique_articles_df = generate_categories_parallel(unique_articles_df, max_workers=cfg.PARALLEL_CATEGORIZER_WORKERS)
+    else:
+        unique_articles_df = generate_categories(unique_articles_df)
+    
     unique_articles_df = generate_topic_tags(unique_articles_df)
     logger.info("✅ NLP Processing complete.")
     logger.info(

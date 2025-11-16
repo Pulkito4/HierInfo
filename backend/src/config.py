@@ -58,3 +58,20 @@ SOURCE_SCORING_RULES = {
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 SUMMARIZER_MODEL_NAME = "sshleifer/distilbart-cnn-12-6"
 CLASSIFIER_MODEL_NAME = "valhalla/distilbart-mnli-12-1"
+
+# Parallelization settings
+# Number of worker processes to use for summarization (None = auto detect CPU-1)
+_psw = os.getenv("PARALLEL_SUMMARIZER_WORKERS", "")
+try:
+    PARALLEL_SUMMARIZER_WORKERS = int(_psw) if _psw.strip() != "" else None
+except Exception:
+    PARALLEL_SUMMARIZER_WORKERS = None
+    # invalid env value -> default to None
+
+# Number of worker processes to use for categorization (None = auto detect CPU-1)
+_pcw = os.getenv("PARALLEL_CATEGORIZER_WORKERS", "")
+try:
+    PARALLEL_CATEGORIZER_WORKERS = int(_pcw) if _pcw.strip() != "" else None
+except Exception:
+    PARALLEL_CATEGORIZER_WORKERS = None
+    # invalid env value -> default to None

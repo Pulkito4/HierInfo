@@ -5,6 +5,8 @@ from tqdm import tqdm
 from src import config as cfg
 
 from utils import get_logger
+import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Suppress verbose warnings from Hugging Face to keep logs clean
 hf_logging.set_verbosity_error()
@@ -12,22 +14,28 @@ hf_logging.set_verbosity_error()
 # Initialize logger
 logger = get_logger(__name__)
 
-# --- MODEL INITIALIZATION ---
-# Load the summarization model once when the module is imported.
-# This is a crucial optimization to save memory and time.
-try:
-    logger.info(
-        f"🤖 Loading summarization model '{cfg.SUMMARIZER_MODEL_NAME}' into memory..."
-    )
-    # device=-1 ensures it uses CPU. Change to 0 for the first GPU if available.
-    summarizer_pipeline = pipeline(
-        "summarization", model=cfg.SUMMARIZER_MODEL_NAME, device=-1
-    )
-    logger.info("✅ Summarization model loaded successfully.")
-except Exception as e:
-    logger.critical(f"❌ Failed to load summarization model: {e}")
-    # This is a critical failure, so we raise the exception to stop the pipeline.
-    raise
+# --- MODEL INITIALIZATION (LAZY) ---
+# We avoid loading the model at import time to make imports lightweight.
+# The model is created lazily when needed in the main process via `_ensure_pipeline`,
+# and worker processes set `summarizer_pipeline` during their initializer.
+summarizer_pipeline = None
+
+
+def _ensure_pipeline():
+    """Ensure the module-level `summarizer_pipeline` is initialized in the main process."""
+    global summarizer_pipeline
+    if summarizer_pipeline is None:
+        try:
+            logger.info(
+                f"🤖 Loading summarization model '{cfg.SUMMARIZER_MODEL_NAME}' into memory..."
+            )
+            summarizer_pipeline = pipeline(
+                "summarization", model=cfg.SUMMARIZER_MODEL_NAME, device=-1
+            )
+            logger.info("✅ Summarization model loaded successfully.")
+        except Exception as e:
+            logger.critical(f"❌ Failed to load summarization model: {e}")
+            raise
 
 
 def _summarize_text_mapreduce(text: str) -> str:
@@ -53,6 +61,10 @@ def _summarize_text_mapreduce(text: str) -> str:
     chunks = splitter.split_text(text)
 
     # 2. Summarize each chunk individually (Map step)
+    # Ensure pipeline exists in this process (main process or worker)
+    if 'summarizer_pipeline' not in globals() or summarizer_pipeline is None:
+        _ensure_pipeline()
+
     partial_summaries = summarizer_pipeline(
         chunks, max_length=120, min_length=30, do_sample=False
     )
@@ -68,6 +80,30 @@ def _summarize_text_mapreduce(text: str) -> str:
     )[0]["summary_text"]
 
     return final_summary
+
+
+# --- Parallel worker support ---
+# Worker initializer sets up a model instance in each process as `summarizer_pipeline`
+def _worker_init(model_name: str):
+    """Initializer for worker processes: load the summarization model once per worker."""
+    try:
+        # Suppress hf logging in worker as well
+        hf_logging.set_verbosity_error()
+        global summarizer_pipeline
+        summarizer_pipeline = pipeline("summarization", model=model_name, device=-1)
+    except Exception as e:
+        # If a worker fails to init, log to stdout (cannot use logger from parent reliably)
+        print(f"Worker failed to initialize summarizer model: {e}")
+
+
+def _worker_summarize(text: str) -> str:
+    """Worker wrapper that calls the existing mapreduce summarizer in the worker process."""
+    try:
+        return _summarize_text_mapreduce(text)
+    except Exception as e:
+        # Return empty string on worker failure to avoid crashing the whole pool
+        print(f"Worker summarization error: {e}")
+        return ""
 
 
 def generate_summaries(df: pd.DataFrame) -> pd.DataFrame:
@@ -118,4 +154,57 @@ def generate_summaries(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     logger.info(f"✅ Summary generation complete for {len(df)} articles.")
+    return df
+
+
+def generate_summaries_parallel(df: pd.DataFrame, max_workers: int = None) -> pd.DataFrame:
+    """
+    Parallel version of summarization using a process pool. Each worker initializes
+    its own summarization model instance to avoid GIL and achieve true parallelism.
+
+    Args:
+        df: DataFrame with 'raw_content' column.
+        max_workers: Number of worker processes to use. If None, uses max(1, cpu_count()-1).
+    Returns:
+        DataFrame with a new 'summary' column (filtered to remove empty summaries).
+    """
+    if df.empty or "raw_content" not in df.columns:
+        logger.warning("DataFrame is empty or missing 'raw_content'. Skipping.")
+        return df
+
+    if max_workers is None:
+        # leave one CPU free to keep the system responsive
+        max_workers = max(1, mp.cpu_count() - 1)
+
+    logger.info(f"🚀 Starting PARALLEL summarization with {max_workers} workers for {len(df)} articles...")
+
+    texts = df["raw_content"].tolist()
+    results = [""] * len(texts)
+
+    # Use ProcessPoolExecutor with an initializer that loads the model per worker
+    with ProcessPoolExecutor(max_workers=max_workers, initializer=_worker_init, initargs=(cfg.SUMMARIZER_MODEL_NAME,)) as executor:
+        future_to_idx = {executor.submit(_worker_summarize, text): idx for idx, text in enumerate(texts)}
+
+        for future in tqdm(as_completed(future_to_idx), total=len(texts), desc="Summarizing"):
+            idx = future_to_idx[future]
+            try:
+                results[idx] = future.result()
+            except Exception as e:
+                logger.error(f"Worker failed for article {idx}: {e}")
+                results[idx] = ""
+
+    df["summary"] = results
+
+    # Filter out empty summaries
+    initial_count = len(df)
+    df = df[df["summary"].notna() & (df["summary"].str.strip() != "")]
+    filtered_count = initial_count - len(df)
+    if filtered_count > 0:
+        logger.warning(f"Filtered out {filtered_count} articles without summaries")
+
+    if df.empty:
+        logger.warning("❌ No articles remain after parallel summary filtering.")
+        return df
+
+    logger.info(f"✅ Parallel summarization complete for {len(df)} articles.")
     return df
