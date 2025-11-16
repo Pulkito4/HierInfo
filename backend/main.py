@@ -5,17 +5,17 @@ from src.processing import (
     generate_embeddings,
     cluster_and_deduplicate,
     generate_summaries,
+    generate_summaries_parallel,
     set_critical_flag,
     generate_categories,
+    generate_categories_parallel,
     generate_topic_tags,
 )
-from src.processing.categorizer import generate_categories_parallel
 from src.scrapers import parse_articles_batch
 from utils import check_title_content_alignment
 from utils.dataframe_utils import create_main_dataframe
 from utils.logging_config import setup_logging
 from src import config as cfg
-from src.processing.summarizer import generate_summaries_parallel
 
 # Load environment variables FIRST
 load_dotenv()

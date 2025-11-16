@@ -6,33 +6,28 @@ from utils import get_logger
 
 logger = get_logger(__name__)
 
-# Import the classifier pipeline from categorizer.py (loaded once per process)
-try:
-    from .categorizer import classifier_pipeline  # type: ignore
-except ImportError:  # pragma: no cover - graceful fallback during edge imports
-    logger.warning(
-        "❌ Could not import classifier_pipeline during module import. Will retry lazily."
-    )
-    classifier_pipeline = None
+def _get_classifier_pipeline():
+    """Lazy import of classifier pipeline from categorizer module."""
+    from .categorizer import classifier_pipeline, _ensure_classifier
+    
+    # Ensure the classifier is loaded
+    if classifier_pipeline is None:
+        _ensure_classifier()
+        from .categorizer import classifier_pipeline as loaded_pipeline
+        return loaded_pipeline
+    
+    return classifier_pipeline
 
 
 def generate_topic_tags(df: pd.DataFrame) -> pd.DataFrame:
     """Assign hierarchical topic tags for the ``keywords`` column."""
-    global classifier_pipeline
-
-    if classifier_pipeline is None:
-        try:
-            from .categorizer import (
-                classifier_pipeline as loaded_pipeline,
-            )  # local import to avoid cycles
-        except ImportError:
-            logger.warning(
-                "❌ Could not import classifier_pipeline. Skipping topic tag generation."
-            )
-            df["keywords"] = [[] for _ in range(len(df))]
-            return df
-        classifier_pipeline = loaded_pipeline
-        logger.info("⚙️ Re-initialized classifier pipeline in tagger module.")
+    # Get classifier pipeline (lazy-loaded)
+    try:
+        classifier_pipeline = _get_classifier_pipeline()
+    except Exception as e:
+        logger.warning(f"❌ Could not load classifier pipeline: {e}. Skipping topic tag generation.")
+        df["keywords"] = [[] for _ in range(len(df))]
+        return df
 
     if df.empty or "summary" not in df.columns:
         logger.warning(
