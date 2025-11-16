@@ -41,6 +41,7 @@ def _ensure_pipeline():
 def _summarize_text_mapreduce(text: str) -> str:
     """
     (Internal) Summarizes long text using a MapReduce strategy.
+    For shorter articles (<1000 chars), uses direct summarization to save time.
 
     Args:
         text (str): The raw article content to summarize.
@@ -52,10 +53,30 @@ def _summarize_text_mapreduce(text: str) -> str:
         logger.debug("Skipping summary for short or invalid text.")
         return ""  # Return empty string for short or empty content
 
+    # Optimization: Direct summarization for short articles (< 1000 chars = ~400 tokens)
+    # This avoids unnecessary chunking and multiple model calls for brief news
+    if len(text) < 1000:
+        try:
+            if 'summarizer_pipeline' not in globals() or summarizer_pipeline is None:
+                _ensure_pipeline()
+            
+            summary = summarizer_pipeline(
+                text, 
+                max_length=150, 
+                min_length=30, 
+                do_sample=False, 
+                truncation=True
+            )[0]["summary_text"]
+            return summary
+        except Exception as e:
+            logger.debug(f"Direct summarization failed, using MapReduce: {e}")
+            # Fall through to MapReduce if direct fails
+
     # 1. Split text into manageable, overlapping chunks
+    # Optimized chunk size: 2500 chars (~875 tokens with safety margin) to reduce number of chunks
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1024,  # Max tokens for the DistilBART model
-        chunk_overlap=100,
+        chunk_size=2500,  # Increased from 1024 to better utilize DistilBART's 1024 token limit
+        chunk_overlap=200,  # Increased proportionally to maintain context
         separators=["\n\n", "\n", ". ", " ", ""],
     )
     chunks = splitter.split_text(text)
@@ -74,7 +95,8 @@ def _summarize_text_mapreduce(text: str) -> str:
         [summ["summary_text"] for summ in partial_summaries]
     )
 
-    # Run one final summary pass to synthesize the results
+    # Run one final summary pass to synthesize the results for better cohesion
+    # This creates a professional, flowing summary instead of disjointed bullet points
     final_summary = summarizer_pipeline(
         combined_summary_text, max_length=200, min_length=50, do_sample=False
     )[0]["summary_text"]

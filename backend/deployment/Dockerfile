@@ -22,6 +22,17 @@ RUN pip install --no-cache-dir playwright==1.55.0 && \
 COPY deployment/requirements.txt ./deployment-requirements.txt
 RUN pip install --no-cache-dir -r deployment-requirements.txt
 
+# Pre-download and cache ML models (saves 2-5 min on first run)
+# This downloads models during Docker build instead of runtime
+RUN python -c "from transformers import pipeline; from sentence_transformers import SentenceTransformer; \
+    print('Downloading summarization model...'); \
+    pipeline('summarization', model='sshleifer/distilbart-cnn-12-6'); \
+    print('Downloading classification model...'); \
+    pipeline('zero-shot-classification', model='valhalla/distilbart-mnli-12-1'); \
+    print('Downloading embedding model...'); \
+    SentenceTransformer('all-MiniLM-L6-v2'); \
+    print('All models cached successfully!')"
+
 # Copy application code
 COPY src/ ./src/
 COPY utils/ ./utils/
