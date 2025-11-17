@@ -18,9 +18,15 @@ RUN pip install --no-cache-dir playwright==1.55.0 && \
     playwright install chromium && \
     playwright install-deps chromium
 
-# Copy requirements first for better caching
-COPY deployment/requirements.txt ./deployment-requirements.txt
-RUN pip install --no-cache-dir -r deployment-requirements.txt
+COPY requirements.lock ./requirements.lock
+RUN pip install --no-cache-dir -r requirements.lock
+
+# Set HuggingFace cache directory (HF_HOME is the standard cache location)
+ENV HF_HOME=/app/.cache
+ENV SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence-transformers
+
+# Create cache directory
+RUN mkdir -p /app/.cache
 
 # Pre-download and cache ML models (saves 2-5 min on first run)
 # This downloads models during Docker build instead of runtime
@@ -46,9 +52,10 @@ ENV PYTHONPATH=/app
 ENV LOG_LEVEL=INFO
 ENV PYTHONUNBUFFERED=1
 
-# Create non-root user for security
+# Create non-root user for security and fix permissions
 RUN useradd --create-home --shell /bin/bash app && \
-    chown -R app:app /app
+    chown -R app:app /app && \
+    chown -R app:app /app/.cache
 USER app
 
 # Health check

@@ -1,0 +1,105 @@
+# Google Cloud Run Job Configuration
+# This defines a SCHEDULED JOB (not a web service) for the news pipeline
+# 
+# IMPORTANT: Before using this file, replace:
+# - YOUR-REGION (e.g., us-central1, asia-south1, europe-west1)
+# - YOUR-PROJECT-ID (your GCP project ID)
+# - YOUR-TIMEZONE (e.g., UTC, Asia/Kolkata, America/New_York)
+# - SCHEDULE (cron expression, default: "0 8 * * *" = daily at 8 AM)
+#
+# Deploy with: gcloud run jobs replace cloudrun.yaml --region YOUR-REGION
+
+apiVersion: run.googleapis.com/v2
+kind: Job
+metadata:
+  name: news-pipeline-job
+  labels:
+    cloud.googleapis.com/location: asia-south1
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      template:
+        containers:
+        - name: news-pipeline
+          # CHANGE THIS: Replace YOUR-REGION and YOUR-PROJECT-ID
+          image: asia-south1-docker.pkg.dev/hierinfo-news-aggregator-2025/news-pipeline/news-pipeline:latest
+          
+          resources:
+            limits:
+              cpu: "4"      # 4 vCPUs for parallel processing
+              memory: "12Gi"  # 12GB RAM (needed for 4 workers)
+          
+          env:
+          # Logging
+          - name: LOG_LEVEL
+            value: "INFO"
+          
+          # Parallel processing (adjust if needed)
+          - name: PARALLEL_SUMMARIZER_WORKERS
+            value: "4"  # Reduce to 2 if memory issues
+          - name: PARALLEL_CATEGORIZER_WORKERS
+            value: "4"  # Reduce to 2 if memory issues
+          - name: GNEWS_FETCH_MODE
+            value: "prod"
+          - name: PIPELINE_TIMEZONE
+            value: "Asia/Kolkata"
+          
+          # API Keys (from Secret Manager)
+          - name: GNEWS_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: gnews-api-key
+                key: latest
+          - name: SUPABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: supabase-url
+                key: latest
+          - name: SUPABASE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: supabase-service-key
+                key: latest
+          
+          # Optional: HuggingFace token (uncomment if you need private models)
+          - name: HF_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: huggingface-token
+                key: latest
+      
+      taskCount: 1  # Run one task at a time
+      parallelism: 1  # Don't run multiple copies in parallel
+      
+      timeout: 3600s  # 1 hour timeout
+      maxRetries: 0  # Don't retry on failure (avoid duplicate processing)
+
+---
+# Cloud Scheduler Configuration
+# This triggers the job on a schedule (cron-like)
+#
+# IMPORTANT: This is NOT deployed via yaml. Create it manually with:
+# 
+# gcloud scheduler jobs create http news-pipeline-daily \
+#   --location YOUR-REGION \
+#   --schedule "CRON-EXPRESSION" \
+#   --time-zone "YOUR-TIMEZONE" \
+#   --uri "https://YOUR-REGION-run.googleapis.com/apis/run.googleapis.com/v2/projects/YOUR-PROJECT-ID/locations/YOUR-REGION/jobs/news-pipeline-job:run" \
+#   --http-method POST \
+#   --oauth-service-account-email news-pipeline-scheduler@YOUR-PROJECT-ID.iam.gserviceaccount.com
+#
+# Common schedules:
+# - "0 8 * * *"   → Daily at 8 AM
+# - "0 */6 * * *" → Every 6 hours
+# - "0 0 * * 0"   → Weekly on Sunday midnight
+# - "0 20 * * *"  → Daily at 8 PM
+#
+# Common timezones:
+# - UTC (default)
+# - Asia/Kolkata (IST)
+# - America/New_York (EST/EDT)
+# - Europe/London (GMT/BST)
+# - Full list: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones

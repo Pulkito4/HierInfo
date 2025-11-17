@@ -1,0 +1,70 @@
+# Ignore Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Ignore local development files
+.env
+.env.local
+*.log
+logs/*.log
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore test files
+tests/
+test_*.py
+*_test.py
+
+# Ignore documentation (not needed in container)
+*.md
+docs/
+
+# Ignore deployment configs for other platforms
+deployment/
+
+# Ignore Git files
+.git/
+.gitignore
+.gitattributes
+
+# Ignore local data and cache
+model_cache/
+data/
+*.csv
+*.json
+*.pkl
+
+# Ignore notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Keep only what's needed for production
+!Dockerfile
+!requirements.lock
+!cloudrun.yaml
