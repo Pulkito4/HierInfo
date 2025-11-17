@@ -1,3 +1,10 @@
+import multiprocessing
+
+# Force 'spawn' method to prevent ML model fork deadlocks
+# This MUST be at the top before any other imports
+if __name__ == '__main__':
+    multiprocessing.set_start_method('spawn', force=True)
+
 from dotenv import load_dotenv
 from src.api_clients import fetch_gnews_metadata, fetch_rss_metadata
 from src.database import SupabaseManager
