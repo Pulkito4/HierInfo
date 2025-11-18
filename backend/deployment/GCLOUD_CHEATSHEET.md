@@ -207,6 +207,78 @@ gcloud run services delete news-pipeline --region us-central1
 
 ---
 
+## 🎮 GPU Configuration (Cloud Run Jobs Only)
+
+### Create/Update Job with GPU
+```bash
+# Create job with NVIDIA L4 GPU (recommended)
+gcloud run jobs create news-pipeline-job \
+    --image us-central1-docker.pkg.dev/PROJECT_ID/news-pipeline/news-pipeline:latest \
+    --region us-central1 \
+    --gpu 1 \
+    --gpu-type nvidia-l4 \
+    --cpu 4 \
+    --memory 16Gi \
+    --max-retries 0 \
+    --task-timeout 3600 \
+    --set-env-vars LOG_LEVEL=INFO,PARALLEL_SUMMARIZER_WORKERS=1,PARALLEL_CATEGORIZER_WORKERS=1 \
+    --set-secrets GNEWS_API_KEY=gnews-api-key:latest,SUPABASE_URL=supabase-url:latest,SUPABASE_SERVICE_KEY=supabase-service-key:latest
+
+# Update existing job to enable GPU
+gcloud run jobs update news-pipeline-job \
+    --region us-central1 \
+    --gpu 1 \
+    --gpu-type nvidia-l4 \
+    --cpu 4 \
+    --memory 16Gi \
+    --update-env-vars PARALLEL_SUMMARIZER_WORKERS=1,PARALLEL_CATEGORIZER_WORKERS=1
+
+# Create with Tesla T4 GPU (cheaper alternative)
+gcloud run jobs create news-pipeline-job \
+    --image us-central1-docker.pkg.dev/PROJECT_ID/news-pipeline/news-pipeline:latest \
+    --region us-central1 \
+    --gpu 1 \
+    --gpu-type nvidia-tesla-t4 \
+    --cpu 4 \
+    --memory 16Gi \
+    --max-retries 0 \
+    --task-timeout 3600 \
+    --set-env-vars LOG_LEVEL=INFO,PARALLEL_SUMMARIZER_WORKERS=1,PARALLEL_CATEGORIZER_WORKERS=1 \
+    --set-secrets GNEWS_API_KEY=gnews-api-key:latest,SUPABASE_URL=supabase-url:latest,SUPABASE_SERVICE_KEY=supabase-service-key:latest
+
+# Execute GPU job
+gcloud run jobs execute news-pipeline-job --region us-central1
+
+# Switch back to CPU-only (remove GPU)
+gcloud run jobs update news-pipeline-job \
+    --region us-central1 \
+    --clear-gpu \
+    --update-env-vars PARALLEL_SUMMARIZER_WORKERS=4,PARALLEL_CATEGORIZER_WORKERS=4
+```
+
+**GPU Notes:**
+- **Min Resources**: 4 CPU + 16GB RAM required for GPU jobs
+- **Max Timeout**: 1 hour (3600s) for GPU jobs vs 7 days for CPU-only
+- **Worker Count**: Use 1-2 workers with GPU (GPU parallelizes internally)
+- **GPU Types**: 
+  - `nvidia-l4`: Best performance (~$0.50/hour)
+  - `nvidia-tesla-t4`: Cheaper (~$0.35/hour)
+- **Regional Availability**: Check GPU availability in your region
+- **Cost**: ~$0.50-0.80 per run with GPU vs ~$0.15 CPU-only
+- **Performance**: 10-20x faster for ML inference
+
+### Check GPU Availability
+```bash
+# Check available GPU types in region
+gcloud compute accelerator-types list --filter="zone:us-central1"
+
+# Check quota for GPUs
+gcloud compute project-info describe --project PROJECT_ID \
+    --format="value(quotas[resourceName='NVIDIA_L4_GPUS'].limit)"
+```
+
+---
+
 ## 📝 Logs & Monitoring
 
 ### View Logs

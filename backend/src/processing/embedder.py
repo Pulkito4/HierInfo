@@ -1,5 +1,6 @@
 import pandas as pd
 from sentence_transformers import SentenceTransformer
+import torch
 from utils import get_logger
 from src import config as cfg
 
@@ -12,10 +13,10 @@ try:
     logger.info(
         f"🤖 Loading embedding model '{cfg.EMBEDDING_MODEL_NAME}' into memory..."
     )
-    # You can specify a cache directory to save the model locally
-    # model = SentenceTransformer(cfg.EMBEDDING_MODEL_NAME, cache_folder='./model_cache')
-    model = SentenceTransformer(cfg.EMBEDDING_MODEL_NAME)
-    logger.info("✅ Embedding model loaded successfully.")
+    # SentenceTransformer automatically uses GPU if available
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model = SentenceTransformer(cfg.EMBEDDING_MODEL_NAME, device=device)
+    logger.info(f"✅ Embedding model loaded successfully on {device.upper()}.")
 except Exception as e:
     logger.critical(f"❌ Failed to load embedding model: {e}")
     # This is a critical failure, so we raise the exception to stop the pipeline.
@@ -51,8 +52,9 @@ def generate_embeddings(df: pd.DataFrame) -> pd.DataFrame:
         texts_to_embed = df["raw_content"].fillna("").tolist()
 
         # The .encode() method is highly optimized to process a batch of texts at once.
-        # It will automatically use the GPU if one is available and CUDA is set up.
-        embeddings = model.encode(texts_to_embed, show_progress_bar=True)
+        # It will automatically use the GPU configured during model initialization.
+        # Convert to float32 numpy arrays for consistency
+        embeddings = model.encode(texts_to_embed, show_progress_bar=True, convert_to_numpy=True)
 
         # Add the generated embeddings as a new column to the DataFrame.
         # The column will contain lists (or numpy arrays) of numbers.

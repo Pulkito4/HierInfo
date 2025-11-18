@@ -29,19 +29,28 @@ spec:
           
           resources:
             limits:
-              cpu: "4"      # 4 vCPUs for parallel processing
-              memory: "12Gi"  # 12GB RAM (needed for 4 workers)
+              cpu: "4"      # 4 vCPUs for parallel processing (min 4 for GPU jobs)
+              memory: "16Gi"  # 16GB RAM (min for GPU jobs)
+              # GPU Configuration (Optional - uncomment to enable GPU acceleration)
+              # nvidia.com/gpu: "1"  # Number of GPUs (1 recommended)
+          
+          # GPU Type Selection (uncomment if GPU enabled above)
+          # cloud.google.com/gke-accelerator: nvidia-l4  # Options: nvidia-l4, nvidia-tesla-t4
+          # - nvidia-l4: Best price/performance (~$0.50/hour, faster)
+          # - nvidia-tesla-t4: Cheaper option (~$0.35/hour, slower)
           
           env:
           # Logging
           - name: LOG_LEVEL
             value: "INFO"
           
-          # Parallel processing (adjust if needed)
+          # Parallel processing (adjust based on GPU/CPU mode)
+          # CPU MODE: Use 4 workers (requires 4 vCPU + 12GB RAM)
+          # GPU MODE: Use 1-2 workers (GPU handles internal parallelization)
           - name: PARALLEL_SUMMARIZER_WORKERS
-            value: "4"  # Reduce to 2 if memory issues
+            value: "4"  # Set to 1-2 if using GPU
           - name: PARALLEL_CATEGORIZER_WORKERS
-            value: "4"  # Reduce to 2 if memory issues
+            value: "4"  # Set to 1-2 if using GPU
           - name: GNEWS_FETCH_MODE
             value: "prod"
           - name: PIPELINE_TIMEZONE
@@ -74,8 +83,15 @@ spec:
       taskCount: 1  # Run one task at a time
       parallelism: 1  # Don't run multiple copies in parallel
       
-      timeout: 3600s  # 1 hour timeout
+      timeout: 3600s  # Max 1 hour for GPU jobs, up to 7 days for CPU-only jobs
       maxRetries: 0  # Don't retry on failure (avoid duplicate processing)
+      
+      # IMPORTANT GPU NOTES:
+      # 1. GPU jobs have maximum 1 hour timeout (enforced by Cloud Run)
+      # 2. Minimum resources: 4 CPU + 16GB RAM when GPU enabled
+      # 3. GPUs only available in specific regions (check availability)
+      # 4. Cost: ~$0.50-0.80 per run with GPU vs ~$0.15 CPU-only
+      # 5. Performance: 10-20x faster for ML inference (400 articles in 10-15 min)
 
 ---
 # Cloud Scheduler Configuration

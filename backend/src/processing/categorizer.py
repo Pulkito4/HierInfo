@@ -1,6 +1,7 @@
 import pandas as pd
 from transformers import pipeline, logging as hf_logging
 from tqdm import tqdm
+import torch
 from src import config as cfg
 from utils import get_logger
 from src import constants as C
@@ -25,10 +26,13 @@ def _ensure_classifier():
             logger.info(
                 f"🤖 Loading Zero-Shot Classification model '{cfg.CLASSIFIER_MODEL_NAME}'..."
             )
+            # Auto-detect GPU: device=0 for CUDA GPU, device=-1 for CPU
+            device = 0 if torch.cuda.is_available() else -1
             classifier_pipeline = pipeline(
-                "zero-shot-classification", model=cfg.CLASSIFIER_MODEL_NAME, device=-1
+                "zero-shot-classification", model=cfg.CLASSIFIER_MODEL_NAME, device=device
             )
-            logger.info("✅ Zero-Shot Classification model loaded successfully.")
+            device_name = "GPU (CUDA)" if device == 0 else "CPU"
+            logger.info(f"✅ Zero-Shot Classification model loaded successfully on {device_name}.")
         except Exception as e:
             logger.critical(f"❌ Failed to load classification model: {e}")
             raise
@@ -40,7 +44,9 @@ def _worker_init_categorizer(model_name: str):
     try:
         hf_logging.set_verbosity_error()
         global classifier_pipeline
-        classifier_pipeline = pipeline("zero-shot-classification", model=model_name, device=-1)
+        # Auto-detect GPU: device=0 for CUDA GPU, device=-1 for CPU
+        device = 0 if torch.cuda.is_available() else -1
+        classifier_pipeline = pipeline("zero-shot-classification", model=model_name, device=device)
     except Exception as e:
         print(f"Worker failed to initialize classifier model: {e}")
 

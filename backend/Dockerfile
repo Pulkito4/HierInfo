@@ -24,8 +24,15 @@ RUN pip install --no-cache-dir playwright==1.55.0 && \
     playwright install chromium && \
     playwright install-deps chromium
 
+# Install PyTorch with CUDA support (for GPU acceleration)
+# Cloud Run L4 GPUs come with CUDA 12.2 drivers (version 535.216.03)
+# Using CUDA 12.4 PyTorch is forward-compatible with CUDA 12.2 runtime
+# Must be installed before requirements.lock to ensure CUDA version
+RUN pip install --no-cache-dir torch==2.4.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+
 COPY requirements.lock ./requirements.lock
-RUN pip install --no-cache-dir -r requirements.lock
+# Install remaining requirements (skip torch since already installed with CUDA)
+RUN pip install --no-cache-dir -r requirements.lock || pip install --no-cache-dir $(grep -v "^torch==" requirements.lock)
 
 # Set HuggingFace cache directory (HF_HOME is the standard cache location)
 ENV HF_HOME=/app/.cache

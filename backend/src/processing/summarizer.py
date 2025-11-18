@@ -2,6 +2,7 @@ import pandas as pd
 from transformers import pipeline, logging as hf_logging
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from tqdm import tqdm
+import torch
 from src import config as cfg
 
 from utils import get_logger
@@ -29,10 +30,13 @@ def _ensure_pipeline():
             logger.info(
                 f"🤖 Loading summarization model '{cfg.SUMMARIZER_MODEL_NAME}' into memory..."
             )
+            # Auto-detect GPU: device=0 for CUDA GPU, device=-1 for CPU
+            device = 0 if torch.cuda.is_available() else -1
             summarizer_pipeline = pipeline(
-                "summarization", model=cfg.SUMMARIZER_MODEL_NAME, device=-1
+                "summarization", model=cfg.SUMMARIZER_MODEL_NAME, device=device
             )
-            logger.info("✅ Summarization model loaded successfully.")
+            device_name = "GPU (CUDA)" if device == 0 else "CPU"
+            logger.info(f"✅ Summarization model loaded successfully on {device_name}.")
         except Exception as e:
             logger.critical(f"❌ Failed to load summarization model: {e}")
             raise
@@ -112,7 +116,9 @@ def _worker_init(model_name: str):
         # Suppress hf logging in worker as well
         hf_logging.set_verbosity_error()
         global summarizer_pipeline
-        summarizer_pipeline = pipeline("summarization", model=model_name, device=-1)
+        # Auto-detect GPU: device=0 for CUDA GPU, device=-1 for CPU
+        device = 0 if torch.cuda.is_available() else -1
+        summarizer_pipeline = pipeline("summarization", model=model_name, device=device)
     except Exception as e:
         # If a worker fails to init, log to stdout (cannot use logger from parent reliably)
         print(f"Worker failed to initialize summarizer model: {e}")
