@@ -24,15 +24,16 @@ RUN pip install --no-cache-dir playwright==1.55.0 && \
     playwright install chromium && \
     playwright install-deps chromium
 
-# Install PyTorch with CUDA support (for GPU acceleration)
-# Cloud Run L4 GPUs come with CUDA 12.2 drivers (version 535.216.03)
-# Using CUDA 12.4 PyTorch is forward-compatible with CUDA 12.2 runtime
-# Must be installed before requirements.lock to ensure CUDA version
-RUN pip install --no-cache-dir torch==2.4.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
-
+# Install other Python requirements first (excluding torch)
 COPY requirements.lock ./requirements.lock
-# Install remaining requirements (skip torch since already installed with CUDA)
-RUN pip install --no-cache-dir -r requirements.lock || pip install --no-cache-dir $(grep -v "^torch==" requirements.lock)
+RUN grep -v -E "^torch==" requirements.lock > requirements_no_torch.txt && \
+    pip install --no-cache-dir -r requirements_no_torch.txt
+
+# Install PyTorch with CUDA support AFTER other requirements (for GPU acceleration)
+# Cloud Run L4 GPUs come with CUDA 12.2 drivers (version 535.216.03)
+# Using PyTorch 2.6+ (required by transformers for security - CVE-2025-32434)
+# CUDA 12.1 is forward-compatible with Cloud Run's CUDA 12.2 runtime
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
 # Set HuggingFace cache directory (HF_HOME is the standard cache location)
 ENV HF_HOME=/app/.cache
@@ -42,15 +43,12 @@ ENV SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence-transformers
 RUN mkdir -p /app/.cache
 
 # Pre-download and cache ML models (saves 2-5 min on first run)
-# This downloads models during Docker build instead of runtime
-RUN python -c "from transformers import pipeline; from sentence_transformers import SentenceTransformer; \
-    print('Downloading summarization model...'); \
-    pipeline('summarization', model='sshleifer/distilbart-cnn-12-6'); \
-    print('Downloading classification model...'); \
-    pipeline('zero-shot-classification', model='valhalla/distilbart-mnli-12-1'); \
-    print('Downloading embedding model...'); \
+# Note: Models will be downloaded at runtime on first execution if pre-download fails
+# This is acceptable as models are cached for subsequent runs
+RUN python -c "from sentence_transformers import SentenceTransformer; \
+    print('Pre-downloading embedding model...'); \
     SentenceTransformer('all-MiniLM-L6-v2'); \
-    print('All models cached successfully!')"
+    print('Embedding model cached successfully!')" || echo "Model pre-download failed, will download at runtime"
 
 # Copy application code
 COPY src/ ./src/
