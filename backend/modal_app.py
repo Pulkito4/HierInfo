@@ -188,12 +188,37 @@ def run_news_pipeline():
         # GPU optimization: Use sequential processing (no parallel workers)
         # GPU is already massively parallel internally - multiple workers cause contention
         logger.info("Using sequential processing optimized for single GPU")
+        
+        # Clear GPU cache before heavy summarization work
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            logger.info("🧹 Cleared GPU cache before summarization")
+        
         unique_articles_df = generate_summaries(unique_articles_df)
         
         if unique_articles_df.empty:
             logger.warning("No articles remain after summarization. Exiting pipeline.")
             status = "SUCCESS_EMPTY"
             return
+        
+        # Check for GPU errors after summarization and reset if needed
+        import torch
+        if torch.cuda.is_available():
+            try:
+                # Test if GPU is still functional
+                torch.cuda.synchronize()
+                torch.cuda.empty_cache()
+                logger.info("✅ GPU context verified and cleared after summarization")
+            except RuntimeError as e:
+                logger.error(f"⚠️ GPU context corrupted after summarization: {e}")
+                logger.info("🔄 Resetting GPU context...")
+                # Force GPU reset by clearing all references and cache
+                import gc
+                gc.collect()
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+                logger.info("✅ GPU context reset complete")
         
         unique_articles_df = set_critical_flag(unique_articles_df)
         unique_articles_df = generate_categories(unique_articles_df)

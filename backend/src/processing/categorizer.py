@@ -28,11 +28,23 @@ def _ensure_classifier():
             )
             # Auto-detect GPU: device=0 for CUDA GPU, device=-1 for CPU
             device = 0 if torch.cuda.is_available() else -1
-            classifier_pipeline = pipeline(
-                "zero-shot-classification", model=cfg.CLASSIFIER_MODEL_NAME, device=device
-            )
-            device_name = "GPU (CUDA)" if device == 0 else "CPU"
-            logger.info(f"✅ Zero-Shot Classification model loaded successfully on {device_name}.")
+            
+            try:
+                classifier_pipeline = pipeline(
+                    "zero-shot-classification", model=cfg.CLASSIFIER_MODEL_NAME, device=device
+                )
+                device_name = "GPU (CUDA)" if device == 0 else "CPU"
+                logger.info(f"✅ Zero-Shot Classification model loaded successfully on {device_name}.")
+            except (RuntimeError, torch.cuda.CudaError) as gpu_error:
+                if device == 0:
+                    logger.warning(f"⚠️ GPU loading failed: {gpu_error}. Falling back to CPU...")
+                    device = -1
+                    classifier_pipeline = pipeline(
+                        "zero-shot-classification", model=cfg.CLASSIFIER_MODEL_NAME, device=device
+                    )
+                    logger.info("✅ Zero-Shot Classification model loaded successfully on CPU (fallback).")
+                else:
+                    raise
         except Exception as e:
             logger.critical(f"❌ Failed to load classification model: {e}")
             raise
