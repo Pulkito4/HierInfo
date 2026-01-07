@@ -153,7 +153,7 @@ def run_news_pipeline():
                         logger.warning(
                             (
                                 "CONTENT MISMATCH DETECTED for %s. Title: '%s', "
-                                "Content snippet: '%s...'. Similarity: %s. Skipping."
+                                "Content snippet: '%s...'. Similarity: %s (threshold: 0.25). Skipping."
                             ),
                             url,
                             metadata_title,
@@ -204,21 +204,26 @@ def run_news_pipeline():
         
         # Check for GPU errors after summarization and reset if needed
         import torch
+        import os
         if torch.cuda.is_available():
             try:
                 # Test if GPU is still functional
                 torch.cuda.synchronize()
                 torch.cuda.empty_cache()
                 logger.info("✅ GPU context verified and cleared after summarization")
-            except RuntimeError as e:
+            except Exception as e:
                 logger.error(f"⚠️ GPU context corrupted after summarization: {e}")
-                logger.info("🔄 Resetting GPU context...")
-                # Force GPU reset by clearing all references and cache
-                import gc
-                gc.collect()
-                torch.cuda.empty_cache()
-                torch.cuda.synchronize()
-                logger.info("✅ GPU context reset complete")
+                logger.warning("🚫 GPU reset failed - forcing CPU mode for remaining operations")
+                # Force CPU mode by setting environment variable
+                os.environ['CUDA_VISIBLE_DEVICES'] = ''
+                # Clear CUDA cache one more time (will fail but ensures cleanup)
+                try:
+                    import gc
+                    gc.collect()
+                    torch.cuda.empty_cache()
+                except:
+                    pass
+                logger.info("✅ Switched to CPU mode for categorization and tagging")
         
         unique_articles_df = set_critical_flag(unique_articles_df)
         unique_articles_df = generate_categories(unique_articles_df)

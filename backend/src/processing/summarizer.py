@@ -57,6 +57,20 @@ def _summarize_text_mapreduce(text: str) -> str:
         logger.debug("Skipping summary for short or invalid text.")
         return ""  # Return empty string for short or empty content
 
+    # Sanitize text to prevent CUDA indexing errors
+    # Remove control characters, excessive whitespace, and non-printable chars
+    text = text.strip()
+    # Replace control characters except newlines/tabs
+    import re
+    text = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]', '', text)
+    # Normalize whitespace
+    text = re.sub(r'\s+', ' ', text)
+    
+    # Validate text length after cleaning
+    if len(text) < 200:
+        logger.debug("Text too short after sanitization.")
+        return ""
+
     # Optimization: Direct summarization for short articles (< 1000 chars = ~400 tokens)
     # This avoids unnecessary chunking and multiple model calls for brief news
     if len(text) < 1000:

@@ -26,8 +26,15 @@ def _ensure_classifier():
             logger.info(
                 f"🤖 Loading Zero-Shot Classification model '{cfg.CLASSIFIER_MODEL_NAME}'..."
             )
+            # Check if CPU-only mode was forced due to GPU errors
+            import os
+            force_cpu = os.environ.get('CUDA_VISIBLE_DEVICES') == ''
+            
             # Auto-detect GPU: device=0 for CUDA GPU, device=-1 for CPU
-            device = 0 if torch.cuda.is_available() else -1
+            device = -1 if force_cpu else (0 if torch.cuda.is_available() else -1)
+            
+            if force_cpu:
+                logger.info("🚫 CPU-only mode detected (GPU unavailable)")
             
             try:
                 classifier_pipeline = pipeline(
@@ -35,7 +42,7 @@ def _ensure_classifier():
                 )
                 device_name = "GPU (CUDA)" if device == 0 else "CPU"
                 logger.info(f"✅ Zero-Shot Classification model loaded successfully on {device_name}.")
-            except (RuntimeError, torch.cuda.CudaError) as gpu_error:
+            except (RuntimeError, torch.cuda.CudaError, Exception) as gpu_error:
                 if device == 0:
                     logger.warning(f"⚠️ GPU loading failed: {gpu_error}. Falling back to CPU...")
                     device = -1
