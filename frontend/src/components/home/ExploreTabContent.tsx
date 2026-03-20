@@ -33,7 +33,6 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
   const { trackActivity } = useArticleActivity(selectedArticle?.id || '');
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Intersection Observer for infinite scroll
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const [target] = entries;
     if (target.isIntersecting && hasMore && !isLoading(loading)) {
@@ -64,7 +63,7 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
     setTimeout(() => setSelectedArticle(null), 300);
   };
 
-  const handleLike = (articleId: string) => {
+  const handleLike = (_articleId: string) => {
     trackActivity('like');
   };
 
@@ -87,14 +86,12 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
     );
   }
 
-  // Split articles: first 5 for hero, rest for grid
   const heroArticles = articles.slice(0, 5);
   const gridArticles = articles.slice(5);
 
   return (
     <>
-      <div className="space-y-10 p-4  lg:p-6">
-      
+      <div className="space-y-8">
         {/* Hero Banner */}
         <div className="relative">
           <HeroBanner
@@ -106,12 +103,12 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
 
         {/* Grid of Cards */}
         {gridArticles.length > 0 && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-100 via-white to-indigo-200 bg-clip-text text-transparent">
+              <h2 className="text-xl font-bold text-[#1A1A1A]">
                 More Stories
               </h2>
-              <div className="flex-1 h-px bg-gradient-to-r from-slate-800/50 to-slate-950" />
+              <div className="flex-1 h-px bg-[#E5E5E5]" />
             </div>
             <DiscoverGrid
               articles={gridArticles}
@@ -123,13 +120,13 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
         {/* Infinite Scroll Trigger */}
         <div ref={observerTarget} className="h-20 flex items-center justify-center">
           {isLoading(loading) && hasMore && (
-            <div className="flex items-center gap-2 text-blue-400">
-              <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <div className="flex items-center gap-2 text-[#6B6B6B]">
+              <div className="w-5 h-5 border-2 border-[#D4D4D4] border-t-[#1A1A1A] rounded-full animate-spin" />
               <span className="text-sm font-medium">Loading more stories...</span>
             </div>
           )}
           {!hasMore && articles.length > 0 && (
-            <p className="text-sm text-slate-500">You&apos;ve reached the end</p>
+            <p className="text-sm text-[#9CA3AF]">You&apos;ve reached the end</p>
           )}
         </div>
       </div>

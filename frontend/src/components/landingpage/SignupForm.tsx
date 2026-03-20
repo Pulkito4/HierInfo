@@ -1,24 +1,14 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { signUpWithEmail, signInWithGoogle } from "@/lib/supabaseAuth"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
+import { Loader2, CheckCircle } from "lucide-react"
 
-export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
+export function SignupForm({ ...props }: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -36,7 +26,6 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       ...prev,
       [name]: value
     }))
-    // Clear error when user starts typing
     if (error) setError(null)
   }
 
@@ -82,7 +71,6 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
 
       if (user) {
         setSuccess(true)
-        // Redirect to categories page for onboarding
         setTimeout(() => {
           router.push('/categories')
         }, 2000)
@@ -112,116 +100,157 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       setIsLoading(false)
     }
   }
+
+  if (success) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-16 h-16 bg-[#D1FAE5] rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle className="w-8 h-8 text-[#059669]" />
+        </div>
+        <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2">
+          Account created!
+        </h3>
+        <p className="text-[#6B6B6B]">
+          Redirecting you to customize your news preferences...
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <Card {...props} className="max-w-3xl">
-      <CardHeader>
-        <CardTitle>Create your account</CardTitle>
-        <CardDescription>
-          {success 
-            ? "Account created successfully! Redirecting..." 
-            : "Enter your information below to create your account"
-          }
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-            {error}
-          </div>
+    <div className="space-y-6" {...props}>
+      {/* Google Sign Up */}
+      <Button
+        variant="outline"
+        type="button"
+        className="w-full h-11 border-[#E5E5E5] bg-white hover:bg-[#F5F5F4] text-[#1A1A1A] font-medium"
+        onClick={handleGoogleSignup}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Image
+            src="/google.png"
+            alt="Google"
+            width={18}
+            height={18}
+            className="mr-2"
+          />
         )}
-        {success && (
-          <div className="mb-4 p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md">
-            Account created successfully! Check your email to verify your account. Redirecting to setup...
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="name">Full Name</FieldLabel>
-              <Input 
-                id="name" 
-                name="name"
-                type="text" 
-                placeholder="John Doe" 
-                value={formData.name}
-                onChange={handleInputChange}
-                disabled={isLoading || success}
-                required 
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
-                value={formData.email}
-                onChange={handleInputChange}
-                disabled={isLoading || success}
-                required
-              />
-              <FieldDescription>
-                We&apos;ll use this to contact you. We will not share your email
-                with anyone else.
-              </FieldDescription>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Input 
-                id="password" 
-                name="password"
-                type="password" 
-                value={formData.password}
-                onChange={handleInputChange}
-                disabled={isLoading || success}
-                required 
-              />
-              <FieldDescription>
-                Must be at least 8 characters long.
-              </FieldDescription>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="confirm-password">
-                Confirm Password
-              </FieldLabel>
-              <Input 
-                id="confirm-password" 
-                name="confirmPassword"
-                type="password" 
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                disabled={isLoading || success}
-                required 
-              />
-              <FieldDescription>Please confirm your password.</FieldDescription>
-            </Field>
-            <FieldGroup>
-              <Field>
-                <Button 
-                  type="submit" 
-                  disabled={isLoading || success}
-                  className="w-full"
-                >
-                  {isLoading ? "Creating Account..." : "Create Account"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  type="button"
-                  onClick={handleGoogleSignup}
-                  disabled={isLoading || success}
-                  className="w-full"
-                >
-                  {isLoading ? "Signing up..." : "Sign up with Google"}
-                </Button>
-                <FieldDescription className="px-6 text-center">
-                  Already have an account? <a href="/login" className="text-blue-600 hover:underline">Sign in</a>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
-          </FieldGroup>
-        </form>
-      </CardContent>
-    </Card>
+        Continue with Google
+      </Button>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-[#E5E5E5]" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-[#9CA3AF]">
+            Or sign up with email
+          </span>
+        </div>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="p-3 text-sm text-[#DC2626] bg-[#FEF2F2] border border-[#FECACA] rounded-md">
+          {error}
+        </div>
+      )}
+
+      {/* Signup Form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-sm font-medium text-[#1A1A1A]">
+            Full name
+          </Label>
+          <Input
+            id="name"
+            name="name"
+            type="text"
+            placeholder="John Doe"
+            value={formData.name}
+            onChange={handleInputChange}
+            required
+            className="h-11 border-[#E5E5E5] focus:border-[#B45309] focus:ring-[#B45309]"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-sm font-medium text-[#1A1A1A]">
+            Email address
+          </Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+            className="h-11 border-[#E5E5E5] focus:border-[#B45309] focus:ring-[#B45309]"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-sm font-medium text-[#1A1A1A]">
+            Password
+          </Label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={handleInputChange}
+            required
+            className="h-11 border-[#E5E5E5] focus:border-[#B45309] focus:ring-[#B45309]"
+          />
+          <p className="text-xs text-[#9CA3AF]">
+            Must be at least 8 characters long
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword" className="text-sm font-medium text-[#1A1A1A]">
+            Confirm password
+          </Label>
+          <Input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            placeholder="••••••••"
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            required
+            className="h-11 border-[#E5E5E5] focus:border-[#B45309] focus:ring-[#B45309]"
+          />
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-11 bg-[#1A1A1A] hover:bg-[#2D2D2D] text-white font-medium"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            "Create account"
+          )}
+        </Button>
+      </form>
+
+      <p className="text-center text-xs text-[#9CA3AF]">
+        By creating an account, you agree to our{" "}
+        <a href="#" className="text-[#B45309] hover:underline">Terms of Service</a>
+        {" "}and{" "}
+        <a href="#" className="text-[#B45309] hover:underline">Privacy Policy</a>.
+      </p>
+    </div>
   )
 }

@@ -5,21 +5,10 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { signInWithEmail, signInWithGoogle } from "@/lib/supabaseAuth"
+import { Loader2 } from "lucide-react"
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [email, setEmail] = useState('')
@@ -69,95 +58,110 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   }
 
   return (
-    <div className={cn("flex flex-col gap-6 max-w-md mx-auto", className)} {...props}>
-      <Card className="border border-gray-200 shadow-lg rounded-2xl">
-        <CardHeader className="text-center space-y-1">
-          <CardTitle className="text-2xl font-semibold">Welcome to HeirInfo </CardTitle>
-          <CardDescription className="text-gray-500">
-            Sign in to continue your personalized news journey
-          </CardDescription>
-        </CardHeader>
+    <div className={cn("space-y-6", className)} {...props}>
+      {/* Google Sign In */}
+      <Button
+        variant="outline"
+        type="button"
+        className="w-full h-11 border-[#E5E5E5] bg-white hover:bg-[#F5F5F4] text-[#1A1A1A] font-medium"
+        onClick={handleGoogleSignIn}
+        disabled={loading}
+      >
+        {loading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Image
+            src="/google.png"
+            alt="Google"
+            width={18}
+            height={18}
+            className="mr-2"
+          />
+        )}
+        Continue with Google
+      </Button>
 
-        <CardContent className="space-y-6">
-          <Button
-            variant="outline"
-            type="button"
-            className="relative flex w-full items-center justify-center gap-2 border-gray-300 bg-white hover:bg-gray-50 transition-colors"
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-          >
-            <Image
-              src="/google.png"
-              alt="Google"
-              width={16}
-              height={16}
-              className="absolute left-3"
-            />
-            {loading ? 'Signing in...' : 'Continue with Google'}
-          </Button>
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-[#E5E5E5]" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-[#9CA3AF]">
+            Or continue with email
+          </span>
+        </div>
+      </div>
 
-          <div className="flex items-center justify-center text-gray-400 text-sm">
-            <hr className="w-1/4 border-gray-300" />
-            <span className="px-3 text-gray-500">or continue with email</span>
-            <hr className="w-1/4 border-gray-300" />
+      {/* Error Message */}
+      {error && (
+        <div className="p-3 text-sm text-[#DC2626] bg-[#FEF2F2] border border-[#FECACA] rounded-md">
+          {error}
+        </div>
+      )}
+
+      {/* Email Form */}
+      <form onSubmit={handleEmailSignIn} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-sm font-medium text-[#1A1A1A]">
+            Email address
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-11 border-[#E5E5E5] focus:border-[#B45309] focus:ring-[#B45309]"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-sm font-medium text-[#1A1A1A]">
+              Password
+            </Label>
+            <a 
+              href="#" 
+              className="text-sm text-[#B45309] hover:text-[#92400E] transition-colors"
+            >
+              Forgot password?
+            </a>
           </div>
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="h-11 border-[#E5E5E5] focus:border-[#B45309] focus:ring-[#B45309]"
+          />
+        </div>
 
-          {error && (
-            <div className="text-center text-red-500 text-sm bg-red-50 py-2 rounded-md">
-              {error}
-            </div>
+        <Button
+          type="submit"
+          className="w-full h-11 bg-[#1A1A1A] hover:bg-[#2D2D2D] text-white font-medium"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            "Sign in"
           )}
+        </Button>
+      </form>
 
-          <form onSubmit={handleEmailSignIn} className="space-y-4">
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="email" className="text-sm font-medium">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="password" className="text-sm font-medium">Password</FieldLabel>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </Field>
-
-              <Button
-                type="submit"
-                className="w-full bg-[#1E2A44] hover:bg-blue-800 text-white transition-colors"
-                disabled={loading}
-              >
-                {loading ? 'Logging in...' : 'Login'}
-              </Button>
-
-              <FieldDescription className="text-center text-sm text-gray-500">
-                Don’t have an account?{" "}
-                <a href="/sign-up" className="text-blue-600 hover:underline">Sign up</a>
-              </FieldDescription>
-            </FieldGroup>
-          </form>
-        </CardContent>
-      </Card>
-
-      <FieldDescription className="px-6 text-center text-xs text-gray-500">
+      <p className="text-center text-xs text-[#9CA3AF]">
         By continuing, you agree to our{" "}
-        <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and{" "}
-        <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>.
-      </FieldDescription>
+        <a href="#" className="text-[#B45309] hover:underline">Terms of Service</a>
+        {" "}and{" "}
+        <a href="#" className="text-[#B45309] hover:underline">Privacy Policy</a>.
+      </p>
     </div>
   )
 }

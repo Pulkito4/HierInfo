@@ -4,9 +4,16 @@ import {
   SidebarHeader,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Earth, Settings, Smile } from 'lucide-react';
+import { 
+  Compass, 
+  User, 
+  Settings, 
+  LogOut,
+  Newspaper
+} from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import Image from 'next/image';
+import Link from 'next/link';
+import { useAuth } from '@/lib/authContext';
 
 interface HomeSidebarProps {
   activeTab: 'personal' | 'explore' | 'settings';
@@ -15,33 +22,28 @@ interface HomeSidebarProps {
 
 const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => {
   const { state, isMobile } = useSidebar();
+  const { user, signOut } = useAuth();
   const isCollapsed = state === 'collapsed' && !isMobile;
-
-  const getButtonClasses = (isActive: boolean) =>
-    `w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-300 ${
-      isActive
-        ? 'bg-gradient-to-r from-blue-900/90 to-indigo-900/90 text-white shadow-lg shadow-blue-900/40 scale-[1.02] border border-blue-700/30'
-        : 'text-gray-300 hover:bg-slate-800/60 hover:text-white hover:scale-[1.01] border border-transparent'
-    }`;
 
   const NavButton = ({
     icon: Icon,
     label,
     isActive,
     onClick,
-    iconColor,
   }: {
     icon: React.ElementType;
     label: string;
     isActive: boolean;
     onClick: () => void;
-    iconColor: string;
   }) => (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button onClick={onClick} className={getButtonClasses(isActive)}>
-          <Icon className={iconColor + ' flex-shrink-0'} size={20} />
-          {!isCollapsed && <span className="font-sans font-semibold">{label}</span>}
+        <button 
+          onClick={onClick} 
+          className={isActive ? "nav-item-active" : "nav-item"}
+        >
+          <Icon className="flex-shrink-0" size={20} />
+          {!isCollapsed && <span className="font-medium">{label}</span>}
         </button>
       </TooltipTrigger>
       {isCollapsed && <TooltipContent side="right">{label}</TooltipContent>}
@@ -50,57 +52,79 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
 
   return (
     <>
-      <SidebarHeader>
-        
-        <div className="flex items-center py-3 px-2">
-          
-          <Image
-            src="/logoicon.png"
-            alt="HeirInfo Logo"
-            width={40}
-            height={40}
-            className="flex-shrink-0"
-            // Ensure aspect ratio is maintained if any parent CSS adjusts one dimension
-            style={{ height: 'auto', width: 'auto' }}
-          />
-          {!isCollapsed && (
-            <h2 className="text-2xl font-sans font-bold text-white ml-2">
-              HeirInfo
-            </h2>
-            
-          )}
-          
-         
+      <SidebarHeader className="border-b border-[#E5E5E5]">
+        <div className="flex items-center py-4 px-3">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-[#1A1A1A] rounded-md flex items-center justify-center flex-shrink-0">
+              <Newspaper className="w-5 h-5 text-white" />
+            </div>
+            {!isCollapsed && (
+              <span className="text-xl font-bold text-[#1A1A1A] tracking-tight">
+                HierInfo
+              </span>
+            )}
+          </Link>
         </div>
         
+        {/* User Info */}
+        {!isCollapsed && user && (
+          <div className="px-3 pb-3">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F5F5F4]">
+              <div className="w-8 h-8 bg-[#1A1A1A] rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-[#1A1A1A] truncate">
+                  {user.email?.split('@')[0] || 'User'}
+                </p>
+                <p className="text-xs text-[#6B6B6B] truncate">
+                  {user.email}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </SidebarHeader>
-      <hr className="border-gray-200" />
-      <SidebarContent className="flex flex-col justify-between h-full">
-        <div className="p-2 space-y-2">
+
+      <SidebarContent className="flex flex-col h-full py-4">
+        {/* Main Navigation */}
+        <div className="px-3 space-y-1 flex-1">
           <NavButton
-            icon={Smile}
+            icon={User}
             label="For You"
             isActive={activeTab === 'personal'}
             onClick={() => onTabChange('personal')}
-            iconColor="text-[#5B87F8]"
           />
           <NavButton
-            icon={Earth}
+            icon={Compass}
             label="Discover"
             isActive={activeTab === 'explore'}
             onClick={() => onTabChange('explore')}
-            iconColor="text-[#49E8C6]"
           />
         </div>
 
-        <div className="p-2 border-t border-white/20">
+        {/* Bottom Section */}
+        <div className="px-3 pt-4 border-t border-[#E5E5E5] space-y-1">
           <NavButton
             icon={Settings}
             label="Settings"
             isActive={activeTab === 'settings'}
             onClick={() => onTabChange('settings')}
-            iconColor="text-[#E0E7FF]"
           />
+          
+          {/* Sign Out */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button 
+                onClick={signOut}
+                className="nav-item text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF2F2]"
+              >
+                <LogOut className="flex-shrink-0" size={20} />
+                {!isCollapsed && <span className="font-medium">Sign Out</span>}
+              </button>
+            </TooltipTrigger>
+            {isCollapsed && <TooltipContent side="right">Sign Out</TooltipContent>}
+          </Tooltip>
         </div>
       </SidebarContent>
     </>

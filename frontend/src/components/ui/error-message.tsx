@@ -20,7 +20,6 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
   if (!error) return null;
 
   const getErrorMessage = (error: Error) => {
-    // Handle different types of errors
     if (error.message.includes('fetch')) {
       return 'Unable to connect to the server. Please check your internet connection.';
     }
@@ -38,14 +37,16 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center p-8 text-center bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg ${className}`}>
-      <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+    <div className={`flex flex-col items-center justify-center p-8 text-center bg-[#FEF2F2] border border-[#FECACA] rounded-xl ${className}`}>
+      <div className="w-14 h-14 bg-[#FEE2E2] rounded-full flex items-center justify-center mb-4">
+        <AlertTriangle className="w-7 h-7 text-[#DC2626]" />
+      </div>
       
-      <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+      <h3 className="text-lg font-semibold text-[#991B1B] mb-2">
         {title}
       </h3>
       
-      <p className="text-red-600 dark:text-red-300 mb-4 max-w-md">
+      <p className="text-[#DC2626] mb-6 max-w-md">
         {getErrorMessage(error)}
       </p>
       
@@ -54,16 +55,16 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
           onClick={onRetry}
           variant="outline"
           size="sm"
-          className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-600 dark:text-red-300 dark:hover:bg-red-900/30"
+          className="border-[#FCA5A5] text-[#DC2626] hover:bg-[#FEE2E2] hover:border-[#F87171]"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
           Try Again
         </Button>
       )}
       
-      <details className="mt-4 text-xs text-red-500 dark:text-red-400">
-        <summary className="cursor-pointer hover:underline">Technical Details</summary>
-        <pre className="mt-2 p-2 bg-red-100 dark:bg-red-900/40 rounded text-left overflow-auto">
+      <details className="mt-4 text-xs text-[#9CA3AF]">
+        <summary className="cursor-pointer hover:text-[#6B6B6B] transition-colors">Technical Details</summary>
+        <pre className="mt-2 p-3 bg-white border border-[#E5E5E5] rounded-lg text-left overflow-auto text-[#6B6B6B]">
           {error.stack || error.message}
         </pre>
       </details>

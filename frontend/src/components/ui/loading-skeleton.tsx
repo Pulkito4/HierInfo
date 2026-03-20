@@ -12,70 +12,50 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   className = '' 
 }) => {
   const ArticleSkeleton = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse">
+    <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden">
       {/* Image placeholder */}
-      <div className="w-full h-48 bg-gray-300 dark:bg-gray-700" />
+      <div className="w-full aspect-[16/10] bg-[#F5F5F4] animate-pulse" />
       
       {/* Content */}
       <div className="p-4 space-y-3">
-        {/* Source */}
-        <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-20" />
+        {/* Category */}
+        <div className="h-5 bg-[#F5F5F4] rounded w-16 animate-pulse" />
         
         {/* Title */}
         <div className="space-y-2">
-          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full" />
-          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4" />
+          <div className="h-5 bg-[#F5F5F4] rounded w-full animate-pulse" />
+          <div className="h-5 bg-[#F5F5F4] rounded w-3/4 animate-pulse" />
         </div>
         
-        {/* Summary */}
-        <div className="space-y-2">
-          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full" />
-          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-5/6" />
-        </div>
-        
-        {/* Actions */}
-        <div className="flex justify-between items-center pt-2">
-          <div className="flex space-x-2">
-            <div className="h-6 w-6 bg-gray-300 dark:bg-gray-700 rounded" />
-            <div className="h-6 w-6 bg-gray-300 dark:bg-gray-700 rounded" />
-          </div>
-          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-16" />
+        {/* Source */}
+        <div className="pt-2">
+          <div className="h-4 bg-[#F5F5F4] rounded w-24 animate-pulse" />
         </div>
       </div>
     </div>
   );
 
   const FeaturedSkeleton = () => (
-    <div className="w-full h-96 rounded-lg bg-gray-300 dark:bg-gray-700 animate-pulse relative overflow-hidden">
-      <div className="absolute bottom-8 left-8 right-8 space-y-4">
-        <div className="h-8 bg-gray-800/50 rounded w-3/4" />
-        <div className="h-4 bg-gray-800/30 rounded w-1/2" />
-        <div className="flex justify-between items-center">
-          <div className="h-4 bg-gray-800/40 rounded w-24" />
-          <div className="flex space-x-2">
-            <div className="h-6 w-6 bg-gray-800/40 rounded" />
-            <div className="h-6 w-6 bg-gray-800/40 rounded" />
-          </div>
-        </div>
-      </div>
+    <div className="w-full h-[400px] md:h-[500px] rounded-2xl bg-[#F5F5F4] animate-pulse relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-[#F5F5F4] via-[#EBEBEA] to-[#F5F5F4] animate-pulse" />
     </div>
   );
 
   const CategorySkeleton = () => (
-    <div className="flex space-x-2">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="h-8 bg-gray-300 dark:bg-gray-700 rounded-full w-20 animate-pulse" />
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="h-20 bg-[#F5F5F4] rounded-xl animate-pulse" />
       ))}
     </div>
   );
 
   const ProfileSkeleton = () => (
-    <div className="space-y-4 animate-pulse">
+    <div className="space-y-4">
       <div className="flex items-center space-x-4">
-        <div className="h-16 w-16 bg-gray-300 dark:bg-gray-700 rounded-full" />
+        <div className="h-16 w-16 bg-[#F5F5F4] rounded-full animate-pulse" />
         <div className="space-y-2">
-          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-32" />
-          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-24" />
+          <div className="h-4 bg-[#F5F5F4] rounded w-32 animate-pulse" />
+          <div className="h-3 bg-[#F5F5F4] rounded w-24 animate-pulse" />
         </div>
       </div>
     </div>
@@ -92,7 +72,7 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
       case 'articles':
       default:
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: count }).map((_, i) => (
               <ArticleSkeleton key={i} />
             ))}

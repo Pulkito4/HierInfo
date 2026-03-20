@@ -44,28 +44,21 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => 
     setCurrentIndex(index);
   };
 
-  // const handleLike = (e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //   if (currentArticle) {
-  //     onLike(currentArticle.id);
-  //   }
-  // };
-
   if (limitedArticles.length === 0) return null;
 
   return (
-    <div className="relative w-full h-[400px] md:h-[500px] rounded-xl overflow-hidden bg-slate-900 group">
+    <div className="relative w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-[#1A1A1A] group shadow-lg">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.5 }}
           className="absolute inset-0 cursor-pointer flex flex-col md:flex-row"
           onClick={() => onArticleClick(currentArticle)}
         >
-          {/* Image Section - Full width on mobile, 60% on desktop */}
+          {/* Image Section */}
           <div className="relative w-full md:w-[60%] h-[60%] md:h-full">
             {currentArticle.image_url ? (
               <Image
@@ -77,46 +70,49 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => 
                 priority={currentIndex === 0}
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-blue-900 via-slate-800 to-slate-900" />
+              <div className="w-full h-full bg-gradient-to-br from-[#1A1A1A] via-[#2D2D2D] to-[#1A1A1A]" />
             )}
-            <div className="absolute inset-0 bg-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:via-transparent md:to-black/40" />
           </div>
 
-          {/* Content Section - Full width on mobile, 40% on desktop */}
-          <div className="w-full md:w-[40%] h-[40%] md:h-full p-4 md:p-6 flex flex-col justify-between bg-black/70 backdrop-blur-md text-white">
+          {/* Content Section */}
+          <div className="w-full md:w-[40%] h-[40%] md:h-full p-5 md:p-8 flex flex-col justify-between bg-[#1A1A1A]">
+            {/* Category */}
+            <div className="mb-3">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#B45309]/20 text-[#F59E0B]">
+                {currentArticle.categories?.[0]?.name || 'Featured'}
+              </span>
+            </div>
+
             {/* Title */}
-            <h2 className="text-lg md:text-2xl font-bold mb-2 md:mb-4 leading-tight md:leading-snug line-clamp-3 md:line-clamp-none">
+            <h2 className="text-lg md:text-2xl font-bold text-white mb-3 leading-tight line-clamp-3">
               {currentArticle.title}
             </h2>
 
-            {/* Summary - Hidden on mobile */}
+            {/* Summary */}
             <div className="hidden md:block flex-1 overflow-hidden">
-              <p className="text-sm text-white/90 line-clamp-4">
+              <p className="text-sm text-[#A3A3A3] line-clamp-4 leading-relaxed">
                 {currentArticle.summary}
               </p>
             </div>
 
-            {/* Bottom Section */}
-            <div className="flex items-center justify-between mt-auto">
-              {/* Source */}
-              <div className="text-xs md:text-sm text-white/80">
-                <p className="font-semibold">{currentArticle.source}</p>
+            {/* Footer */}
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#404040]">
+              <div className="text-sm">
+                <p className="font-semibold text-white">{currentArticle.source}</p>
               </div>
-
-              {/* Like Button */}
-              {/* <button
-                onClick={handleLike}
-                className="p-2 md:p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
-                aria-label="Like article"
-              >
-                <ThumbsUp size={18} className="md:w-5 md:h-5" />
-              </button> */}
+              <span className="text-xs text-[#6B6B6B]">
+                {new Date(currentArticle.published_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </span>
             </div>
           </div>
         </motion.div>
       </AnimatePresence>
 
-      {/* ✅ Navigation Arrows */}
+      {/* Navigation Arrows */}
       {limitedArticles.length > 1 && (
         <>
           <button
@@ -124,7 +120,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => 
               e.stopPropagation();
               goToPrevious();
             }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 z-10"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 z-10 backdrop-blur-sm"
           >
             <ChevronLeft size={24} />
           </button>
@@ -134,14 +130,14 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => 
               e.stopPropagation();
               goToNext();
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 z-10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 z-10 backdrop-blur-sm"
           >
             <ChevronRight size={24} />
           </button>
         </>
       )}
 
-      {/* ✅ Dots Indicator */}
+      {/* Dots Indicator */}
       {limitedArticles.length > 1 && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
           {limitedArticles.map((_, index) => (

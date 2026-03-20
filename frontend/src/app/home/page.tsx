@@ -15,7 +15,6 @@ import { useTabNavigation } from '@/hooks/useTabNavigation';
 import HomeSidebar from '@/components/home/HomeSidebar';
 import PersonalTabContent from '@/components/home/PersonalTabContent';
 import ExploreTabContent from '@/components/home/ExploreTabContent';
-import { Separator } from '@/components/ui/separator';
 
 const HomepageContent = () => {
   const { activeTab, personalSubTab, setActiveTab, setPersonalSubTab } = useTabNavigation();
@@ -63,11 +62,26 @@ const HomepageContent = () => {
   const getHeaderTitle = () => {
     switch (activeTab) {
       case 'personal':
-        return 'For You';
+        return personalSubTab === 'feed' ? 'For You' : 'Trending';
       case 'explore':
         return 'Discover';
       case 'settings':
         return 'Settings';
+      default:
+        return '';
+    }
+  };
+
+  const getHeaderDescription = () => {
+    switch (activeTab) {
+      case 'personal':
+        return personalSubTab === 'feed' 
+          ? 'Personalized news based on your interests' 
+          : 'Most popular stories right now';
+      case 'explore':
+        return 'Discover stories from around the world';
+      case 'settings':
+        return 'Manage your preferences and account';
       default:
         return '';
     }
@@ -79,18 +93,55 @@ const HomepageContent = () => {
 
   return (
     <SidebarProvider>
-      <Sidebar collapsible="icon">
+      <Sidebar 
+        collapsible="icon" 
+        className="border-r border-[#E5E5E5] bg-[#FAFAFA]"
+      >
         <HomeSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       </Sidebar>
-      <SidebarInset>
-        <header className="flex h-16 p-2 text-white bg-gradient-to-r from-slate-950 via-blue-950/90 to-slate-950 shrink-0 items-center gap-3 border-b border-blue-900/20 px-6 backdrop-blur-sm">
-          <SidebarTrigger className="-ml-1 hover:bg-blue-900/20 rounded-lg transition-all" />
-          <Separator orientation="vertical" className="h-6 bg-blue-800/30" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-100 via-white to-indigo-200 bg-clip-text text-transparent">
-            {getHeaderTitle()}
-          </h1>
+      <SidebarInset className="bg-[#FDFBF7]">
+        {/* Header */}
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-[#E5E5E5] bg-white/95 backdrop-blur-md px-4 lg:px-6">
+          <SidebarTrigger className="-ml-1 hover:bg-[#F5F5F4] rounded-lg transition-colors" />
+          
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-semibold text-[#1A1A1A] truncate">
+              {getHeaderTitle()}
+            </h1>
+            <p className="text-xs text-[#6B6B6B] hidden sm:block">
+              {getHeaderDescription()}
+            </p>
+          </div>
+
+          {/* Tab Navigation for Personal */}
+          {activeTab === 'personal' && (
+            <div className="hidden sm:flex items-center gap-1 bg-[#F5F5F4] rounded-lg p-1">
+              <button
+                onClick={() => setPersonalSubTab('feed')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  personalSubTab === 'feed'
+                    ? 'bg-white text-[#1A1A1A] shadow-sm'
+                    : 'text-[#6B6B6B] hover:text-[#1A1A1A]'
+                }`}
+              >
+                For You
+              </button>
+              <button
+                onClick={() => setPersonalSubTab('trending')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  personalSubTab === 'trending'
+                    ? 'bg-white text-[#1A1A1A] shadow-sm'
+                    : 'text-[#6B6B6B] hover:text-[#1A1A1A]'
+                }`}
+              >
+                Trending
+              </button>
+            </div>
+          )}
         </header>
-        <main className={`flex-1 bg-gradient-to-br from-slate-950 via-blue-950/20 to-slate-950 overflow-auto ${shouldRemovePadding ? 'p-0' : 'p-6'}`}>
+
+        {/* Main Content */}
+        <main className={`flex-1 overflow-auto ${shouldRemovePadding ? 'p-0' : 'p-4 lg:p-6'}`}>
           <div className={shouldRemovePadding ? '' : 'max-w-7xl mx-auto'}>
             {renderContent()}
           </div>

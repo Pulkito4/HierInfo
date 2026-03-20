@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { Article } from '@/types/articles';
-import { X,  ThumbsUp } from 'lucide-react';
+import { X, ThumbsUp, Share2, Bookmark, ExternalLink } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -29,46 +29,67 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
   const queryClient = useQueryClient();
   const { trackActivity, isPending } = useArticleActivity(article?.id || '');
   
-  // Use React Query hook to check like status with caching
   const { data: cachedIsLiked = false, isLoading: isCheckingLiked } = useArticleLikeStatus(
     article?.id,
-    open // Only fetch when sheet is open
+    open
   );
   
-  // Local state for optimistic updates
   const [localIsLiked, setLocalIsLiked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   
-  // Track impression when sheet is open and content is viewed
   const { ref: impressionRef } = useArticleImpression(article?.id || '', {
     delay: 1000,
     threshold: 0.3,
   });
 
-  // Sync local state with cached data when it changes
   useEffect(() => {
     if (!isCheckingLiked) {
       setLocalIsLiked(cachedIsLiked);
     }
   }, [cachedIsLiked, isCheckingLiked]);
 
-  // Reset local state when sheet closes
   useEffect(() => {
     if (!open) {
       setLocalIsLiked(false);
+      setIsBookmarked(false);
     }
   }, [open]);
 
   const handleLike = () => {
     if (!article || isPending || localIsLiked) return;
     
-    // Optimistic update
     setLocalIsLiked(true);
     setArticleLikeStatus(queryClient, article.id, true);
-    
-    // Track activity (will save to backend)
     trackActivity('like');
+  };
+
+  const handleBookmark = () => {
+    setIsBookmarked(!isBookmarked);
+  };
+
+  const handleShare = async () => {
+    if (!article) return;
     
-    console.log('Liked article:', article.title);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: article.title,
+          text: article.summary || '',
+          url: article.url || window.location.href,
+        });
+      } catch {
+        // User cancelled
+      }
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   if (!article) return null;
@@ -77,7 +98,7 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent 
         side="bottom" 
-        className="h-[90vh] p-0 bg-slate-900 border-t border-slate-800"
+        className="h-[92vh] p-0 bg-white border-t border-[#E5E5E5] rounded-t-2xl"
       >
         <SheetHeader className="sr-only">
           <SheetTitle>{article.title}</SheetTitle>
@@ -87,7 +108,7 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full p-2 bg-slate-800/80 backdrop-blur-sm text-slate-400 hover:text-slate-50 transition-colors"
+          className="absolute right-4 top-4 z-10 rounded-full p-2 bg-white/90 backdrop-blur-sm shadow-sm border border-[#E5E5E5] text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors"
         >
           <X size={20} />
         </button>
@@ -96,7 +117,7 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
         <div ref={impressionRef} className="h-full overflow-y-auto">
           {/* Featured Image */}
           {article.image_url && (
-            <div className="relative w-full h-56 bg-slate-800">
+            <div className="relative w-full h-56 bg-[#F5F5F4]">
               <Image
                 src={article.image_url}
                 alt={article.title}
@@ -109,31 +130,32 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
           )}
 
           {/* Article Content */}
-          <div className="p-6">
+          <div className="p-5">
+            {/* Category */}
+            <div className="mb-3">
+              <span className="category-badge bg-[#FEF3C7] text-[#B45309] border-[#FCD34D]">
+                {article.categories?.[0]?.name || 'Article'}
+              </span>
+            </div>
+
             {/* Title */}
-            <h1 className="text-2xl font-bold text-slate-50 mb-4 leading-tight">
+            <h1 className="text-xl font-bold text-[#1A1A1A] mb-3 leading-tight">
               {article.title}
             </h1>
 
             {/* Meta */}
-            <div className="flex flex-wrap items-center gap-3 mb-6 text-sm text-slate-400">
-              <span className="font-semibold text-blue-400">{article.source}</span>
-              {/* <div className="flex items-center gap-1">
-                <Calendar size={14} />
-                <time dateTime={article.published_at}>
-                  {new Date(article.published_at).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
-                </time>
-              </div> */}
+            <div className="flex flex-wrap items-center gap-2 mb-5 text-sm text-[#6B6B6B]">
+              <span className="font-semibold text-[#1A1A1A]">{article.source}</span>
+              <span className="w-1 h-1 rounded-full bg-[#D4D4D4]" />
+              <time dateTime={article.published_at}>
+                {formatDate(article.published_at)}
+              </time>
             </div>
 
             {/* Summary */}
             {article.summary && (
-              <div className="mb-6">
-                <p className="text-slate-300 leading-relaxed">
+              <div className="mb-5">
+                <p className="text-[#2D2D2D] leading-relaxed">
                   {article.summary}
                 </p>
               </div>
@@ -141,13 +163,13 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
 
             {/* Keywords */}
             {article.keywords && article.keywords.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-slate-400 mb-3">Tags</h3>
+              <div className="mb-5">
+                <h3 className="text-sm font-semibold text-[#1A1A1A] mb-2">Related Topics</h3>
                 <div className="flex flex-wrap gap-2">
                   {article.keywords.map((keyword, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700"
+                      className="px-2.5 py-1 rounded-full text-xs font-medium bg-[#F5F5F4] text-[#6B6B6B] border border-[#E5E5E5]"
                     >
                       {keyword}
                     </span>
@@ -157,29 +179,65 @@ const MobileArticleSheet: React.FC<MobileArticleSheetProps> = ({
             )}
 
             {/* Action Bar */}
-            <div className="flex items-center justify-between pt-6 pb-8 border-t border-slate-700">
-              {/* Like Button */}
-              <button
-                onClick={handleLike}
-                disabled={isPending || localIsLiked || isCheckingLiked}
-                className={`
-                  flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all
-                  ${localIsLiked 
-                    ? 'bg-teal-500/20 text-teal-400 cursor-default' 
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-teal-400'
-                  }
-                  ${(isPending || isCheckingLiked) ? 'opacity-50 cursor-not-allowed' : ''}
-                  focus:outline-none focus:ring-2 focus:ring-teal-500/50
-                `}
-                title={localIsLiked ? 'Liked' : 'Like this article'}
-              >
-                <ThumbsUp 
-                  size={18} 
-                  className={localIsLiked ? 'fill-current' : ''}
-                />
-                <span>{isCheckingLiked ? 'Loading...' : localIsLiked ? 'Liked' : 'Like'}</span>
-              </button>
+            <div className="flex items-center justify-between pt-5 border-t border-[#E5E5E5]">
+              <div className="flex items-center gap-2">
+                {/* Like Button */}
+                <button
+                  onClick={handleLike}
+                  disabled={isPending || localIsLiked || isCheckingLiked}
+                  className={`
+                    flex items-center justify-center w-10 h-10 rounded-lg font-medium transition-all
+                    ${localIsLiked 
+                      ? 'bg-[#FEF3C7] text-[#B45309]' 
+                      : 'bg-[#F5F5F4] text-[#6B6B6B]'
+                    }
+                    ${(isPending || isCheckingLiked) ? 'opacity-50' : ''}
+                  `}
+                >
+                  <ThumbsUp 
+                    size={18} 
+                    className={localIsLiked ? 'fill-current' : ''}
+                  />
+                </button>
 
+                {/* Bookmark Button */}
+                <button
+                  onClick={handleBookmark}
+                  className={`
+                    flex items-center justify-center w-10 h-10 rounded-lg font-medium transition-all
+                    ${isBookmarked 
+                      ? 'bg-[#DBEAFE] text-[#1E40AF]' 
+                      : 'bg-[#F5F5F4] text-[#6B6B6B]'
+                    }
+                  `}
+                >
+                  <Bookmark 
+                    size={18} 
+                    className={isBookmarked ? 'fill-current' : ''}
+                  />
+                </button>
+
+                {/* Share Button */}
+                <button
+                  onClick={handleShare}
+                  className="flex items-center justify-center w-10 h-10 rounded-lg font-medium transition-all bg-[#F5F5F4] text-[#6B6B6B]"
+                >
+                  <Share2 size={18} />
+                </button>
+              </div>
+
+              {/* Read Original */}
+              {article.url && (
+                <a
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all bg-[#1A1A1A] text-white text-sm"
+                >
+                  Read
+                  <ExternalLink size={16} />
+                </a>
+              )}
             </div>
           </div>
         </div>

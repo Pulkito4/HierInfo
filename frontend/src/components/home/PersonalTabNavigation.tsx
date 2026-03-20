@@ -1,5 +1,5 @@
 import React from 'react';
-import { Smile, TrendingUp } from 'lucide-react';
+import { User, TrendingUp } from 'lucide-react';
 
 interface PersonalTabNavigationProps {
   activeSubTab: 'feed' | 'trending';
@@ -10,33 +10,32 @@ const PersonalTabNavigation: React.FC<PersonalTabNavigationProps> = ({
   activeSubTab,
   onSubTabChange,
 }) => {
-  const getButtonClasses = (isActive: boolean) =>
-    `flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-      isActive
-        ? 'bg-slate-800 dark:bg-gray-700 text-gray-200 dark:text-white shadow-sm'
-        : 'text-gray-200 dark:text-gray-400 hover:text-white dark:hover:text-white'
-    }`;
-
   return (
-    <div className="flex space-x-1  bg-gray-700 dark:bg-gray-800 rounded-lg p-1 mb-6">
+    <div className="flex items-center gap-1 bg-[#F5F5F4] rounded-xl p-1.5 mb-6 sticky top-0 z-10">
       <button
         onClick={() => onSubTabChange('feed')}
-        className={getButtonClasses(activeSubTab === 'feed')}
+        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+          activeSubTab === 'feed'
+            ? 'bg-white text-[#1A1A1A] shadow-sm'
+            : 'text-[#6B6B6B] hover:text-[#1A1A1A]'
+        }`}
       >
-        <div className="flex items-center justify-center gap-2">
-          <Smile size={16} />
-          For You
-        </div>
+        <User size={16} />
+        <span className="hidden sm:inline">For You</span>
+        <span className="sm:hidden">For You</span>
       </button>
       
       <button
         onClick={() => onSubTabChange('trending')}
-        className={getButtonClasses(activeSubTab === 'trending')}
+        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+          activeSubTab === 'trending'
+            ? 'bg-white text-[#1A1A1A] shadow-sm'
+            : 'text-[#6B6B6B] hover:text-[#1A1A1A]'
+        }`}
       >
-        <div className="flex items-center justify-center gap-2">
-          <TrendingUp size={16} />
-          Breaking & Trending News
-        </div>
+        <TrendingUp size={16} />
+        <span className="hidden sm:inline">Trending</span>
+        <span className="sm:hidden">Trending</span>
       </button>
     </div>
   );

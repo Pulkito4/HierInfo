@@ -102,7 +102,7 @@ export function useCriticalFeed(limit: number = CRITICAL_PAGE_SIZE_DEFAULT) {
     queryKey: feedQueryKeys.critical(limit),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastOffset) => {
-      const total = lastPage.pagination?.total ?? lastPage.articles.length;
+      const _total = lastPage.pagination?.total ?? lastPage.articles.length;
       const pageOffset = typeof lastOffset === "number" ? lastOffset : 0;
       const hasMore = Boolean(lastPage.pagination?.hasMore);
       return hasMore ? pageOffset + limit : undefined;

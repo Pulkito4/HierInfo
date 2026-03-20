@@ -2,13 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Check, X, ArrowLeft, Save } from "lucide-react";
+import { Check, ArrowRight, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { updateUserMultiplePreferences } from "@/lib/supabaseAuth";
 import { useCategories } from "@/hooks/useCategories";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import LoadingSkeleton from "@/components/ui/loading-skeleton";
 import ErrorMessage from "@/components/ui/error-message";
 import { useAuth } from "@/lib/authContext";
@@ -16,6 +14,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useQueryClient } from "@tanstack/react-query";
 import { feedQueryKeys } from "@/lib/react-query";
 import { CATEGORY_SKELETON_COUNT } from "@/lib/constants";
+import Link from "next/link";
+import { Newspaper } from "lucide-react";
 
 const CategoriesPage = () => {
   const { user } = useAuth();
@@ -61,6 +61,7 @@ const CategoriesPage = () => {
           }
         }
       } catch {
+        // Silent fail
       } finally {
         setLoading(false);
         setInitialLoad(false);
@@ -91,7 +92,6 @@ const CategoriesPage = () => {
         selectedCategories
       );
       if (result.error) throw result.error;
-      // Proactively invalidate the For You feed so updates reflect immediately
       queryClient.invalidateQueries({ queryKey: feedQueryKeys.forYou(user.id) });
       toast.success("Preferences saved successfully!");
       router.push("/home");
@@ -107,62 +107,91 @@ const CategoriesPage = () => {
 
   if (loading || initialLoad) {
     return (
-      <div className="min-h-screen bg-[#050B1E] flex items-center justify-center">
-        <div className="max-w-2xl w-full mx-auto p-6">
-          <LoadingSkeleton type="categories" />
-        </div>
+      <div className="min-h-screen bg-[#FDFBF7] flex flex-col">
+        <header className="px-4 sm:px-6 lg:px-8 py-4 border-b border-[#E5E5E5]">
+          <div className="max-w-7xl mx-auto flex items-center">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-[#1A1A1A] rounded-md flex items-center justify-center">
+                <Newspaper className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-[#1A1A1A]">HierInfo</span>
+            </Link>
+          </div>
+        </header>
+        <main className="flex-1 flex items-center justify-center p-6">
+          <div className="max-w-2xl w-full">
+            <LoadingSkeleton type="categories" />
+          </div>
+        </main>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#050B1E] flex items-center justify-center">
-        <p className="text-gray-300">Redirecting to login...</p>
+      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
+        <p className="text-[#6B6B6B]">Redirecting to login...</p>
       </div>
     );
   }
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-b from-[#050B1E] via-[#0A122A] to-[#101935] text-gray-200">
-        <div className="max-w-4xl mx-auto p-6">
-          {/* Header */}
-          <div className="mb-10">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-400 hover:text-blue-400"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-
-            <div className="text-center mt-6">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-sky-400 to-indigo-400 text-transparent bg-clip-text mb-2">
-                Choose Your Interests
-              </h1>
-              <p className="text-gray-400 text-lg">
-                Select multiple categories to personalize your feed
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                You can change them anytime in settings.
-              </p>
+      <div className="min-h-screen bg-[#FDFBF7] flex flex-col">
+        {/* Header */}
+        <header className="px-4 sm:px-6 lg:px-8 py-4 border-b border-[#E5E5E5] bg-white">
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-[#1A1A1A] rounded-md flex items-center justify-center">
+                <Newspaper className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-[#1A1A1A]">HierInfo</span>
+            </Link>
+            
+            {/* Progress indicator */}
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-1.5 rounded-full bg-[#1A1A1A]" />
+              <div className="w-8 h-1.5 rounded-full bg-[#1A1A1A]" />
+              <div className="w-8 h-1.5 rounded-full bg-[#E5E5E5]" />
             </div>
           </div>
+        </header>
 
-          {/* Categories */}
-          <Card className="p-8 mb-8 bg-[#0B1430]/70 border border-[#1A2348] backdrop-blur-md shadow-xl shadow-blue-900/20">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-2 text-white">
-                Available Categories
-              </h2>
-              <p className="text-gray-400 text-sm">
-                Selected: {selectedCategories.length} categories
+        {/* Main Content */}
+        <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header Section */}
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FEF3C7] rounded-full mb-4">
+                <Sparkles className="w-4 h-4 text-[#B45309]" />
+                <span className="text-sm font-medium text-[#B45309]">Step 2 of 2</span>
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] mb-3">
+                What topics interest you?
+              </h1>
+              <p className="text-lg text-[#6B6B6B] max-w-xl mx-auto">
+                Select the categories you&apos;d like to see in your personalized feed. 
+                You can always change these later.
               </p>
             </div>
 
+            {/* Selected Count */}
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-[#6B6B6B]">
+                <span className="font-semibold text-[#1A1A1A]">{selectedCategories.length}</span> of{" "}
+                <span className="font-semibold text-[#1A1A1A]">{categories.length}</span> selected
+              </p>
+              {selectedCategories.length > 0 && (
+                <button
+                  onClick={() => setSelectedCategories([])}
+                  className="text-sm text-[#B45309] hover:text-[#92400E] transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            {/* Categories Grid */}
             {categoriesError ? (
               <ErrorMessage
                 error={categoriesError}
@@ -170,119 +199,93 @@ const CategoriesPage = () => {
                 title="Failed to load categories"
               />
             ) : categoriesLoading === "loading" ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {Array.from({ length: CATEGORY_SKELETON_COUNT }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-20 bg-[#121C3F] rounded-lg animate-pulse"
-                  ></div>
+                    className="h-24 bg-[#F5F5F4] rounded-xl animate-pulse"
+                  />
                 ))}
               </div>
             ) : categories.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">
-                No categories available. Please contact support.
+              <div className="text-center py-12">
+                <p className="text-[#6B6B6B]">No categories available. Please contact support.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {categories.map((category) => {
                   const isSelected = selectedCategories.includes(category.id);
                   return (
-                    <div
+                    <button
                       key={category.id}
                       onClick={() => toggleCategory(category.id)}
-                      className={`relative p-6 rounded-xl border transition-all duration-300 cursor-pointer group
-                        ${
-                          isSelected
-                            ? "border-blue-500/70 bg-gradient-to-br from-[#10214E]/70 via-[#0E1B40]/60 to-[#09132D]/80 shadow-md shadow-blue-900/30"
-                            : "border-[#1A2348] hover:border-blue-400/40 hover:bg-[#0E1735]"
+                      className={`
+                        relative p-5 rounded-xl border-2 transition-all duration-200 text-left
+                        ${isSelected
+                          ? "border-[#B45309] bg-[#FEF3C7] shadow-sm"
+                          : "border-[#E5E5E5] bg-white hover:border-[#D4D4D4] hover:shadow-sm"
                         }
                       `}
                     >
-                      {/* Indicator */}
+                      {/* Checkmark */}
                       <div
-                        className={`absolute top-3 right-3 w-6 h-6 rounded-full border transition-all ${
-                          isSelected
-                            ? "bg-blue-500 border-blue-400"
-                            : "border-gray-600"
-                        }`}
+                        className={`
+                          absolute top-3 right-3 w-5 h-5 rounded-full border-2 transition-all
+                          flex items-center justify-center
+                          ${isSelected
+                            ? "bg-[#B45309] border-[#B45309]"
+                            : "border-[#D4D4D4]"
+                          }
+                        `}
                       >
-                        {isSelected && (
-                          <Check className="w-4 h-4 text-white absolute top-1 left-1" />
-                        )}
+                        {isSelected && <Check className="w-3 h-3 text-white" />}
                       </div>
 
                       {/* Category Name */}
-                      <h3 className="text-lg font-semibold text-gray-100">
+                      <h3 className={`font-semibold ${isSelected ? "text-[#B45309]" : "text-[#1A1A1A]"}`}>
                         {category.name}
                       </h3>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
             )}
-          </Card>
 
-          {/* Selected Categories */}
-          {selectedCategories.length > 0 && (
-            <Card className="p-6 mb-8 bg-[#08122A]/80 border border-[#1B2750] backdrop-blur-md shadow-md shadow-blue-900/20">
-              <h3 className="text-lg font-semibold mb-4 text-white">
-                Your Selected Categories
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {selectedCategories.map((categoryId) => {
-                  const category = categories.find(
-                    (cat) => cat.id === categoryId
-                  );
-                  return category ? (
-                    <Badge
-                      key={categoryId}
-                      variant="secondary"
-                      className="flex items-center gap-2 px-3 py-2 bg-[#10214E]/40 border border-blue-500/40 text-blue-300 hover:bg-[#13265C]/50 transition"
-                    >
-                      {category.name}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleCategory(categoryId);
-                        }}
-                        className="hover:bg-white/20 rounded-full p-1"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ) : null;
-                })}
-              </div>
-            </Card>
-          )}
+            {/* Action Buttons */}
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                onClick={handleSave}
+                disabled={saving || selectedCategories.length === 0}
+                className="flex items-center justify-center gap-2 px-8 py-3 text-base bg-[#1A1A1A] hover:bg-[#2D2D2D] text-white font-medium rounded-lg transition-all disabled:opacity-50"
+              >
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    Continue to Feed
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
 
-          {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={handleSave}
-              disabled={saving || selectedCategories.length === 0}
-              className="flex items-center gap-2 px-8 py-3 text-lg bg-gradient-to-r from-[#2563EB] to-[#1E40AF] hover:from-[#1D4ED8] hover:to-[#1E3A8A] text-white transition-all rounded-lg shadow-md shadow-blue-900/30"
-            >
-              <Save className="w-5 h-5" />
-              {saving
-                ? "Saving..."
-                : `Save ${selectedCategories.length} Categories`}
-            </Button>
+              <Button
+                variant="outline"
+                onClick={handleSkip}
+                disabled={saving}
+                className="px-8 py-3 text-base border-[#E5E5E5] text-[#6B6B6B] hover:text-[#1A1A1A] hover:border-[#D4D4D4] font-medium rounded-lg transition-all"
+              >
+                Skip for Now
+              </Button>
+            </div>
 
-            <Button
-              variant="outline"
-              onClick={handleSkip}
-              disabled={saving}
-              className="px-8 py-3 text-lg border border-[#1E3A8A] text-gray-300 hover:border-blue-400 hover:text-white transition-all rounded-lg"
-            >
-              Skip for Now
-            </Button>
+            <p className="text-center mt-6 text-sm text-[#9CA3AF]">
+              You can always modify your preferences in settings
+            </p>
           </div>
-
-          <div className="text-center mt-8 text-sm text-gray-500">
-            You can always modify your preferences later in the settings page.
-          </div>
-        </div>
+        </main>
       </div>
     </ProtectedRoute>
   );
