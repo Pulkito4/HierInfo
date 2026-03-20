@@ -1,6 +1,7 @@
 "use client";
 import { useAuthNavigation } from '@/hooks/useAuth';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/lib/authContext';
+import { Loader2, ArrowRight, Home, Sparkles } from 'lucide-react';
 
 interface AuthButtonProps {
   className?: string;
@@ -12,6 +13,13 @@ export default function AuthButton({
   children
 }: AuthButtonProps) {
   const { navigateBasedOnAuth, isAuthenticated, isLoading } = useAuthNavigation();
+  const { user } = useAuth();
+
+  // Don't render anything if user is authenticated (for header buttons)
+  // This hides login/signup when logged in
+  if (user && !children) {
+    return null;
+  }
 
   const getContent = () => {
     if (isLoading) {
@@ -26,8 +34,19 @@ export default function AuthButton({
     if (isAuthenticated) {
       return (
         <div className="flex items-center gap-2">
-          <span>Continue to Home</span>
+          <Home className="w-5 h-5" />
+          <span>Go to Feed</span>
           <ArrowRight className="w-4 h-4" />
+        </div>
+      );
+    }
+
+    // Default content for not authenticated
+    if (!children) {
+      return (
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5" />
+          <span>Get Started</span>
         </div>
       );
     }
@@ -38,7 +57,7 @@ export default function AuthButton({
   return (
     <button 
       onClick={navigateBasedOnAuth}
-      className={className}
+      className={className || "btn-primary"}
       disabled={isLoading}
     >
       {getContent()}

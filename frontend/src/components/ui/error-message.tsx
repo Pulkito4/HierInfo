@@ -37,16 +37,16 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center p-8 text-center bg-[#FEF2F2] border border-[#FECACA] rounded-xl ${className}`}>
-      <div className="w-14 h-14 bg-[#FEE2E2] rounded-full flex items-center justify-center mb-4">
-        <AlertTriangle className="w-7 h-7 text-[#DC2626]" />
+    <div className={`flex flex-col items-center justify-center p-8 text-center bg-rose-50 border border-rose-200 rounded-2xl ${className}`}>
+      <div className="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center mb-4">
+        <AlertTriangle className="w-8 h-8 text-rose-500" />
       </div>
       
-      <h3 className="text-lg font-semibold text-[#991B1B] mb-2">
+      <h3 className="text-lg font-bold text-slate-800 mb-2">
         {title}
       </h3>
       
-      <p className="text-[#DC2626] mb-6 max-w-md">
+      <p className="text-rose-600 mb-6 max-w-md">
         {getErrorMessage(error)}
       </p>
       
@@ -55,19 +55,12 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
           onClick={onRetry}
           variant="outline"
           size="sm"
-          className="border-[#FCA5A5] text-[#DC2626] hover:bg-[#FEE2E2] hover:border-[#F87171]"
+          className="border-rose-300 text-rose-600 hover:bg-rose-50 hover:border-rose-400 rounded-xl"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
           Try Again
         </Button>
       )}
-      
-      <details className="mt-4 text-xs text-[#9CA3AF]">
-        <summary className="cursor-pointer hover:text-[#6B6B6B] transition-colors">Technical Details</summary>
-        <pre className="mt-2 p-3 bg-white border border-[#E5E5E5] rounded-lg text-left overflow-auto text-[#6B6B6B]">
-          {error.stack || error.message}
-        </pre>
-      </details>
     </div>
   );
 };

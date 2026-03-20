@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, TrendingUp } from 'lucide-react';
 import type { Article } from '@/types/articles';
 
 interface HeroBannerProps {
@@ -46,8 +46,11 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => 
 
   if (limitedArticles.length === 0) return null;
 
+  const isCritical = currentArticle.is_critical;
+  const isTrending = currentArticle.trending_score && currentArticle.trending_score > 10;
+
   return (
-    <div className="relative w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-[#1A1A1A] group shadow-lg">
+    <div className="relative w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50 group border border-slate-200 shadow-lg">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -70,38 +73,52 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => 
                 priority={currentIndex === 0}
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-[#1A1A1A] via-[#2D2D2D] to-[#1A1A1A]" />
+              <div className="w-full h-full bg-gradient-to-br from-coral/10 via-teal/5 to-slate-100" />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:via-transparent md:to-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#FFFBF5] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:via-transparent md:to-[#FFFBF5]/80" />
+            
+            {/* Badges */}
+            <div className="absolute top-4 left-4 flex gap-2">
+              {isCritical && (
+                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-lg">
+                  <Zap className="w-3 h-3" />
+                  Breaking
+                </span>
+              )}
+              {isTrending && !isCritical && (
+                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gold text-slate-800 shadow-lg">
+                  <TrendingUp className="w-3 h-3" />
+                  Trending
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Content Section */}
-          <div className="w-full md:w-[40%] h-[40%] md:h-full p-5 md:p-8 flex flex-col justify-between bg-[#1A1A1A]">
+          <div className="w-full md:w-[40%] h-[40%] md:h-full p-5 md:p-8 flex flex-col justify-between bg-white/95 backdrop-blur-sm">
             {/* Category */}
             <div className="mb-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#B45309]/20 text-[#F59E0B]">
+              <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-coral/10 text-coral border border-coral/20">
                 {currentArticle.categories?.[0]?.name || 'Featured'}
               </span>
             </div>
 
             {/* Title */}
-            <h2 className="text-lg md:text-2xl font-bold text-white mb-3 leading-tight line-clamp-3">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-3 leading-tight line-clamp-3">
               {currentArticle.title}
             </h2>
 
             {/* Summary */}
             <div className="hidden md:block flex-1 overflow-hidden">
-              <p className="text-sm text-[#A3A3A3] line-clamp-4 leading-relaxed">
+              <p className="text-sm text-slate-500 line-clamp-4 leading-relaxed">
                 {currentArticle.summary}
               </p>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#404040]">
-              <div className="text-sm">
-                <p className="font-semibold text-white">{currentArticle.source}</p>
-              </div>
-              <span className="text-xs text-[#6B6B6B]">
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-200">
+              <span className="text-sm font-semibold text-coral">{currentArticle.source}</span>
+              <span className="text-xs text-slate-400">
                 {new Date(currentArticle.published_at).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric'
@@ -120,7 +137,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => 
               e.stopPropagation();
               goToPrevious();
             }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 z-10 backdrop-blur-sm"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 text-slate-600 hover:text-coral hover:border-coral/50 transition-all opacity-0 group-hover:opacity-100 z-10"
           >
             <ChevronLeft size={24} />
           </button>
@@ -130,7 +147,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => 
               e.stopPropagation();
               goToNext();
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 z-10 backdrop-blur-sm"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 text-slate-600 hover:text-coral hover:border-coral/50 transition-all opacity-0 group-hover:opacity-100 z-10"
           >
             <ChevronRight size={24} />
           </button>
@@ -148,7 +165,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ articles, onArticleClick }) => 
                 goToSlide(index);
               }}
               className={`h-2 rounded-full transition-all ${
-                index === currentIndex ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'
+                index === currentIndex ? 'w-8 bg-coral' : 'w-2 bg-slate-300 hover:bg-slate-400'
               }`}
             />
           ))}

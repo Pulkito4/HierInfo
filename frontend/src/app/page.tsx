@@ -1,401 +1,511 @@
+"use client";
+
 import Link from "next/link";
 import AuthButton from "@/components/AuthButton";
+import { motion } from "framer-motion";
 import { 
-  Newspaper, 
-  Sparkles, 
-  Zap, 
-  Shield, 
-  ChevronRight,
-  Bookmark,
-  Share2,
-  Bell
+  Newspaper,
+  Sparkles,
+  Zap,
+  Heart,
+  Globe,
+  BookOpen,
+  TrendingUp,
+  Compass,
+  Star,
+  Clock,
+  Shield,
+  Filter,
+  Play
 } from "lucide-react";
 
 export default function HomePage() {
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
+  const stagger = {
+    animate: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#FDFBF7]">
+    <div className="min-h-screen bg-[#FFFBF5] overflow-x-hidden">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-[#E5E5E5]">
+      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-coral/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 bg-[#1A1A1A] rounded-md flex items-center justify-center">
-                <Newspaper className="w-5 h-5 text-white" />
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral to-coral-light flex items-center justify-center shadow-lg shadow-coral/30 group-hover:shadow-coral/50 transition-all">
+                <Newspaper className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-[#1A1A1A] tracking-tight">
-                HierInfo
-              </span>
+              <div>
+                <span className="text-xl font-bold text-slate-800">HierInfo</span>
+              </div>
             </Link>
 
             {/* Nav Links - Desktop */}
             <div className="hidden md:flex items-center gap-8">
-              <Link href="#features" className="text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors text-sm font-medium">
+              <Link href="#how-it-works" className="text-slate-600 hover:text-coral transition-colors text-sm font-medium">
+                How It Works
+              </Link>
+              <Link href="#features" className="text-slate-600 hover:text-coral transition-colors text-sm font-medium">
                 Features
               </Link>
-              <Link href="#how-it-works" className="text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors text-sm font-medium">
-                How it Works
-              </Link>
-              <Link href="#pricing" className="text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors text-sm font-medium">
-                Pricing
+              <Link href="#testimonials" className="text-slate-600 hover:text-coral transition-colors text-sm font-medium">
+                Reviews
               </Link>
             </div>
 
-            {/* Auth Buttons */}
+            {/* Auth Button */}
             <div className="flex items-center gap-3">
-              <Link 
-                href="/login"
-                className="hidden sm:block text-[#1A1A1A] hover:text-[#6B6B6B] transition-colors text-sm font-medium px-4 py-2"
-              >
-                Sign In
-              </Link>
-              <AuthButton>
-                <span className="btn-editorial text-sm">Get Started</span>
-              </AuthButton>
+              <AuthButton />
             </div>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-16 pb-24 lg:pt-24 lg:pb-32 overflow-hidden">
+      <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-coral/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-72 h-72 bg-teal/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gold/5 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial="initial"
+            animate="animate"
+            variants={stagger}
+          >
+            {/* Badge */}
+            <motion.div variants={fadeIn} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-coral/10 border border-coral/20 mb-8">
+              <Sparkles className="w-4 h-4 text-coral" />
+              <span className="text-sm font-semibold text-coral">The Smart Way to Read News</span>
+            </motion.div>
+            
+            {/* Headline */}
+            <motion.h1 
+              variants={fadeIn}
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6"
+            >
+              <span className="text-slate-800">No More</span>
+              <br />
+              <span className="text-gradient">Information Overload</span>
+            </motion.h1>
+            
+            {/* Subheadline */}
+            <motion.p 
+              variants={fadeIn}
+              className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed"
+            >
+              Tired of seeing the same story 50 times? We filter out duplicates and clickbait 
+              so you get just the news that matters — once.
+            </motion.p>
+            
+            {/* CTAs */}
+            <motion.div variants={fadeIn} className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <AuthButton className="btn-primary inline-flex items-center justify-center gap-2 text-lg px-8 py-4">
+                <Zap className="w-5 h-5" />
+                Start Reading Free
+              </AuthButton>
+              <Link 
+                href="#how-it-works"
+                className="btn-ghost inline-flex items-center justify-center gap-2 text-lg px-8 py-4"
+              >
+                <Play className="w-5 h-5" />
+                See How It Works
+              </Link>
+            </motion.div>
+
+            {/* Social Proof */}
+            <motion.div variants={fadeIn} className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-500">
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-coral/20 flex items-center justify-center text-coral text-xs font-bold">JD</div>
+                  <div className="w-8 h-8 rounded-full bg-teal/20 flex items-center justify-center text-teal text-xs font-bold">SK</div>
+                  <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold-dark text-xs font-bold">AM</div>
+                </div>
+                <span>Join 10,000+ readers</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-gold fill-gold" />
+                <span>4.9 rating from 2,000+ reviews</span>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Problem / Solution Section */}
+      <section id="how-it-works" className="py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left Content */}
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FEF3C7] rounded-full mb-6">
-                <Sparkles className="w-4 h-4 text-[#B45309]" />
-                <span className="text-sm font-medium text-[#B45309]">AI-Powered News Curation</span>
+          <div className="text-center mb-16">
+            <h2 className="section-title mb-4 text-4xl">The News Is Broken.<br/>We Fixed It.</h2>
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+              Traditional news apps show you the same story again and again. We do things differently.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Problem 1 */}
+            <motion.div 
+              className="card-featured p-8 text-center"
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-6">
+                <Filter className="w-8 h-8 text-slate-400" />
               </div>
-              
-              <h1 className="hero-title mb-6">
-                Stay informed with{" "}
-                <span className="text-[#B45309]">personalized</span>{" "}
-                news that matters
-              </h1>
-              
-              <p className="hero-subtitle mb-8 max-w-xl mx-auto lg:mx-0">
-                HierInfo delivers curated news from trusted sources, tailored to your interests. 
-                No noise, no bias—just the stories that keep you ahead.
+              <h3 className="text-xl font-bold text-slate-700 mb-3">Duplicate Stories</h3>
+              <p className="text-slate-500 mb-4">
+                50 different articles about the same event. You read the same facts over and over.
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-                <AuthButton>
-                  <span className="btn-editorial inline-flex items-center gap-2">
-                    Start Reading Free
-                    <ChevronRight className="w-4 h-4" />
-                  </span>
-                </AuthButton>
-                <Link 
-                  href="#features"
-                  className="btn-editorial-outline inline-flex items-center justify-center gap-2"
-                >
-                  Explore Features
-                </Link>
-              </div>
+              <div className="text-coral font-semibold text-sm">We group them into one</div>
+            </motion.div>
 
-              {/* Trust Indicators */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm text-[#6B6B6B]">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-[#059669]" />
-                  <span>Trusted Sources</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-[#B45309]" />
-                  <span>Real-time Updates</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Bookmark className="w-4 h-4 text-[#1E40AF]" />
-                  <span>Save & Share</span>
-                </div>
+            {/* Problem 2 */}
+            <motion.div 
+              className="card-featured p-8 text-center"
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-6">
+                <Zap className="w-8 h-8 text-slate-400" />
               </div>
-            </div>
+              <h3 className="text-xl font-bold text-slate-700 mb-3">Clickbait Headlines</h3>
+              <p className="text-slate-500 mb-4">
+                &ldquo;You won&apos;t believe what happened!&rdquo; Articles that waste your time and don&apos;t deliver.
+              </p>
+              <div className="text-coral font-semibold text-sm">We filter out the junk</div>
+            </motion.div>
 
-            {/* Right Content - App Preview */}
-            <div className="relative">
-              <div className="relative bg-white rounded-2xl shadow-2xl border border-[#E5E5E5] overflow-hidden">
-                {/* Mock App Header */}
-                <div className="bg-[#1A1A1A] px-4 py-3 flex items-center gap-3">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#EF4444]" />
-                    <div className="w-3 h-3 rounded-full bg-[#F59E0B]" />
-                    <div className="w-3 h-3 rounded-full bg-[#059669]" />
-                  </div>
-                  <span className="text-white text-sm font-medium ml-2">HierInfo</span>
-                </div>
-                
-                {/* Mock App Content */}
-                <div className="p-6 space-y-4">
-                  {/* Article Card 1 */}
-                  <div className="border-b border-[#E5E5E5] pb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="category-badge">Technology</span>
-                      <span className="text-xs text-[#9CA3AF]">2 hours ago</span>
-                    </div>
-                    <h3 className="font-semibold text-[#1A1A1A] mb-1 leading-tight">
-                      The Future of AI: What Experts Predict for 2025
-                    </h3>
-                    <p className="text-sm text-[#6B6B6B] line-clamp-2">
-                      Leading researchers share insights on the next wave of artificial intelligence breakthroughs...
-                    </p>
-                  </div>
-                  
-                  {/* Article Card 2 */}
-                  <div className="border-b border-[#E5E5E5] pb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="category-badge bg-[#FEF3C7] text-[#B45309] border-[#FCD34D]">Business</span>
-                      <span className="text-xs text-[#9CA3AF]">4 hours ago</span>
-                    </div>
-                    <h3 className="font-semibold text-[#1A1A1A] mb-1 leading-tight">
-                      Global Markets React to New Economic Policies
-                    </h3>
-                    <p className="text-sm text-[#6B6B6B] line-clamp-2">
-                      Major indices show positive momentum as central banks announce coordinated measures...
-                    </p>
-                  </div>
-                  
-                  {/* Article Card 3 */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="category-badge bg-[#DBEAFE] text-[#1E40AF] border-[#93C5FD]">Science</span>
-                      <span className="text-xs text-[#9CA3AF]">6 hours ago</span>
-                    </div>
-                    <h3 className="font-semibold text-[#1A1A1A] mb-1 leading-tight">
-                      Climate Research Reveals Promising New Data
-                    </h3>
-                    <p className="text-sm text-[#6B6B6B] line-clamp-2">
-                      Scientists document significant progress in renewable energy adoption across Europe...
-                    </p>
-                  </div>
-                </div>
+            {/* Problem 3 */}
+            <motion.div 
+              className="card-featured p-8 text-center"
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-6">
+                <Clock className="w-8 h-8 text-slate-400" />
               </div>
-              
-              {/* Decorative Elements */}
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-[#FEF3C7] rounded-full opacity-50 blur-2xl" />
-              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-[#DBEAFE] rounded-full opacity-50 blur-2xl" />
-            </div>
+              <h3 className="text-xl font-bold text-slate-700 mb-3">Too Long, Didn&apos;t Read</h3>
+              <p className="text-slate-500 mb-4">
+                2,000-word articles when you only need 200 words to get the point.
+              </p>
+              <div className="text-coral font-semibold text-sm">We summarize the key facts</div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Your Feeds Section */}
+      <section className="py-24 relative bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="section-title mb-4 text-4xl">Four Ways to Stay Informed</h2>
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+              Different moods call for different news. Pick what works for you.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* For You */}
+            <motion.div 
+              className="card-featured p-6 border-l-4 border-l-coral"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center mb-4">
+                <Heart className="w-6 h-6 text-coral" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">For You</h3>
+              <p className="text-slate-500 text-sm">
+                Stories handpicked based on what you actually care about. No algorithms pushing junk.
+              </p>
+            </motion.div>
+
+            {/* Trending */}
+            <motion.div 
+              className="card-featured p-6 border-l-4 border-l-gold"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 text-gold-dark" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Trending</h3>
+              <p className="text-slate-500 text-sm">
+                What everyone&apos;s talking about right now. The stories that matter to the world.
+              </p>
+            </motion.div>
+
+            {/* Breaking */}
+            <motion.div 
+              className="card-featured p-6 border-l-4 border-l-rose-400"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-rose-500" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Breaking</h3>
+              <p className="text-slate-500 text-sm">
+                Critical updates that need your attention. Important news, not noise.
+              </p>
+            </motion.div>
+
+            {/* Explore */}
+            <motion.div 
+              className="card-featured p-6 border-l-4 border-l-teal"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-teal/10 flex items-center justify-center mb-4">
+                <Compass className="w-6 h-6 text-teal" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Explore</h3>
+              <p className="text-slate-500 text-sm">
+                Discover something new. Step outside your bubble with curated picks.
+              </p>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-white border-t border-[#E5E5E5]">
+      <section id="features" className="py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] mb-4">
-              Everything you need to stay informed
-            </h2>
-            <p className="text-lg text-[#6B6B6B] max-w-2xl mx-auto">
-              A complete news reading experience designed for the modern reader
+            <h2 className="section-title mb-4 text-4xl">Built for Real Readers</h2>
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+              No tech jargon. Just features that make your life easier.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             {/* Feature 1 */}
-            <div className="card-editorial p-6">
-              <div className="w-12 h-12 bg-[#FEF3C7] rounded-lg flex items-center justify-center mb-4">
-                <Sparkles className="w-6 h-6 text-[#B45309]" />
+            <motion.div 
+              className="flex gap-6 p-6 rounded-2xl bg-white shadow-sm"
+              whileHover={{ boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}
+            >
+              <div className="w-14 h-14 rounded-xl bg-coral/10 flex items-center justify-center flex-shrink-0">
+                <Shield className="w-7 h-7 text-coral" />
               </div>
-              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-2">
-                Personalized Feed
-              </h3>
-              <p className="text-[#6B6B6B] text-sm leading-relaxed">
-                AI-powered curation learns your interests and delivers stories that actually matter to you.
-              </p>
-            </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">No Clickbait, Ever</h3>
+                <p className="text-slate-500">
+We check if headlines actually match the story. If it&apos;s all hype and no substance, 
+                you won&apos;t see it.
+                </p>
+              </div>
+            </motion.div>
 
             {/* Feature 2 */}
-            <div className="card-editorial p-6">
-              <div className="w-12 h-12 bg-[#DBEAFE] rounded-lg flex items-center justify-center mb-4">
-                <Zap className="w-6 h-6 text-[#1E40AF]" />
+            <motion.div 
+              className="flex gap-6 p-6 rounded-2xl bg-white shadow-sm"
+              whileHover={{ boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}
+            >
+              <div className="w-14 h-14 rounded-xl bg-teal/10 flex items-center justify-center flex-shrink-0">
+                <BookOpen className="w-7 h-7 text-teal" />
               </div>
-              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-2">
-                Real-time Updates
-              </h3>
-              <p className="text-[#6B6B6B] text-sm leading-relaxed">
-                Breaking news delivered instantly. Stay ahead with live updates from trusted sources worldwide.
-              </p>
-            </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">Smart Summaries</h3>
+                <p className="text-slate-500">
+                  Get the gist in 30 seconds. Our summaries capture what actually matters 
+                  from long articles.
+                </p>
+              </div>
+            </motion.div>
 
             {/* Feature 3 */}
-            <div className="card-editorial p-6">
-              <div className="w-12 h-12 bg-[#D1FAE5] rounded-lg flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-[#059669]" />
+            <motion.div 
+              className="flex gap-6 p-6 rounded-2xl bg-white shadow-sm"
+              whileHover={{ boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}
+            >
+              <div className="w-14 h-14 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
+                <Filter className="w-7 h-7 text-gold-dark" />
               </div>
-              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-2">
-                Trusted Sources
-              </h3>
-              <p className="text-[#6B6B6B] text-sm leading-relaxed">
-                Every article is sourced from verified publishers. No misinformation, just facts.
-              </p>
-            </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">One Story, Once</h3>
+                <p className="text-slate-500">
+                  We group coverage from hundreds of sources into a single, easy-to-read story. 
+                  No more déjà vu.
+                </p>
+              </div>
+            </motion.div>
 
             {/* Feature 4 */}
-            <div className="card-editorial p-6">
-              <div className="w-12 h-12 bg-[#E0E7FF] rounded-lg flex items-center justify-center mb-4">
-                <Bookmark className="w-6 h-6 text-[#4338CA]" />
+            <motion.div 
+              className="flex gap-6 p-6 rounded-2xl bg-white shadow-sm"
+              whileHover={{ boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}
+            >
+              <div className="w-14 h-14 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                <Globe className="w-7 h-7 text-indigo-500" />
               </div>
-              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-2">
-                Save & Organize
-              </h3>
-              <p className="text-[#6B6B6B] text-sm leading-relaxed">
-                Bookmark articles for later reading. Build your personal knowledge library.
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="card-editorial p-6">
-              <div className="w-12 h-12 bg-[#FCE7F3] rounded-lg flex items-center justify-center mb-4">
-                <Share2 className="w-6 h-6 text-[#BE185D]" />
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">Always Fresh</h3>
+                <p className="text-slate-500">
+                  News updates continuously. Check back anytime for the latest — 
+                  no refresh button needed.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-2">
-                Easy Sharing
-              </h3>
-              <p className="text-[#6B6B6B] text-sm leading-relaxed">
-                Share stories with your network in one click. Spread knowledge effortlessly.
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="card-editorial p-6">
-              <div className="w-12 h-12 bg-[#F3E8FF] rounded-lg flex items-center justify-center mb-4">
-                <Bell className="w-6 h-6 text-[#7C3AED]" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-2">
-                Smart Notifications
-              </h3>
-              <p className="text-[#6B6B6B] text-sm leading-relaxed">
-                Get notified only for breaking news in your areas of interest. No spam, ever.
-              </p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-24 bg-[#F5F5F4]">
+      {/* Testimonials */}
+      <section id="testimonials" className="py-24 relative bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] mb-4">
-              Start reading in minutes
-            </h2>
-            <p className="text-lg text-[#6B6B6B] max-w-2xl mx-auto">
-              Simple setup, powerful results
+            <h2 className="section-title mb-4 text-4xl">Loved by Readers</h2>
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+              Don&apos;t take our word for it. Here&apos;s what real users say.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Step 1 */}
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#1A1A1A] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                1
+            {/* Review 1 */}
+            <div className="card-featured p-6">
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-gold fill-gold" />
+                ))}
               </div>
-              <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2">
-                Create Account
-              </h3>
-              <p className="text-[#6B6B6B]">
-                Sign up in seconds with your email or Google account
+              <p className="text-slate-600 mb-4">
+                &ldquo;Finally! No more scrolling past the same story 20 times. This app actually respects my time.&rdquo;
               </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-coral/20 flex items-center justify-center text-coral text-sm font-bold">SM</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Sarah M.</p>
+                  <p className="text-slate-400 text-xs">Product Manager</p>
+                </div>
+              </div>
             </div>
 
-            {/* Step 2 */}
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#1A1A1A] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                2
+            {/* Review 2 */}
+            <div className="card-featured p-6">
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-gold fill-gold" />
+                ))}
               </div>
-              <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2">
-                Select Interests
-              </h3>
-              <p className="text-[#6B6B6B]">
-                Choose topics you care about—tech, business, science, and more
+              <p className="text-slate-600 mb-4">
+                &ldquo;The summaries are a game changer. I can stay informed even on my busiest days.&rdquo;
               </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-teal/20 flex items-center justify-center text-teal text-sm font-bold">JK</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">James K.</p>
+                  <p className="text-slate-400 text-xs">Entrepreneur</p>
+                </div>
+              </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#B45309] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                3
+            {/* Review 3 */}
+            <div className="card-featured p-6">
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-gold fill-gold" />
+                ))}
               </div>
-              <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2">
-                Start Reading
-              </h3>
-              <p className="text-[#6B6B6B]">
-                Enjoy a personalized news feed tailored just for you
+              <p className="text-slate-600 mb-4">
+                &ldquo;I&apos;ve tried every news app. This is the only one that doesn&apos;t make me feel overwhelmed.&rdquo;
               </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-gold-dark text-sm font-bold">AL</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Aisha L.</p>
+                  <p className="text-slate-400 text-xs">Journalist</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-[#1A1A1A]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Ready to transform how you read news?
+      <section className="py-24 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-coral/5" />
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl sm:text-5xl font-bold text-slate-800 mb-4">
+            Ready to enjoy news again?
           </h2>
-          <p className="text-lg text-[#9CA3AF] mb-8 max-w-2xl mx-auto">
-            Join thousands of readers who get their news the smart way. 
-            No clutter, no bias—just the stories that matter.
+          <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+            Join thousands of readers who&apos;ve reclaimed their time. 
+            No more doom-scrolling. No more duplicates. Just news.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <AuthButton>
-              <span className="inline-flex items-center gap-2 bg-white text-[#1A1A1A] px-8 py-4 rounded-md font-semibold hover:bg-[#F5F5F4] transition-colors">
-                Get Started Free
-                <ChevronRight className="w-5 h-5" />
-              </span>
+            <AuthButton className="btn-primary inline-flex items-center justify-center gap-2 text-lg px-8 py-4">
+              <Sparkles className="w-5 h-5" />
+              Get Started Free
             </AuthButton>
           </div>
-          <p className="text-sm text-[#6B6B6B] mt-6">
-            Free forever. No credit card required.
+          <p className="text-sm text-slate-400 mt-6">
+            Free forever • No credit card required • Cancel anytime
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#F5F5F4] border-t border-[#E5E5E5]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <footer className="border-t border-slate-200 py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Brand */}
             <div className="md:col-span-2">
-              <Link href="/" className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-[#1A1A1A] rounded-md flex items-center justify-center">
-                  <Newspaper className="w-5 h-5 text-white" />
+              <Link href="/" className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral to-coral-light flex items-center justify-center">
+                  <Newspaper className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-xl font-bold text-[#1A1A1A]">HierInfo</span>
+                <span className="text-xl font-bold text-slate-800">HierInfo</span>
               </Link>
-              <p className="text-[#6B6B6B] text-sm max-w-sm">
-                Personalized news for the modern reader. Stay informed with curated stories from trusted sources.
+              <p className="text-slate-500 text-sm max-w-sm">
+                The news app that respects your time. No duplicates, no clickbait, 
+                just what matters.
               </p>
             </div>
 
             {/* Links */}
             <div>
-              <h4 className="font-semibold text-[#1A1A1A] mb-4">Product</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="#features" className="text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors">Features</Link></li>
-                <li><Link href="#" className="text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors">Pricing</Link></li>
-                <li><Link href="#" className="text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors">Mobile App</Link></li>
+              <h4 className="text-slate-800 font-semibold mb-4">Product</h4>
+              <ul className="space-y-2 text-sm text-slate-500">
+                <li><Link href="#features" className="hover:text-coral transition-colors">Features</Link></li>
+                <li><Link href="#" className="hover:text-coral transition-colors">Mobile Apps</Link></li>
+                <li><Link href="#" className="hover:text-coral transition-colors">Pricing</Link></li>
+                <li><Link href="#" className="hover:text-coral transition-colors">API</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-[#1A1A1A] mb-4">Company</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="#" className="text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors">About</Link></li>
-                <li><Link href="#" className="text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors">Contact</Link></li>
-                <li><Link href="#" className="text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors">Privacy</Link></li>
+              <h4 className="text-slate-800 font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-slate-500">
+                <li><Link href="#" className="hover:text-coral transition-colors">About</Link></li>
+                <li><Link href="#" className="hover:text-coral transition-colors">Blog</Link></li>
+                <li><Link href="#" className="hover:text-coral transition-colors">Careers</Link></li>
+                <li><Link href="#" className="hover:text-coral transition-colors">Contact</Link></li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-[#E5E5E5] pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-[#6B6B6B]">
+          <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-slate-400">
               © 2025 HierInfo. All rights reserved.
             </p>
-            <div className="flex items-center gap-6 text-sm text-[#6B6B6B]">
-              <Link href="#" className="hover:text-[#1A1A1A] transition-colors">Terms</Link>
-              <Link href="#" className="hover:text-[#1A1A1A] transition-colors">Privacy</Link>
-              <Link href="#" className="hover:text-[#1A1A1A] transition-colors">Cookies</Link>
+            <div className="flex items-center gap-6 text-sm text-slate-400">
+              <Link href="#" className="hover:text-slate-600 transition-colors">Privacy</Link>
+              <Link href="#" className="hover:text-slate-600 transition-colors">Terms</Link>
+              <Link href="#" className="hover:text-slate-600 transition-colors">Cookies</Link>
             </div>
           </div>
         </div>

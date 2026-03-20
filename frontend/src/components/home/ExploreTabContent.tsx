@@ -63,7 +63,8 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
     setTimeout(() => setSelectedArticle(null), 300);
   };
 
-  const handleLike = (_articleId: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleLike = (articleId: string) => {
     trackActivity('like');
   };
 
@@ -105,10 +106,10 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
         {gridArticles.length > 0 && (
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-[#1A1A1A]">
+              <h2 className="text-xl font-bold text-white">
                 More Stories
               </h2>
-              <div className="flex-1 h-px bg-[#E5E5E5]" />
+              <div className="flex-1 h-px bg-slate-700/50" />
             </div>
             <DiscoverGrid
               articles={gridArticles}
@@ -120,13 +121,13 @@ const ExploreTabContent: React.FC<ExploreTabContentProps> = ({
         {/* Infinite Scroll Trigger */}
         <div ref={observerTarget} className="h-20 flex items-center justify-center">
           {isLoading(loading) && hasMore && (
-            <div className="flex items-center gap-2 text-[#6B6B6B]">
-              <div className="w-5 h-5 border-2 border-[#D4D4D4] border-t-[#1A1A1A] rounded-full animate-spin" />
+            <div className="flex items-center gap-2 text-indigo-400">
+              <div className="w-5 h-5 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
               <span className="text-sm font-medium">Loading more stories...</span>
             </div>
           )}
           {!hasMore && articles.length > 0 && (
-            <p className="text-sm text-[#9CA3AF]">You&apos;ve reached the end</p>
+            <p className="text-sm text-slate-500">You&apos;ve reached the end</p>
           )}
         </div>
       </div>

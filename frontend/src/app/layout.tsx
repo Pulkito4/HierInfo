@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HeirInfo",
-  description: "Stay Ahead with Real-Time News",
+  title: "HierInfo - News That Respects Your Time",
+  description: "No duplicates, no clickbait, no information overload. Just the news that matters to you.",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#FFFBF5] text-slate-800`}
       >
         <QueryProvider>
           <AuthProvider>
@@ -40,7 +40,14 @@ export default function RootLayout({
           position="top-right" 
           richColors 
           closeButton
-          theme="dark"
+          theme="light"
+          toastOptions={{
+            style: {
+              background: '#FFFFFF',
+              border: '1px solid rgba(255, 107, 107, 0.2)',
+              color: '#2D3436',
+            },
+          }}
         />
       </body>
     </html>

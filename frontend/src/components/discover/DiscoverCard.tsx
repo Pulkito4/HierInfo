@@ -12,98 +12,87 @@ interface DiscoverCardProps {
 }
 
 const DiscoverCard: React.FC<DiscoverCardProps> = ({ article, onClick, featured = false }) => {
-  const getBadgeInfo = () => {
-    if (article.is_critical) {
-      return {
-        text: 'Breaking',
-        icon: Zap,
-        bgColor: 'bg-[#DC2626]/90',
-      };
-    }
-    if (article.trending_score && article.trending_score > 10) {
-      return {
-        text: 'Trending',
-        icon: TrendingUp,
-        bgColor: 'bg-[#1E40AF]/90',
-      };
-    }
-    return null;
-  };
-
-  const badge = getBadgeInfo();
+  const isCritical = article.is_critical;
+  const isTrending = article.trending_score && article.trending_score > 10;
 
   return (
     <div
       onClick={() => onClick(article)}
       className={`
         group relative bg-white rounded-xl overflow-hidden cursor-pointer 
-        border border-[#E5E5E5] hover:border-[#D4D4D4]
+        border border-slate-200 hover:border-coral/50
         transition-all duration-300 
-        hover:shadow-lg
-        hover:-translate-y-0.5
+        hover:shadow-lg hover:-translate-y-1
         ${featured ? 'h-full' : 'h-full'}
       `}
     >
       {/* Image */}
-      <div className={`relative w-full ${featured ? 'h-48 md:h-72' : 'h-40'} bg-[#F5F5F4] overflow-hidden`}>
+      <div className={`relative w-full ${featured ? 'h-48 md:h-72' : 'h-40'} bg-slate-100 overflow-hidden`}>
         {article.image_url ? (
           <>
             <Image
               src={article.image_url}
               alt={article.title}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
-            {/* Subtle overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#FFFBF5] via-transparent to-transparent" />
           </>
         ) : (
-          <div className="w-full h-full bg-[#F5F5F4] flex items-center justify-center">
-            <TrendingUp className="w-12 h-12 text-[#D4D4D4]" />
+          <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+            <TrendingUp className="w-12 h-12 text-slate-300" />
           </div>
         )}
         
-        {/* Badge */}
-        {featured && badge && (
-          <div className={`absolute top-3 left-3 px-3 py-1.5 ${badge.bgColor} backdrop-blur-sm rounded-full text-xs font-semibold text-white shadow-sm flex items-center gap-1.5`}>
-            <badge.icon className="w-3 h-3" />
-            <span>{badge.text}</span>
-          </div>
-        )}
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex gap-2">
+          {featured && isCritical && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-lg">
+              <Zap className="w-3 h-3" />
+              Breaking
+            </span>
+          )}
+          {featured && isTrending && !isCritical && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-gold text-slate-800 shadow-lg">
+              <TrendingUp className="w-3 h-3" />
+              Trending
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Content */}
       <div className={`${featured ? 'p-5' : 'p-4'}`}>
         {/* Category */}
-        {(article.categories && article.categories.length > 0) && (
-          <span className="inline-block px-2.5 py-0.5 mb-2 text-xs font-medium bg-[#F5F5F4] text-[#6B6B6B] rounded-md">
-            {article.categories[0]?.name}
+        {article.categories && article.categories.length > 0 && (
+          <span className="inline-block px-2.5 py-0.5 mb-2 text-xs font-semibold bg-coral/10 text-coral rounded-md border border-coral/20">
+            {article.categories[0].name}
           </span>
         )}
 
         {/* Title */}
         <h3 className={`
-          font-semibold text-[#1A1A1A] mb-2 leading-tight 
+          font-bold text-slate-800 mb-2 leading-tight 
           ${featured ? 'text-lg' : 'text-sm'}
-          group-hover:text-[#B45309] transition-colors
+          group-hover:text-coral transition-colors
         `}>
           {article.title}
         </h3>
 
         {/* Summary for featured cards */}
         {featured && article.summary && (
-          <p className="hidden md:block text-sm text-[#6B6B6B] mb-4 line-clamp-2 leading-relaxed">
+          <p className="hidden md:block text-sm text-slate-500 mb-4 line-clamp-2 leading-relaxed">
             {article.summary}
           </p>
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between text-sm pt-2 border-t border-[#F5F5F4]">
-          <p className="text-[#1A1A1A] font-medium text-xs">
+        <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-100">
+          <span className="text-coral font-medium text-xs">
             {article.source}
-          </p>
-          <span className="text-xs text-[#9CA3AF]">
+          </span>
+          <span className="text-xs text-slate-400">
             {new Date(article.published_at).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric'

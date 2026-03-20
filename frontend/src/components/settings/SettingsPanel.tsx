@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, Settings, LogOut, Trash2, ChevronRight, Bell, Shield, Sparkles } from 'lucide-react';
+import { User, Settings, LogOut, Trash2, ChevronRight, Bell, Shield, Heart, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/authContext';
 import { supabase } from '@/lib/supabase';
@@ -11,8 +10,7 @@ const SettingsPanel = () => {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [profile, setProfile] = useState<{ username?: string } | null>(null);
+  const [, setProfile] = useState<{ username?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [usernameInput, setUsernameInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -101,10 +99,10 @@ const SettingsPanel = () => {
     return (
       <div className="max-w-2xl mx-auto p-6">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-[#1A1A1A] mb-4">Please log in to access settings</h2>
+          <h2 className="text-xl font-bold text-slate-800 mb-4">Please log in to access settings</h2>
           <Button 
             onClick={() => router.push('/login')}
-            className="bg-[#1A1A1A] hover:bg-[#2D2D2D]"
+            className="bg-gradient-to-r from-coral to-coral-light"
           >
             Go to Login
           </Button>
@@ -115,43 +113,37 @@ const SettingsPanel = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#1A1A1A] mb-1">Settings</h1>
-        <p className="text-[#6B6B6B]">Manage your account and preferences</p>
-      </div>
-
       {/* User Profile Section */}
-      <Card className="p-6 bg-white border-[#E5E5E5] shadow-sm">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-[#FEF3C7] rounded-lg flex items-center justify-center">
-            <User className="w-5 h-5 text-[#B45309]" />
+          <div className="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center">
+            <User className="w-6 h-6 text-coral" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-[#1A1A1A]">User Profile</h3>
-            <p className="text-sm text-[#6B6B6B]">Manage your personal information</p>
+            <h3 className="text-lg font-bold text-slate-800">Your Profile</h3>
+            <p className="text-sm text-slate-500">Manage your account details</p>
           </div>
         </div>
         
         <div className="space-y-5">
           {/* Username */}
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-              Username
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Display Name
             </label>
             <div className="flex items-center gap-3">
               <input
                 type="text"
                 value={usernameInput}
                 onChange={(e) => setUsernameInput(e.target.value)}
-                placeholder={loading ? 'Loading...' : 'Enter a username'}
-                className="flex-1 rounded-lg border border-[#E5E5E5] bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#B45309]/20 focus:border-[#B45309] transition-all"
+                placeholder={loading ? 'Loading...' : 'Enter a display name'}
+                className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-coral focus:ring-2 focus:ring-coral/20 transition-all"
                 disabled={loading || saving}
               />
               <Button 
                 onClick={handleSaveUsername} 
                 disabled={loading || saving}
-                className="bg-[#1A1A1A] hover:bg-[#2D2D2D] text-white px-6"
+                className="bg-gradient-to-r from-coral to-coral-light hover:from-coral-dark hover:to-coral text-white px-6 rounded-xl"
               >
                 {saving ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -161,34 +153,34 @@ const SettingsPanel = () => {
               </Button>
             </div>
             {saveError && (
-              <p className="text-sm text-[#DC2626] mt-2">{saveError}</p>
+              <p className="text-sm text-rose-500 mt-2">{saveError}</p>
             )}
             {saveSuccess && (
-              <p className="text-sm text-[#059669] mt-2">{saveSuccess}</p>
+              <p className="text-sm text-teal mt-2">{saveSuccess}</p>
             )}
           </div>
 
           {/* Email */}
-          <div className="pt-4 border-t border-[#E5E5E5]">
+          <div className="pt-4 border-t border-slate-100">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-[#6B6B6B]">Email address</span>
-              <span className="text-sm font-medium text-[#1A1A1A]">
+              <span className="text-sm text-slate-500">Email address</span>
+              <span className="text-sm font-medium text-slate-800">
                 {user.email || 'Not available'}
               </span>
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Preferences Section */}
-      <Card className="p-6 bg-white border-[#E5E5E5] shadow-sm">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-[#DBEAFE] rounded-lg flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-[#1E40AF]" />
+          <div className="w-12 h-12 rounded-xl bg-teal/10 flex items-center justify-center">
+            <Settings className="w-6 h-6 text-teal" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-[#1A1A1A]">Preferences</h3>
-            <p className="text-sm text-[#6B6B6B]">Customize your news experience</p>
+            <h3 className="text-lg font-bold text-slate-800">Your Preferences</h3>
+            <p className="text-sm text-slate-500">Customize your news experience</p>
           </div>
         </div>
         
@@ -196,38 +188,38 @@ const SettingsPanel = () => {
           <Button 
             variant="ghost"
             onClick={() => router.push('/categories')}
-            className="w-full justify-between hover:bg-[#F5F5F4] text-[#1A1A1A] h-12"
+            className="w-full justify-between hover:bg-slate-50 text-slate-700 h-12 rounded-xl"
           >
             <div className="flex items-center gap-3">
-              <Settings className="w-4 h-4 text-[#6B6B6B]" />
-              <span>Category Preferences</span>
+              <Heart className="w-5 h-5 text-coral" />
+              <span>Topic Interests</span>
             </div>
-            <ChevronRight className="w-4 h-4 text-[#9CA3AF]" />
+            <ChevronRight className="w-5 h-5 text-slate-400" />
           </Button>
 
           <Button 
             variant="ghost"
-            className="w-full justify-between hover:bg-[#F5F5F4] text-[#1A1A1A] h-12 opacity-60 cursor-not-allowed"
+            className="w-full justify-between hover:bg-slate-50 text-slate-400 h-12 rounded-xl cursor-not-allowed"
             disabled
           >
             <div className="flex items-center gap-3">
-              <Bell className="w-4 h-4 text-[#6B6B6B]" />
+              <Bell className="w-5 h-5" />
               <span>Notifications</span>
             </div>
-            <span className="text-xs text-[#9CA3AF] bg-[#F5F5F4] px-2 py-1 rounded">Coming soon</span>
+            <span className="text-xs bg-slate-100 px-2 py-1 rounded-lg text-slate-500">Soon</span>
           </Button>
         </div>
-      </Card>
+      </div>
 
       {/* Account Actions Section */}
-      <Card className="p-6 bg-white border-[#E5E5E5] shadow-sm">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-[#FCE7F3] rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5 text-[#BE185D]" />
+          <div className="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center">
+            <Shield className="w-6 h-6 text-rose-500" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-[#1A1A1A]">Account Actions</h3>
-            <p className="text-sm text-[#6B6B6B]">Manage your account security</p>
+            <h3 className="text-lg font-bold text-slate-800">Account Security</h3>
+            <p className="text-sm text-slate-500">Manage your account access</p>
           </div>
         </div>
         
@@ -235,9 +227,9 @@ const SettingsPanel = () => {
           <Button 
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start hover:bg-[#F5F5F4] text-[#1A1A1A] h-12"
+            className="w-full justify-start hover:bg-slate-50 text-slate-700 h-12 rounded-xl"
           >
-            <LogOut className="w-4 h-4 mr-3 text-[#6B6B6B]" />
+            <LogOut className="w-5 h-5 mr-3 text-slate-400" />
             Sign Out
           </Button>
           
@@ -245,14 +237,14 @@ const SettingsPanel = () => {
             <Button 
               variant="ghost"
               onClick={() => setShowDeleteConfirm(true)}
-              className="w-full justify-start hover:bg-[#FEF2F2] text-[#DC2626] h-12"
+              className="w-full justify-start hover:bg-rose-50 text-rose-500 h-12 rounded-xl"
             >
-              <Trash2 className="w-4 h-4 mr-3" />
+              <Trash2 className="w-5 h-5 mr-3" />
               Delete Account
             </Button>
           ) : (
-            <div className="mt-4 p-4 bg-[#FEF2F2] rounded-lg border border-[#FECACA]">
-              <p className="text-sm text-[#DC2626] font-medium mb-3">
+            <div className="mt-4 p-4 bg-rose-50 rounded-xl border border-rose-200">
+              <p className="text-sm text-rose-600 font-medium mb-3">
                 Are you sure? This action cannot be undone.
               </p>
               <div className="flex gap-3">
@@ -260,7 +252,7 @@ const SettingsPanel = () => {
                   variant="destructive"
                   onClick={handleDeleteAccount}
                   disabled={isDeleting}
-                  className="flex-1 bg-[#DC2626] hover:bg-[#B91C1C]"
+                  className="flex-1 bg-rose-500 hover:bg-rose-600 rounded-xl"
                 >
                   {isDeleting ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -272,7 +264,7 @@ const SettingsPanel = () => {
                   variant="outline"
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
-                  className="flex-1 border-[#E5E5E5]"
+                  className="flex-1 border-slate-300 rounded-xl"
                 >
                   Cancel
                 </Button>
@@ -280,12 +272,32 @@ const SettingsPanel = () => {
             </div>
           )}
         </div>
-      </Card>
+      </div>
+
+      {/* App Info */}
+      <div className="bg-gradient-to-r from-coral/5 to-teal/5 rounded-2xl p-6 border border-coral/10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm">
+            <Zap className="w-6 h-6 text-coral" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-800">HierInfo Premium</h3>
+            <p className="text-sm text-slate-500">
+              You&apos;re on the free plan. All core features are available!
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Footer */}
-      <p className="text-center text-sm text-[#9CA3AF] pt-4">
-        HierInfo v1.0 • Built with care for news readers
-      </p>
+      <div className="text-center pt-4">
+        <p className="text-sm text-slate-400">
+          HierInfo — News that respects your time
+        </p>
+        <p className="text-xs text-slate-300 mt-1">
+          Version 1.0
+        </p>
+      </div>
     </div>
   );
 };

@@ -3,7 +3,6 @@ import { NewsReaderLayout } from '@/components/for-you';
 import LoadingSkeleton from '@/components/ui/loading-skeleton';
 import ErrorMessage from '@/components/ui/error-message';
 import EmptyState from './EmptyState';
-import PersonalTabNavigation from './PersonalTabNavigation';
 import { SKELETON_ARTICLES_COUNT } from '@/lib/constants';
 import { isLoading } from '@/lib/utils/feedUtils';
 import type { Article } from '@/types/articles';
@@ -28,6 +27,7 @@ interface PersonalTabContentProps {
 
 const PersonalTabContent: React.FC<PersonalTabContentProps> = ({
   personalSubTab,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onSubTabChange,
   personalFeed,
   trendingFeed,
@@ -42,11 +42,11 @@ const PersonalTabContent: React.FC<PersonalTabContentProps> = ({
     if (personalFeed.articles.length === 0 && personalFeed.loading === 'success') {
       return (
         <EmptyState
-          icon="📰"
-          title="No articles to show"
+          icon="🎯"
+          title="Your feed is being personalized"
           description={
             personalFeed.message ??
-            "You're all caught up for today! Check back later, or adjust your categories in Settings to see more."
+            "We're curating articles based on your interests. Check back soon or update your categories in Settings."
           }
           onRetry={personalFeed.refetch}
           primaryAction={{
@@ -61,6 +61,8 @@ const PersonalTabContent: React.FC<PersonalTabContentProps> = ({
       <NewsReaderLayout
         articles={personalFeed.articles}
         loading={isLoading(personalFeed.loading)}
+        showBadges={false}
+        showCategory={false}
       />
     );
   };
@@ -96,7 +98,7 @@ const PersonalTabContent: React.FC<PersonalTabContentProps> = ({
         <EmptyState
           icon="🔥"
           title="No trending stories right now"
-          description="We'll refresh this soon. Try again in a bit."
+          description="We'll refresh this soon. Check back later."
           onRetry={() => {
             trendingFeed.refetch();
             criticalFeed.refetch();
@@ -110,16 +112,13 @@ const PersonalTabContent: React.FC<PersonalTabContentProps> = ({
         articles={allTrendingArticles}
         loading={isLoadingState}
         showBadges={true}
+        showCategory={false}
       />
     );
   };
 
   return (
-    <div className="space-y-1 bg-slate-950">
-      <PersonalTabNavigation
-        activeSubTab={personalSubTab}
-        onSubTabChange={onSubTabChange}
-      />
+    <div className="h-[calc(100vh-8rem)]">
       {personalSubTab === 'feed' ? renderForYou() : renderTrending()}
     </div>
   );

@@ -21,20 +21,20 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
       <div className="text-center space-y-4">
-        <div className="w-20 h-20 bg-[#F5F5F4] rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-20 h-20 bg-gradient-to-br from-indigo-500/20 to-violet-600/20 rounded-2xl flex items-center justify-center mb-4 border border-indigo-500/30">
           <span className="text-4xl">{icon}</span>
         </div>
-        <h3 className="text-xl font-semibold text-[#1A1A1A]">
+        <h3 className="text-xl font-bold text-white">
           {title}
         </h3>
-        <p className="text-[#6B6B6B] max-w-md">
+        <p className="text-slate-400 max-w-md">
           {description}
         </p>
         <div className="flex items-center justify-center gap-3 pt-2">
           {primaryAction && (
             <button
               onClick={primaryAction.onClick}
-              className="inline-flex items-center px-5 py-2.5 bg-[#1A1A1A] text-white text-sm font-medium rounded-lg hover:bg-[#2D2D2D] transition-colors"
+              className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-violet-500 transition-all shadow-lg shadow-indigo-500/25"
             >
               {primaryAction.label}
             </button>
@@ -42,7 +42,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
           {onRetry && (
             <button
               onClick={onRetry}
-              className="inline-flex items-center px-5 py-2.5 bg-[#F5F5F4] text-[#1A1A1A] text-sm font-medium rounded-lg hover:bg-[#EBEBEA] transition-colors"
+              className="inline-flex items-center px-5 py-2.5 bg-slate-800 text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-700 transition-all border border-slate-700"
             >
               Retry
             </button>

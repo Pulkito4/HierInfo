@@ -15,6 +15,7 @@ import { useTabNavigation } from '@/hooks/useTabNavigation';
 import HomeSidebar from '@/components/home/HomeSidebar';
 import PersonalTabContent from '@/components/home/PersonalTabContent';
 import ExploreTabContent from '@/components/home/ExploreTabContent';
+import { Heart, Compass, Settings, TrendingUp } from 'lucide-react';
 
 const HomepageContent = () => {
   const { activeTab, personalSubTab, setActiveTab, setPersonalSubTab } = useTabNavigation();
@@ -59,79 +60,82 @@ const HomepageContent = () => {
     }
   };
 
-  const getHeaderTitle = () => {
+  const getHeaderInfo = () => {
     switch (activeTab) {
       case 'personal':
-        return personalSubTab === 'feed' ? 'For You' : 'Trending';
+        return {
+          icon: personalSubTab === 'feed' ? Heart : TrendingUp,
+          title: personalSubTab === 'feed' ? 'For You' : 'Trending',
+          subtitle: personalSubTab === 'feed' 
+            ? 'Stories picked just for you' 
+            : 'What everyone is reading'
+        };
       case 'explore':
-        return 'Discover';
+        return {
+          icon: Compass,
+          title: 'Discover',
+          subtitle: 'Find something new'
+        };
       case 'settings':
-        return 'Settings';
+        return {
+          icon: Settings,
+          title: 'Settings',
+          subtitle: 'Manage your account'
+        };
       default:
-        return '';
+        return { icon: Heart, title: '', subtitle: '' };
     }
   };
 
-  const getHeaderDescription = () => {
-    switch (activeTab) {
-      case 'personal':
-        return personalSubTab === 'feed' 
-          ? 'Personalized news based on your interests' 
-          : 'Most popular stories right now';
-      case 'explore':
-        return 'Discover stories from around the world';
-      case 'settings':
-        return 'Manage your preferences and account';
-      default:
-        return '';
-    }
-  };
-
-  const shouldRemovePadding = 
-    activeTab === 'personal' && 
-    (personalSubTab === 'feed' || personalSubTab === 'trending');
+  const headerInfo = getHeaderInfo();
+  const HeaderIcon = headerInfo.icon;
 
   return (
     <SidebarProvider>
       <Sidebar 
         collapsible="icon" 
-        className="border-r border-[#E5E5E5] bg-[#FAFAFA]"
+        className="border-r border-slate-200 bg-white"
       >
         <HomeSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       </Sidebar>
-      <SidebarInset className="bg-[#FDFBF7]">
+      <SidebarInset className="bg-[#FFFBF5]">
         {/* Header */}
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-[#E5E5E5] bg-white/95 backdrop-blur-md px-4 lg:px-6">
-          <SidebarTrigger className="-ml-1 hover:bg-[#F5F5F4] rounded-lg transition-colors" />
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-slate-200 bg-white/95 backdrop-blur-md px-4 lg:px-6">
+          <SidebarTrigger className="-ml-1 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200 p-2" />
           
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-semibold text-[#1A1A1A] truncate">
-              {getHeaderTitle()}
-            </h1>
-            <p className="text-xs text-[#6B6B6B] hidden sm:block">
-              {getHeaderDescription()}
-            </p>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral/20 to-coral-light/20 flex items-center justify-center border border-coral/30">
+              <HeaderIcon className="w-5 h-5 text-coral" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-bold text-slate-800 truncate">
+                {headerInfo.title}
+              </h1>
+              <p className="text-xs text-slate-500 hidden sm:block truncate">
+                {headerInfo.subtitle}
+              </p>
+            </div>
           </div>
 
-          {/* Tab Navigation for Personal */}
+          {/* Sub-tab navigation for Personal */}
           {activeTab === 'personal' && (
-            <div className="hidden sm:flex items-center gap-1 bg-[#F5F5F4] rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 border border-slate-200">
               <button
                 onClick={() => setPersonalSubTab('feed')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                   personalSubTab === 'feed'
-                    ? 'bg-white text-[#1A1A1A] shadow-sm'
-                    : 'text-[#6B6B6B] hover:text-[#1A1A1A]'
+                    ? 'bg-gradient-to-r from-coral to-coral-light text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-200'
                 }`}
               >
                 For You
               </button>
               <button
                 onClick={() => setPersonalSubTab('trending')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                   personalSubTab === 'trending'
-                    ? 'bg-white text-[#1A1A1A] shadow-sm'
-                    : 'text-[#6B6B6B] hover:text-[#1A1A1A]'
+                    ? 'bg-gradient-to-r from-coral to-coral-light text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-200'
                 }`}
               >
                 Trending
@@ -141,8 +145,8 @@ const HomepageContent = () => {
         </header>
 
         {/* Main Content */}
-        <main className={`flex-1 overflow-auto ${shouldRemovePadding ? 'p-0' : 'p-4 lg:p-6'}`}>
-          <div className={shouldRemovePadding ? '' : 'max-w-7xl mx-auto'}>
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
+          <div className="max-w-7xl mx-auto">
             {renderContent()}
           </div>
         </main>

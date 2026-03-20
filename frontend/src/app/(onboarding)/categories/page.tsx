@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ArrowRight, Sparkles } from "lucide-react";
+import { Check, ArrowRight, Newspaper, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { updateUserMultiplePreferences } from "@/lib/supabaseAuth";
 import { useCategories } from "@/hooks/useCategories";
@@ -15,7 +15,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { feedQueryKeys } from "@/lib/react-query";
 import { CATEGORY_SKELETON_COUNT } from "@/lib/constants";
 import Link from "next/link";
-import { Newspaper } from "lucide-react";
 
 const CategoriesPage = () => {
   const { user } = useAuth();
@@ -93,7 +92,7 @@ const CategoriesPage = () => {
       );
       if (result.error) throw result.error;
       queryClient.invalidateQueries({ queryKey: feedQueryKeys.forYou(user.id) });
-      toast.success("Preferences saved successfully!");
+      toast.success("Your personalized feed is ready!");
       router.push("/home");
     } catch (error) {
       console.error("Failed to save preferences:", error);
@@ -107,14 +106,14 @@ const CategoriesPage = () => {
 
   if (loading || initialLoad) {
     return (
-      <div className="min-h-screen bg-[#FDFBF7] flex flex-col">
-        <header className="px-4 sm:px-6 lg:px-8 py-4 border-b border-[#E5E5E5]">
+      <div className="min-h-screen bg-[#FFFBF5] flex flex-col">
+        <header className="px-6 py-4 border-b border-slate-200 bg-white">
           <div className="max-w-7xl mx-auto flex items-center">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#1A1A1A] rounded-md flex items-center justify-center">
-                <Newspaper className="w-5 h-5 text-white" />
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral to-coral-light flex items-center justify-center">
+                <Newspaper className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-[#1A1A1A]">HierInfo</span>
+              <span className="text-xl font-bold text-slate-800">HierInfo</span>
             </Link>
           </div>
         </header>
@@ -129,30 +128,30 @@ const CategoriesPage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
-        <p className="text-[#6B6B6B]">Redirecting to login...</p>
+      <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center">
+        <p className="text-slate-500">Redirecting to login...</p>
       </div>
     );
   }
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#FDFBF7] flex flex-col">
+      <div className="min-h-screen bg-[#FFFBF5] flex flex-col">
         {/* Header */}
-        <header className="px-4 sm:px-6 lg:px-8 py-4 border-b border-[#E5E5E5] bg-white">
+        <header className="px-6 py-4 border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-50">
           <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#1A1A1A] rounded-md flex items-center justify-center">
-                <Newspaper className="w-5 h-5 text-white" />
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral to-coral-light flex items-center justify-center">
+                <Newspaper className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-[#1A1A1A]">HierInfo</span>
+              <span className="text-xl font-bold text-slate-800">HierInfo</span>
             </Link>
             
             {/* Progress indicator */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-1.5 rounded-full bg-[#1A1A1A]" />
-              <div className="w-8 h-1.5 rounded-full bg-[#1A1A1A]" />
-              <div className="w-8 h-1.5 rounded-full bg-[#E5E5E5]" />
+              <div className="w-10 h-2 rounded-full bg-gradient-to-r from-coral to-coral-light" />
+              <div className="w-10 h-2 rounded-full bg-gradient-to-r from-coral to-coral-light" />
+              <div className="w-10 h-2 rounded-full bg-slate-200" />
             </div>
           </div>
         </header>
@@ -162,29 +161,29 @@ const CategoriesPage = () => {
           <div className="max-w-4xl mx-auto">
             {/* Header Section */}
             <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FEF3C7] rounded-full mb-4">
-                <Sparkles className="w-4 h-4 text-[#B45309]" />
-                <span className="text-sm font-medium text-[#B45309]">Step 2 of 2</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-coral/10 border border-coral/20 mb-4">
+                <Heart className="w-4 h-4 text-coral" />
+                <span className="text-sm font-semibold text-coral">Step 2 of 2</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] mb-3">
-                What topics interest you?
+              <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-3">
+                What interests you?
               </h1>
-              <p className="text-lg text-[#6B6B6B] max-w-xl mx-auto">
-                Select the categories you&apos;d like to see in your personalized feed. 
-                You can always change these later.
+              <p className="text-lg text-slate-500 max-w-xl mx-auto">
+                Pick the topics you care about. We&apos;ll find the best stories for you.
               </p>
             </div>
 
             {/* Selected Count */}
             <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-[#6B6B6B]">
-                <span className="font-semibold text-[#1A1A1A]">{selectedCategories.length}</span> of{" "}
-                <span className="font-semibold text-[#1A1A1A]">{categories.length}</span> selected
+              <p className="text-sm text-slate-500">
+                <span className="font-semibold text-slate-800">{selectedCategories.length}</span>{" "}
+                of{" "}
+                <span className="font-semibold text-slate-800">{categories.length}</span> selected
               </p>
               {selectedCategories.length > 0 && (
                 <button
                   onClick={() => setSelectedCategories([])}
-                  className="text-sm text-[#B45309] hover:text-[#92400E] transition-colors"
+                  className="text-sm text-coral hover:text-coral-dark transition-colors"
                 >
                   Clear all
                 </button>
@@ -203,13 +202,13 @@ const CategoriesPage = () => {
                 {Array.from({ length: CATEGORY_SKELETON_COUNT }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-24 bg-[#F5F5F4] rounded-xl animate-pulse"
+                    className="h-24 bg-slate-100 rounded-xl animate-pulse"
                   />
                 ))}
               </div>
             ) : categories.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-[#6B6B6B]">No categories available. Please contact support.</p>
+                <p className="text-slate-500">No categories available. Please contact support.</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -222,8 +221,8 @@ const CategoriesPage = () => {
                       className={`
                         relative p-5 rounded-xl border-2 transition-all duration-200 text-left
                         ${isSelected
-                          ? "border-[#B45309] bg-[#FEF3C7] shadow-sm"
-                          : "border-[#E5E5E5] bg-white hover:border-[#D4D4D4] hover:shadow-sm"
+                          ? "border-coral bg-coral/5 shadow-lg shadow-coral/10"
+                          : "border-slate-200 bg-white hover:border-coral/50 hover:bg-slate-50"
                         }
                       `}
                     >
@@ -233,8 +232,8 @@ const CategoriesPage = () => {
                           absolute top-3 right-3 w-5 h-5 rounded-full border-2 transition-all
                           flex items-center justify-center
                           ${isSelected
-                            ? "bg-[#B45309] border-[#B45309]"
-                            : "border-[#D4D4D4]"
+                            ? "bg-coral border-coral"
+                            : "border-slate-300"
                           }
                         `}
                       >
@@ -242,7 +241,7 @@ const CategoriesPage = () => {
                       </div>
 
                       {/* Category Name */}
-                      <h3 className={`font-semibold ${isSelected ? "text-[#B45309]" : "text-[#1A1A1A]"}`}>
+                      <h3 className={`font-semibold ${isSelected ? "text-coral" : "text-slate-700"}`}>
                         {category.name}
                       </h3>
                     </button>
@@ -256,17 +255,17 @@ const CategoriesPage = () => {
               <Button
                 onClick={handleSave}
                 disabled={saving || selectedCategories.length === 0}
-                className="flex items-center justify-center gap-2 px-8 py-3 text-base bg-[#1A1A1A] hover:bg-[#2D2D2D] text-white font-medium rounded-lg transition-all disabled:opacity-50"
+                className="flex items-center justify-center gap-2 px-8 py-3 text-base bg-gradient-to-r from-coral to-coral-light hover:from-coral-dark hover:to-coral text-white font-semibold rounded-xl transition-all shadow-lg shadow-coral/25 disabled:opacity-50"
               >
                 {saving ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    Continue to Feed
-                    <ArrowRight className="w-4 h-4" />
+                    Create My Feed
+                    <ArrowRight className="w-5 h-5" />
                   </>
                 )}
               </Button>
@@ -275,14 +274,14 @@ const CategoriesPage = () => {
                 variant="outline"
                 onClick={handleSkip}
                 disabled={saving}
-                className="px-8 py-3 text-base border-[#E5E5E5] text-[#6B6B6B] hover:text-[#1A1A1A] hover:border-[#D4D4D4] font-medium rounded-lg transition-all"
+                className="px-8 py-3 text-base border-slate-300 text-slate-500 hover:text-slate-700 hover:border-slate-400 hover:bg-slate-50 font-medium rounded-xl transition-all"
               >
                 Skip for Now
               </Button>
             </div>
 
-            <p className="text-center mt-6 text-sm text-[#9CA3AF]">
-              You can always modify your preferences in settings
+            <p className="text-center mt-6 text-sm text-slate-400">
+              You can always change these later in settings
             </p>
           </div>
         </main>

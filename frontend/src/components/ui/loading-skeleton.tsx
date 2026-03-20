@@ -12,39 +12,40 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   className = '' 
 }) => {
   const ArticleSkeleton = () => (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
       {/* Image placeholder */}
-      <div className="w-full aspect-[16/10] bg-[#F5F5F4] animate-pulse" />
+      <div className="w-full aspect-[16/10] bg-slate-200 animate-pulse" />
       
       {/* Content */}
       <div className="p-4 space-y-3">
-        {/* Category */}
-        <div className="h-5 bg-[#F5F5F4] rounded w-16 animate-pulse" />
+        {/* Badge */}
+        <div className="h-5 bg-slate-200 rounded w-16 animate-pulse" />
         
         {/* Title */}
         <div className="space-y-2">
-          <div className="h-5 bg-[#F5F5F4] rounded w-full animate-pulse" />
-          <div className="h-5 bg-[#F5F5F4] rounded w-3/4 animate-pulse" />
+          <div className="h-5 bg-slate-200 rounded w-full animate-pulse" />
+          <div className="h-5 bg-slate-200 rounded w-3/4 animate-pulse" />
         </div>
         
         {/* Source */}
-        <div className="pt-2">
-          <div className="h-4 bg-[#F5F5F4] rounded w-24 animate-pulse" />
+        <div className="pt-2 flex justify-between">
+          <div className="h-4 bg-slate-200 rounded w-24 animate-pulse" />
+          <div className="h-4 bg-slate-200 rounded w-16 animate-pulse" />
         </div>
       </div>
     </div>
   );
 
   const FeaturedSkeleton = () => (
-    <div className="w-full h-[400px] md:h-[500px] rounded-2xl bg-[#F5F5F4] animate-pulse relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-[#F5F5F4] via-[#EBEBEA] to-[#F5F5F4] animate-pulse" />
+    <div className="w-full h-[400px] md:h-[500px] rounded-2xl bg-slate-200 animate-pulse relative overflow-hidden border border-slate-200">
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-pulse" />
     </div>
   );
 
   const CategorySkeleton = () => (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="h-20 bg-[#F5F5F4] rounded-xl animate-pulse" />
+        <div key={i} className="h-24 bg-slate-100 rounded-xl border border-slate-200 animate-pulse" />
       ))}
     </div>
   );
@@ -52,10 +53,10 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   const ProfileSkeleton = () => (
     <div className="space-y-4">
       <div className="flex items-center space-x-4">
-        <div className="h-16 w-16 bg-[#F5F5F4] rounded-full animate-pulse" />
+        <div className="h-16 w-16 bg-slate-200 rounded-full animate-pulse" />
         <div className="space-y-2">
-          <div className="h-4 bg-[#F5F5F4] rounded w-32 animate-pulse" />
-          <div className="h-3 bg-[#F5F5F4] rounded w-24 animate-pulse" />
+          <div className="h-4 bg-slate-200 rounded w-32 animate-pulse" />
+          <div className="h-3 bg-slate-200 rounded w-24 animate-pulse" />
         </div>
       </div>
     </div>

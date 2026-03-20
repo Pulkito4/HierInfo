@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Newspaper } from 'lucide-react';
+import { Loader2, Brain } from 'lucide-react';
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -29,6 +29,10 @@ export default function AuthCallback() {
           }
           
           console.log('User authenticated via code exchange:', session.user.id);
+          
+          // Auto-redirect to categories for new users, home for existing
+          // For now, redirect to home - the categories page will check if needed
+          router.push('/home');
         } else {
           const { data: { session }, error } = await supabase.auth.getSession();
           
@@ -39,13 +43,8 @@ export default function AuthCallback() {
           }
           
           console.log('User authenticated via direct session:', session.user.id);
-        }
-
-        const redirectTo = urlParams.get('redirect');
-        
-        if (redirectTo && redirectTo.startsWith('/')) {
-          router.push(redirectTo);
-        } else {
+          
+          // Auto-redirect to home
           router.push('/home');
         }
       } catch (error) {
@@ -58,16 +57,16 @@ export default function AuthCallback() {
   }, [router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#FDFBF7]">
+    <div className="flex items-center justify-center min-h-screen bg-[#0F172A]">
       <div className="text-center">
-        <div className="w-16 h-16 bg-[#1A1A1A] rounded-xl flex items-center justify-center mx-auto mb-6">
-          <Newspaper className="w-8 h-8 text-white" />
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/30">
+          <Brain className="w-10 h-10 text-white" />
         </div>
         <div className="flex items-center justify-center gap-3 mb-4">
-          <Loader2 className="w-5 h-5 animate-spin text-[#B45309]" />
-          <p className="text-[#1A1A1A] font-medium">Completing sign in...</p>
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+          <p className="text-white font-semibold text-lg">Completing sign in...</p>
         </div>
-        <p className="text-sm text-[#9CA3AF]">Please wait while we authenticate you</p>
+        <p className="text-slate-400">Redirecting you to your feed</p>
       </div>
     </div>
   );
