@@ -156,10 +156,10 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
         {!isCollapsed && (
           <div className="mt-4 pt-4 border-t border-slate-800/70">
             <div className="px-3">
-              <div className="flex items-center gap-2 text-xs text-slate-500">
+              {/* <div className="flex items-center gap-2 text-xs text-slate-500">
                 <div className="w-2 h-2 rounded-full bg-teal" />
                 <span>Smart filtering active</span>
-              </div>
+              </div> */}
             </div>
           </div>
         )}
