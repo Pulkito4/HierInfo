@@ -4,7 +4,20 @@ import type { User } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const isLocalhostHost = (hostname: string) =>
+  hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+
+const isDevAuthBypassEnabled = () =>
+  process.env.DEV_AUTH_BYPASS === 'true' ||
+  process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' ||
+  process.env.NODE_ENV !== 'production';
+
 export async function middleware(request: NextRequest) {
+  // Local-only bypass for frontend work when Supabase auth config/dashboard access is unavailable.
+  if (isDevAuthBypassEnabled() && isLocalhostHost(request.nextUrl.hostname)) {
+    return NextResponse.next();
+  }
+
   const { pathname } = request.nextUrl;
   const isApiRoute = pathname.startsWith('/api/');
   

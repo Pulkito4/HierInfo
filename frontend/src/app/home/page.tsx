@@ -94,24 +94,24 @@ const HomepageContent = () => {
     <SidebarProvider>
       <Sidebar 
         collapsible="icon" 
-        className="border-r border-slate-200 bg-white"
+        className="border-r border-slate-800/70 bg-slate-950/85"
       >
         <HomeSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       </Sidebar>
-      <SidebarInset className="bg-[#FFFBF5]">
+      <SidebarInset className="bg-background">
         {/* Header */}
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-slate-200 bg-white/95 backdrop-blur-md px-4 lg:px-6">
-          <SidebarTrigger className="-ml-1 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200 p-2" />
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-slate-800/70 bg-slate-950/70 backdrop-blur-md px-4 lg:px-6">
+          <SidebarTrigger className="-ml-1 hover:bg-slate-800 rounded-xl transition-colors border border-slate-700 p-2" />
           
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral/20 to-coral-light/20 flex items-center justify-center border border-coral/30">
               <HeaderIcon className="w-5 h-5 text-coral" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-slate-800 truncate">
+              <h1 className="text-lg font-bold text-slate-100 truncate">
                 {headerInfo.title}
               </h1>
-              <p className="text-xs text-slate-500 hidden sm:block truncate">
+              <p className="text-xs text-slate-400 hidden sm:block truncate">
                 {headerInfo.subtitle}
               </p>
             </div>
@@ -119,13 +119,13 @@ const HomepageContent = () => {
 
           {/* Sub-tab navigation for Personal */}
           {activeTab === 'personal' && (
-            <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 border border-slate-200">
+            <div className="flex items-center gap-1 bg-slate-900/80 rounded-xl p-1 border border-slate-700">
               <button
                 onClick={() => setPersonalSubTab('feed')}
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                   personalSubTab === 'feed'
                     ? 'bg-gradient-to-r from-coral to-coral-light text-white shadow-md'
-                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-200'
+                    : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800'
                 }`}
               >
                 For You
@@ -135,7 +135,7 @@ const HomepageContent = () => {
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                   personalSubTab === 'trending'
                     ? 'bg-gradient-to-r from-coral to-coral-light text-white shadow-md'
-                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-200'
+                    : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800'
                 }`}
               >
                 Trending

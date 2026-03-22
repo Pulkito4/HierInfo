@@ -4,12 +4,12 @@ import {
   SidebarHeader,
   useSidebar,
 } from '@/components/ui/sidebar';
+import Image from 'next/image';
 import { 
   Compass, 
   User, 
   Settings, 
   LogOut,
-  Newspaper,
   Heart
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -43,7 +43,7 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
           onClick={onClick} 
           className={isActive 
             ? "flex items-center gap-3 px-4 py-3 rounded-xl font-medium bg-gradient-to-r from-coral to-coral-light text-white shadow-md w-full transition-all" 
-            : "flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:text-coral hover:bg-coral/5 w-full transition-all"
+            : "flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:text-coral hover:bg-coral/10 w-full transition-all"
           }
         >
           <Icon className="flex-shrink-0" size={20} />
@@ -58,18 +58,16 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
 
   return (
     <>
-      <SidebarHeader className="border-b border-slate-200 p-4 bg-white">
+      <SidebarHeader className="border-b border-slate-800/70 p-4 bg-slate-950/70">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral to-coral-light flex items-center justify-center flex-shrink-0 shadow-lg shadow-coral/30 group-hover:shadow-coral/50 transition-all">
-              <Newspaper className="w-6 h-6 text-white" />
-            </div>
+            <Image src="/logoicon.png" alt="HierInfo logo" width={40} height={40} className="w-10 h-10 object-contain flex-shrink-0" />
             {!isCollapsed && (
               <div>
-                <span className="text-xl font-bold text-slate-800 tracking-tight">
+                <span className="text-xl font-bold text-slate-100 tracking-tight">
                   HierInfo
                 </span>
-                <span className="block text-xs text-slate-400 font-medium">
+                <span className="block text-xs text-slate-500 font-medium">
                   News, Simplified
                 </span>
               </div>
@@ -79,16 +77,16 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
         
         {/* User Info */}
         {!isCollapsed && user && (
-          <div className="mt-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div className="mt-6 p-4 rounded-xl bg-slate-900/80 border border-slate-700/70">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-coral to-coral-light flex items-center justify-center">
                 <User className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">
+                <p className="text-sm font-semibold text-slate-100 truncate">
                   {user.email?.split('@')[0] || 'Reader'}
                 </p>
-                <p className="text-xs text-slate-400 truncate">
+                <p className="text-xs text-slate-500 truncate">
                   {user.email}
                 </p>
               </div>
@@ -97,12 +95,12 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
         )}
       </SidebarHeader>
 
-      <SidebarContent className="flex flex-col h-full py-4 px-3 bg-[#FFFBF5]">
+      <SidebarContent className="flex flex-col h-full py-4 px-3 bg-slate-950/60">
         {/* Main Navigation */}
         <div className="space-y-1 flex-1">
           <div className="px-3 mb-2">
             {!isCollapsed && (
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Your Feeds
               </span>
             )}
@@ -123,10 +121,10 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
         </div>
 
         {/* Bottom Section */}
-        <div className="pt-4 border-t border-slate-200 space-y-1">
+        <div className="pt-4 border-t border-slate-800/70 space-y-1">
           <div className="px-3 mb-2">
             {!isCollapsed && (
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Settings
               </span>
             )}
@@ -144,7 +142,7 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
             <TooltipTrigger asChild>
               <button 
                 onClick={signOut}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-50 w-full transition-all"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 w-full transition-all"
               >
                 <LogOut className="flex-shrink-0" size={20} />
                 {!isCollapsed && <span className="font-medium">Sign Out</span>}
@@ -156,9 +154,9 @@ const HomeSidebar: React.FC<HomeSidebarProps> = ({ activeTab, onTabChange }) => 
 
         {/* Footer Info - Consumer friendly */}
         {!isCollapsed && (
-          <div className="mt-4 pt-4 border-t border-slate-200">
+          <div className="mt-4 pt-4 border-t border-slate-800/70">
             <div className="px-3">
-              <div className="flex items-center gap-2 text-xs text-slate-400">
+              <div className="flex items-center gap-2 text-xs text-slate-500">
                 <div className="w-2 h-2 rounded-full bg-teal" />
                 <span>Smart filtering active</span>
               </div>

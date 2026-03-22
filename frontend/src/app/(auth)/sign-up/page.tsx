@@ -3,7 +3,8 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Newspaper, ArrowLeft, Heart, Clock, Globe, Star } from "lucide-react";
+import Image from "next/image";
+import { ArrowLeft, Heart, Clock, Globe, Star } from "lucide-react";
 
 export default async function Signup() {
   const cookieStore = await cookies();
@@ -35,9 +36,9 @@ export default async function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFBF5] flex">
+    <div className="min-h-screen bg-background text-foreground flex">
       {/* Left Side - Visual */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-teal/10 via-coral/5 to-cream">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#111936] via-[#0b1330] to-[#090f24]">
         {/* Background blobs */}
         <div className="absolute top-0 left-0 w-full h-full">
           <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-teal/20 rounded-full blur-3xl" />
@@ -47,41 +48,39 @@ export default async function Signup() {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center px-12 py-8">
           <Link href="/" className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-coral to-coral-light flex items-center justify-center shadow-lg shadow-coral/30">
-              <Newspaper className="w-7 h-7 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-slate-800">HierInfo</span>
+            <Image src="/logoicon.png" alt="HierInfo logo" width={48} height={48} className="w-12 h-12 object-contain" />
+            <span className="text-2xl font-bold text-slate-100">HierInfo</span>
           </Link>
 
-          <h2 className="text-3xl font-bold text-slate-800 mb-4">
+          <h2 className="text-3xl font-bold text-slate-100 mb-4">
             Start Your News Journey
           </h2>
-          <p className="text-slate-600 text-lg mb-8 max-w-md">
+          <p className="text-slate-300 text-lg mb-8 max-w-md">
             Join thousands of readers who&apos;ve reclaimed their time. No more 
             doom-scrolling through the same stories.
           </p>
 
           {/* Benefits */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/80 backdrop-blur rounded-xl p-4 shadow-sm">
+            <div className="bg-slate-900/60 backdrop-blur rounded-xl p-4 shadow-sm border border-slate-700/70">
               <Heart className="w-6 h-6 text-coral mb-2" />
-              <p className="text-lg font-bold text-slate-800 mb-1">For You</p>
-              <p className="text-slate-500 text-sm">Stories tailored to your interests</p>
+              <p className="text-lg font-bold text-slate-100 mb-1">For You</p>
+              <p className="text-slate-400 text-sm">Stories tailored to your interests</p>
             </div>
-            <div className="bg-white/80 backdrop-blur rounded-xl p-4 shadow-sm">
+            <div className="bg-slate-900/60 backdrop-blur rounded-xl p-4 shadow-sm border border-slate-700/70">
               <Clock className="w-6 h-6 text-teal mb-2" />
-              <p className="text-lg font-bold text-slate-800 mb-1">Save Time</p>
-              <p className="text-slate-500 text-sm">5 minutes to stay informed</p>
+              <p className="text-lg font-bold text-slate-100 mb-1">Save Time</p>
+              <p className="text-slate-400 text-sm">5 minutes to stay informed</p>
             </div>
-            <div className="bg-white/80 backdrop-blur rounded-xl p-4 shadow-sm">
+            <div className="bg-slate-900/60 backdrop-blur rounded-xl p-4 shadow-sm border border-slate-700/70">
               <Globe className="w-6 h-6 text-gold-dark mb-2" />
-              <p className="text-lg font-bold text-slate-800 mb-1">Stay Current</p>
-              <p className="text-slate-500 text-sm">Updates every few minutes</p>
+              <p className="text-lg font-bold text-slate-100 mb-1">Stay Current</p>
+              <p className="text-slate-400 text-sm">Updates every few minutes</p>
             </div>
-            <div className="bg-white/80 backdrop-blur rounded-xl p-4 shadow-sm">
+            <div className="bg-slate-900/60 backdrop-blur rounded-xl p-4 shadow-sm border border-slate-700/70">
               <Star className="w-6 h-6 text-indigo-500 mb-2" />
-              <p className="text-lg font-bold text-slate-800 mb-1">Quality First</p>
-              <p className="text-slate-500 text-sm">No clickbait, ever</p>
+              <p className="text-lg font-bold text-slate-100 mb-1">Quality First</p>
+              <p className="text-slate-400 text-sm">No clickbait, ever</p>
             </div>
           </div>
         </div>
@@ -92,10 +91,8 @@ export default async function Signup() {
         {/* Mobile Header */}
         <header className="lg:hidden px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral to-coral-light flex items-center justify-center">
-              <Newspaper className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-slate-800">HierInfo</span>
+            <Image src="/logoicon.png" alt="HierInfo logo" width={40} height={40} className="w-10 h-10 object-contain" />
+            <span className="text-xl font-bold text-slate-100">HierInfo</span>
           </Link>
         </header>
 
@@ -104,7 +101,7 @@ export default async function Signup() {
             {/* Back Link */}
             <Link 
               href="/"
-              className="inline-flex items-center gap-2 text-slate-500 hover:text-coral transition-colors mb-8"
+              className="inline-flex items-center gap-2 text-slate-400 hover:text-coral transition-colors mb-8"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to home
@@ -112,21 +109,21 @@ export default async function Signup() {
 
             {/* Welcome Text */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">
+              <h1 className="text-3xl font-bold text-slate-100 mb-2">
                 Create your account
               </h1>
-              <p className="text-slate-500">
+              <p className="text-slate-400">
                 Start reading smarter, not harder
               </p>
             </div>
 
             {/* Signup Form */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-slate-100">
+            <div className="bg-slate-900/80 rounded-2xl p-8 shadow-xl border border-slate-700/60 backdrop-blur">
               <SignupForm />
             </div>
 
             {/* Login Link */}
-            <p className="text-center mt-6 text-slate-500">
+            <p className="text-center mt-6 text-slate-400">
               Already have an account?{" "}
               <Link 
                 href="/login" 

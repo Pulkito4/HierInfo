@@ -99,7 +99,7 @@ const SettingsPanel = () => {
     return (
       <div className="max-w-2xl mx-auto p-6">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-slate-800 mb-4">Please log in to access settings</h2>
+          <h2 className="text-xl font-bold text-slate-100 mb-4">Please log in to access settings</h2>
           <Button 
             onClick={() => router.push('/login')}
             className="bg-gradient-to-r from-coral to-coral-light"
@@ -114,21 +114,21 @@ const SettingsPanel = () => {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* User Profile Section */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+      <div className="bg-slate-900/75 rounded-2xl p-6 border border-slate-700/70 shadow-sm backdrop-blur">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center">
             <User className="w-6 h-6 text-coral" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Your Profile</h3>
-            <p className="text-sm text-slate-500">Manage your account details</p>
+            <h3 className="text-lg font-bold text-slate-100">Your Profile</h3>
+            <p className="text-sm text-slate-400">Manage your account details</p>
           </div>
         </div>
         
         <div className="space-y-5">
           {/* Username */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Display Name
             </label>
             <div className="flex items-center gap-3">
@@ -137,7 +137,7 @@ const SettingsPanel = () => {
                 value={usernameInput}
                 onChange={(e) => setUsernameInput(e.target.value)}
                 placeholder={loading ? 'Loading...' : 'Enter a display name'}
-                className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-coral focus:ring-2 focus:ring-coral/20 transition-all"
+                className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-coral focus:ring-2 focus:ring-coral/20 transition-all"
                 disabled={loading || saving}
               />
               <Button 
@@ -156,15 +156,15 @@ const SettingsPanel = () => {
               <p className="text-sm text-rose-500 mt-2">{saveError}</p>
             )}
             {saveSuccess && (
-              <p className="text-sm text-teal mt-2">{saveSuccess}</p>
+              <p className="text-sm text-teal-light mt-2">{saveSuccess}</p>
             )}
           </div>
 
           {/* Email */}
-          <div className="pt-4 border-t border-slate-100">
+          <div className="pt-4 border-t border-slate-800">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-500">Email address</span>
-              <span className="text-sm font-medium text-slate-800">
+              <span className="text-sm text-slate-400">Email address</span>
+              <span className="text-sm font-medium text-slate-100">
                 {user.email || 'Not available'}
               </span>
             </div>
@@ -173,14 +173,14 @@ const SettingsPanel = () => {
       </div>
 
       {/* Preferences Section */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+      <div className="bg-slate-900/75 rounded-2xl p-6 border border-slate-700/70 shadow-sm backdrop-blur">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-xl bg-teal/10 flex items-center justify-center">
             <Settings className="w-6 h-6 text-teal" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Your Preferences</h3>
-            <p className="text-sm text-slate-500">Customize your news experience</p>
+            <h3 className="text-lg font-bold text-slate-100">Your Preferences</h3>
+            <p className="text-sm text-slate-400">Customize your news experience</p>
           </div>
         </div>
         
@@ -188,38 +188,38 @@ const SettingsPanel = () => {
           <Button 
             variant="ghost"
             onClick={() => router.push('/categories')}
-            className="w-full justify-between hover:bg-slate-50 text-slate-700 h-12 rounded-xl"
+            className="w-full justify-between hover:bg-slate-800 text-slate-200 h-12 rounded-xl"
           >
             <div className="flex items-center gap-3">
               <Heart className="w-5 h-5 text-coral" />
               <span>Topic Interests</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400" />
+            <ChevronRight className="w-5 h-5 text-slate-500" />
           </Button>
 
           <Button 
             variant="ghost"
-            className="w-full justify-between hover:bg-slate-50 text-slate-400 h-12 rounded-xl cursor-not-allowed"
+            className="w-full justify-between hover:bg-slate-800 text-slate-500 h-12 rounded-xl cursor-not-allowed"
             disabled
           >
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5" />
               <span>Notifications</span>
             </div>
-            <span className="text-xs bg-slate-100 px-2 py-1 rounded-lg text-slate-500">Soon</span>
+            <span className="text-xs bg-slate-800 px-2 py-1 rounded-lg text-slate-400">Soon</span>
           </Button>
         </div>
       </div>
 
       {/* Account Actions Section */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+      <div className="bg-slate-900/75 rounded-2xl p-6 border border-slate-700/70 shadow-sm backdrop-blur">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center">
-            <Shield className="w-6 h-6 text-rose-500" />
+          <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center">
+            <Shield className="w-6 h-6 text-rose-300" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Account Security</h3>
-            <p className="text-sm text-slate-500">Manage your account access</p>
+            <h3 className="text-lg font-bold text-slate-100">Account Security</h3>
+            <p className="text-sm text-slate-400">Manage your account access</p>
           </div>
         </div>
         
@@ -227,9 +227,9 @@ const SettingsPanel = () => {
           <Button 
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start hover:bg-slate-50 text-slate-700 h-12 rounded-xl"
+            className="w-full justify-start hover:bg-slate-800 text-slate-200 h-12 rounded-xl"
           >
-            <LogOut className="w-5 h-5 mr-3 text-slate-400" />
+            <LogOut className="w-5 h-5 mr-3 text-slate-500" />
             Sign Out
           </Button>
           
@@ -237,14 +237,14 @@ const SettingsPanel = () => {
             <Button 
               variant="ghost"
               onClick={() => setShowDeleteConfirm(true)}
-              className="w-full justify-start hover:bg-rose-50 text-rose-500 h-12 rounded-xl"
+              className="w-full justify-start hover:bg-rose-500/10 text-rose-300 h-12 rounded-xl"
             >
               <Trash2 className="w-5 h-5 mr-3" />
               Delete Account
             </Button>
           ) : (
-            <div className="mt-4 p-4 bg-rose-50 rounded-xl border border-rose-200">
-              <p className="text-sm text-rose-600 font-medium mb-3">
+            <div className="mt-4 p-4 bg-rose-500/10 rounded-xl border border-rose-500/30">
+              <p className="text-sm text-rose-300 font-medium mb-3">
                 Are you sure? This action cannot be undone.
               </p>
               <div className="flex gap-3">

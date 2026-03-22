@@ -1,8 +1,9 @@
 'use client'
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Brain } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -59,9 +60,7 @@ export default function AuthCallback() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#0F172A]">
       <div className="text-center">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/30">
-          <Brain className="w-10 h-10 text-white" />
-        </div>
+        <Image src="/logoicon.png" alt="HierInfo logo" width={80} height={80} className="w-20 h-20 object-contain mx-auto mb-6" />
         <div className="flex items-center justify-center gap-3 mb-4">
           <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
           <p className="text-white font-semibold text-lg">Completing sign in...</p>

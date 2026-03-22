@@ -32,17 +32,16 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSelected, onClick,
     <button
       onClick={onClick}
       className={cn(
-        "w-full text-left group transition-all duration-300 rounded-xl overflow-hidden",
-        "bg-white",
-        "border border-slate-200 hover:border-coral/50",
-        "hover:shadow-lg hover:-translate-y-0.5",
-        "focus:outline-none focus:ring-2 focus:ring-coral/30",
-        isSelected && "border-coral ring-2 ring-coral/30 shadow-lg"
+        "group w-full overflow-hidden rounded-2xl text-left transition-all duration-300",
+        "border border-[#2a3444]/65 bg-[#141c27]/32",
+        "hover:-translate-y-0.5 hover:border-cyan-300/45 hover:shadow-[0_16px_35px_-20px_rgba(0,0,0,0.95)]",
+        "focus:outline-none focus:ring-2 focus:ring-cyan-300/35",
+        isSelected && "border-cyan-300/70 ring-2 ring-cyan-300/30 shadow-[0_18px_40px_-22px_rgba(34,211,238,0.45)]"
       )}
     >
       {/* Article Image */}
       {article.image_url && (
-        <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+        <div className="relative aspect-[16/10] overflow-hidden bg-[#223043]/65">
           <Image
             src={article.image_url}
             alt={article.title}
@@ -52,18 +51,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSelected, onClick,
             loading="lazy"
           />
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
           
           {/* Badges on image */}
           <div className="absolute top-3 left-3 flex gap-2">
             {isCritical && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-lg">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-[#b54237] px-2 py-1 text-xs font-semibold text-white shadow-lg">
                 <Zap className="w-3 h-3" />
                 Breaking
               </span>
             )}
             {isTrending && !isCritical && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold bg-gold text-slate-800 shadow-lg">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-cyan-300 px-2 py-1 text-xs font-semibold text-[#10202a] shadow-lg">
                 <TrendingUp className="w-3 h-3" />
                 Trending
               </span>
@@ -77,7 +76,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSelected, onClick,
         {showCategory && article.categories && article.categories.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-1.5">
             {article.categories.map((cat) => (
-              <span key={cat.id} className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-coral/10 text-coral border border-coral/20">
+              <span key={cat.id} className="inline-flex items-center rounded-md border border-cyan-300/30 bg-cyan-300/10 px-2.5 py-0.5 text-xs font-medium text-cyan-200">
                 {cat.name}
               </span>
             ))}
@@ -86,19 +85,19 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSelected, onClick,
 
         {/* Article Title */}
         <h3 className={cn(
-          "font-semibold text-slate-800 line-clamp-2 leading-snug mb-3",
-          "group-hover:text-coral transition-colors duration-200",
-          isSelected && "text-coral"
+          "mb-3 line-clamp-2 font-semibold leading-snug text-zinc-100",
+          "transition-colors duration-200 group-hover:text-cyan-200",
+          isSelected && "text-cyan-200"
         )}>
           {article.title}
         </h3>
 
         {/* Footer with Source and Date */}
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-coral">
+          <span className="text-xs font-medium text-cyan-200">
             {article.source}
           </span>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-zinc-400">
             {formatDate(article.published_at)}
           </span>
         </div>

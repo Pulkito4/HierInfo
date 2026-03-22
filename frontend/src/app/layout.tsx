@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#FFFBF5] text-slate-800`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <QueryProvider>
           <AuthProvider>
@@ -40,12 +40,12 @@ export default function RootLayout({
           position="top-right" 
           richColors 
           closeButton
-          theme="light"
+          theme="dark"
           toastOptions={{
             style: {
-              background: '#FFFFFF',
-              border: '1px solid rgba(255, 107, 107, 0.2)',
-              color: '#2D3436',
+              background: 'rgba(14, 23, 45, 0.96)',
+              border: '1px solid rgba(124, 92, 255, 0.35)',
+              color: '#e8efff',
             },
           }}
         />

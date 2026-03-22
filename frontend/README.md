@@ -16,6 +16,22 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Local auth bypass (without Supabase dashboard access)
+
+If OAuth/email redirects are forcing you to a deployed domain and you cannot edit Supabase Auth settings right now, you can bypass auth checks locally:
+
+1. In `frontend/.env.local`, add:
+
+```bash
+NEXT_PUBLIC_DEV_AUTH_BYPASS=true
+DEV_AUTH_BYPASS=true
+```
+
+2. Restart the dev server.
+
+This bypass only activates on `localhost` / `127.0.0.1` and lets you access protected pages for UI/testing work.
+Do not enable this in production.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

@@ -43,16 +43,16 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({
   // Desktop: Two-column grid + detail panel
   if (!isMobile) {
     return (
-      <div className="flex h-[calc(100vh-8rem)] bg-[#FFFBF5]">
+      <div className="flex h-[calc(100vh-8rem)] bg-gradient-to-br from-[#101317] via-[#0d1218] to-[#0a0f15] text-zinc-100">
         {/* Left: Article Grid */}
-        <div className="w-[55%] min-w-[400px] max-w-[800px] border-r border-slate-200 bg-[#FFFBF5] overflow-y-auto">
+        <div className="w-[55%] min-w-[400px] max-w-[800px] border-r border-[#2a3444]/60 bg-[#111821]/80 overflow-y-auto backdrop-blur-sm">
           <div className="p-6">
             {/* Grid Header */}
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-800">
+            <div className="mb-6 rounded-2xl border border-[#2a3444]/70 bg-[#141c27]/70 px-4 py-3 shadow-[0_12px_30px_-20px_rgba(0,0,0,0.8)]">
+              <h2 className="text-lg font-bold text-zinc-100 tracking-tight">
                 {articles.length} Articles
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-zinc-400">
                 Click to read full story
               </p>
             </div>
@@ -73,7 +73,7 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({
         </div>
 
         {/* Right: Article Detail Panel */}
-        <div className="flex-1 overflow-y-auto bg-[#FFFBF5]">
+        <div className="flex-1 overflow-y-auto bg-[#0f141b]/55">
           <ArticleDetail
             article={selectedArticle}
             onNext={handleNext}
@@ -89,13 +89,13 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({
   // Mobile: Card Grid + Bottom Sheet
   return (
     <>
-      <div className="bg-[#FFFBF5] min-h-screen">
+      <div className="min-h-screen bg-gradient-to-b from-[#101317] via-[#0d1218] to-[#0a0f15] text-zinc-100">
         {/* Mobile Header */}
-        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-4">
-          <h2 className="text-lg font-bold text-slate-800">
+        <div className="sticky top-0 z-10 border-b border-[#2a3444]/60 bg-[#0f151d]/85 px-4 py-4 backdrop-blur-md">
+          <h2 className="text-lg font-bold text-zinc-100 tracking-tight">
             {articles.length} Articles
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-zinc-400">
             Tap to read full story
           </p>
         </div>
@@ -105,27 +105,27 @@ const NewsReaderLayout: React.FC<NewsReaderLayoutProps> = ({
           {loading ? (
             // Loading skeleton
             [...Array(5)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <div className="aspect-[16/10] bg-slate-200 animate-pulse" />
+              <div key={i} className="overflow-hidden rounded-2xl border border-[#2a3444]/60 bg-[#141c27]/70 shadow-[0_18px_35px_-24px_rgba(0,0,0,0.95)]">
+                <div className="aspect-[16/10] animate-pulse bg-[#223043]/65" />
                 <div className="p-4 space-y-3">
-                  <div className="h-4 bg-slate-200 rounded w-16 animate-pulse" />
-                  <div className="h-5 bg-slate-200 rounded w-full animate-pulse" />
-                  <div className="h-5 bg-slate-200 rounded w-3/4 animate-pulse" />
-                  <div className="h-3 bg-slate-200 rounded w-24 animate-pulse" />
+                  <div className="h-4 w-16 animate-pulse rounded bg-[#223043]/65" />
+                  <div className="h-5 w-full animate-pulse rounded bg-[#223043]/65" />
+                  <div className="h-5 w-3/4 animate-pulse rounded bg-[#223043]/65" />
+                  <div className="h-3 w-24 animate-pulse rounded bg-[#223043]/65" />
                 </div>
               </div>
             ))
           ) : articles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[#2a3444]/70 bg-[#141c27]">
+                <svg className="h-8 w-8 text-cyan-300/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+              <h3 className="mb-2 text-lg font-semibold text-zinc-100">
                 No articles available
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-zinc-400">
                 Check back later for new stories
               </p>
             </div>

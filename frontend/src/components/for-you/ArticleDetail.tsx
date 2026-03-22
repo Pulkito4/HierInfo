@@ -92,12 +92,12 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
   if (!article) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-        <div className="w-20 h-20 bg-gradient-to-br from-coral/20 to-coral-light/20 rounded-2xl flex items-center justify-center mb-6 border border-coral/30">
-          <svg className="w-10 h-10 text-coral" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="w-20 h-20 bg-gradient-to-br from-accent/20 to-coral-light/20 rounded-2xl flex items-center justify-center mb-6 border border-coral/30">
+          <svg className="w-10 h-10 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15" />
           </svg>
         </div>
-        <h3 className="text-xl font-bold text-slate-800 mb-2">
+        <h3 className="text-xl font-bold text-slate-600 mb-2">
           Select an article to read
         </h3>
         <p className="text-slate-500">
@@ -110,7 +110,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="relative min-h-full bg-[#FFFBF5]"
+      className="relative min-h-full bg-[#141c27]/70"
     >
       <article ref={impressionRef} className="max-w-4xl mx-auto p-6 lg:p-8 animate-in fade-in duration-300">
         {/* Article Header */}
@@ -127,7 +127,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
           )}
 
           {/* Title */}
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4 leading-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-300 mb-4 leading-tight">
             {article.title}
           </h1>
 
@@ -136,8 +136,8 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
             <span className="font-semibold text-coral">{article.source}</span>
             <span className="w-1 h-1 rounded-full bg-slate-300" />
             <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              <time dateTime={article.published_at}>
+              <Clock className="w-4 h-4 text-gray-400" />
+              <time className='text-gray-400' dateTime={article.published_at}>
                 {formatDate(article.published_at)}
               </time>
             </div>
@@ -164,7 +164,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
         {article.summary && (
           <div className="mb-6">
             <div className="prose prose-lg max-w-none">
-              <p className="text-slate-600 leading-relaxed text-base">
+              <p className="text-slate-300 leading-relaxed text-base">
                 {article.summary}
               </p>
             </div>
@@ -174,12 +174,12 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
         {/* Keywords/Tags */}
         {article.keywords && article.keywords.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-slate-500 mb-3">Related Topics</h3>
+            <h3 className="text-sm font-semibold text-coral mb-3">Related Topics</h3>
             <div className="flex flex-wrap gap-2">
               {article.keywords.map((keyword, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:border-coral/30 transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-accent/10 text-accent border border-accent transition-colors"
                 >
                   {keyword}
                 </span>
@@ -196,7 +196,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
               onClick={handleLike}
               disabled={isPending || localIsLiked || isCheckingLiked}
               className={`
-                flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all
+                flex items-center gap-2 px-3 py-2.5 rounded-xl font-medium transition-all
                 ${localIsLiked 
                   ? 'bg-coral/10 text-coral border border-coral/30' 
                   : 'bg-slate-100 text-slate-600 border border-slate-200 hover:border-coral/30 hover:text-coral'
@@ -212,7 +212,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
             </button>
 
             {/* Bookmark Button */}
-            <button
+            {/* <button
               onClick={handleBookmark}
               className={`
                 flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all
@@ -227,7 +227,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 className={isBookmarked ? 'fill-current' : ''}
               />
               <span className="hidden sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
-            </button>
+            </button> */}
 
             {/* Share Button */}
             <button
