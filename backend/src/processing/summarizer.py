@@ -91,10 +91,10 @@ def _summarize_text_mapreduce(text: str) -> str:
             # Fall through to MapReduce if direct fails
 
     # 1. Split text into manageable, overlapping chunks
-    # Optimized chunk size: 2500 chars (~875 tokens with safety margin) to reduce number of chunks
+    # Optimized chunk size: 1500 chars (~350-450 tokens) to avoid quadratic attention scaling
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=2500,  # Increased from 1024 to better utilize DistilBART's 1024 token limit
-        chunk_overlap=200,  # Increased proportionally to maintain context
+        chunk_size=1500,  # Reverted from 2500 to improve O(N^2) processing time
+        chunk_overlap=150,
         separators=["\n\n", "\n", ". ", " ", ""],
     )
     chunks = splitter.split_text(text)
@@ -105,7 +105,7 @@ def _summarize_text_mapreduce(text: str) -> str:
         _ensure_pipeline()
 
     partial_summaries = summarizer_pipeline(
-        chunks, max_length=120, min_length=30, do_sample=False
+        chunks, max_length=120, min_length=30, do_sample=False, truncation=True
     )
 
     # 3. Combine partial summaries and produce a final summary (Reduce step)
@@ -116,7 +116,7 @@ def _summarize_text_mapreduce(text: str) -> str:
     # Run one final summary pass to synthesize the results for better cohesion
     # This creates a professional, flowing summary instead of disjointed bullet points
     final_summary = summarizer_pipeline(
-        combined_summary_text, max_length=200, min_length=50, do_sample=False
+        combined_summary_text, max_length=200, min_length=50, do_sample=False, truncation=True
     )[0]["summary_text"]
 
     return final_summary
