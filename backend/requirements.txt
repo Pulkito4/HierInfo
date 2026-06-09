@@ -12,4 +12,4 @@ sentence_transformers==5.1.0
 supabase==2.22.0
 tqdm==4.67.1
 transformers==4.56.1
-urllib3==2.5.0
+urllib3==2.7.0
