@@ -61,6 +61,7 @@ def run_news_pipeline():
     sys.path.insert(0, "/root")
     
     # Import after path is set
+    import concurrent.futures
     from src.api_clients import fetch_gnews_metadata, fetch_rss_metadata
     from src.database import SupabaseManager
     from src.processing import (
@@ -95,8 +96,12 @@ def run_news_pipeline():
         # --- 1. DATA INGESTION ---
         logger.info("--- PHASE 1: DATA INGESTION ---")
         all_metadata = []
-        all_metadata.extend(fetch_gnews_metadata())
-        all_metadata.extend(fetch_rss_metadata())
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            future_gnews = executor.submit(fetch_gnews_metadata)
+            future_rss = executor.submit(fetch_rss_metadata)
+            
+            all_metadata.extend(future_gnews.result())
+            all_metadata.extend(future_rss.result())
         
         if not all_metadata:
             logger.warning("No article metadata fetched. Exiting.")

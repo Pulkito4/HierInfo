@@ -44,30 +44,25 @@ class SupabaseManager:
             logger.error(f"❌ Failed to fetch category map: {e}")
             return {}
 
-    def _clean_records_for_upsert(self, records: List[Dict]) -> List[Dict]:
-        """(Internal) Cleans a list of dictionaries before inserting into Supabase."""
-        cleaned_records = []
-        for record in records:
-            cleaned_record = {}
-            for key, value in record.items():
-                # Normalize common types and avoid ambiguous truth checks
-                if value is None:
-                    cleaned_record[key] = None
-                elif isinstance(value, (np.ndarray, list)):
-                    # Convert any array-like to a plain list
-                    cleaned_record[key] = (
-                        value.tolist() if hasattr(value, "tolist") else list(value)
-                    )
-                elif isinstance(value, pd.Timestamp):
-                    cleaned_record[key] = value.isoformat()
-                else:
-                    # Fallback to pandas isna with guard for types that raise
-                    try:
-                        cleaned_record[key] = None if pd.isna(value) else value
-                    except Exception:
-                        cleaned_record[key] = value
-            cleaned_records.append(cleaned_record)
-        return cleaned_records
+    def _clean_dataframe_for_upsert(self, df: pd.DataFrame) -> pd.DataFrame:
+        """(Internal) Cleans a DataFrame before inserting into Supabase."""
+        df_clean = df.copy()
+        
+        # Convert datetime to ISO string
+        for col in df_clean.columns:
+            if pd.api.types.is_datetime64_any_dtype(df_clean[col]):
+                df_clean[col] = df_clean[col].apply(lambda x: x.isoformat() if not pd.isnull(x) else None)
+        
+        # Replace NaN with None
+        df_clean = df_clean.where(pd.notnull(df_clean), None)
+        
+        # Convert array-like objects to lists
+        for col in df_clean.columns:
+            df_clean[col] = df_clean[col].apply(
+                lambda x: x.tolist() if hasattr(x, "tolist") else (list(x) if isinstance(x, (np.ndarray, list)) else x)
+            )
+            
+        return df_clean
 
     def store_data(self, df: pd.DataFrame, category_map: dict):
         """Stores all processed data using vectorized operations."""
@@ -77,7 +72,7 @@ class SupabaseManager:
 
         logger.info(f"🚀 Starting data storage for {len(df)} articles.")
 
-        # --- 1. Upsert Articles and get their IDs ---
+        # --- Prepare Article Records ---
         article_cols = [
             "url",
             "title",
@@ -90,13 +85,8 @@ class SupabaseManager:
             "is_critical",
         ]
 
-        # Make a copy of the DataFrame slice to work with
         df_for_insert = df.copy()
-
-        # Rename the DataFrame column to match the database column name.
         df_for_insert.rename(columns={"source_name": "source"}, inplace=True)
-
-        # Use only available columns to avoid KeyErrors if schema changes upstream
         available_cols = [c for c in article_cols if c in df_for_insert.columns]
 
         if len(available_cols) != len(article_cols):
@@ -105,62 +95,47 @@ class SupabaseManager:
                 f"Some expected article columns are missing and will be skipped: {sorted(missing)}"
             )
 
-        article_records = self._clean_records_for_upsert(
-            df_for_insert[available_cols].to_dict(orient="records")
-        )
+        cleaned_articles_df = self._clean_dataframe_for_upsert(df_for_insert[available_cols])
+        article_records = cleaned_articles_df.to_dict(orient="records")
 
-        try:
-            article_response = (
-                self.client.table("news_articles")
-                .upsert(article_records, on_conflict="url", returning="representation")
-                .execute()
-            )
-            if not article_response.data:
-                logger.error("Failed to insert articles. Halting storage process.")
-                return
-            inserted_articles = article_response.data
-            logger.info(f"✅ Successfully upserted {len(inserted_articles)} articles.")
-        except Exception as e:
-            logger.error(f"❌ Error inserting articles: {e}")
-            return
-
-        # --- 2. Prepare DataFrames for Embeddings and Categories ---
-        url_to_id_map = {article["url"]: article["id"] for article in inserted_articles}
-        df["_article_id"] = df["url"].map(url_to_id_map)
-        work_df = df[df["_article_id"].notna()].copy()
-
-        # --- 3. Build and Upsert Embedding Records ---
-        if "embedding" in work_df.columns and not work_df["embedding"].isnull().all():
-            emb_df = work_df[["_article_id", "embedding"]].copy()
-            emb_df.rename(columns={"_article_id": "article_id"}, inplace=True)
-            emb_df["embedding"] = emb_df["embedding"].apply(
-                lambda x: x.tolist() if hasattr(x, "tolist") else x
-            )
-
+        # --- Prepare Embedding Records ---
+        embedding_records = []
+        if "embedding" in df.columns and not df["embedding"].isnull().all():
+            emb_df = df[["url", "embedding"]].copy()
+            emb_df = self._clean_dataframe_for_upsert(emb_df)
             embedding_records = emb_df.to_dict(orient="records")
-            self._execute_upsert("news_embeddings", embedding_records, "embeddings")
 
-        # --- 4. Build and Upsert Category Link Records ---
+        # --- Prepare Category Records ---
+        category_link_records = []
         if (
-            "categories" in work_df.columns
-            and work_df["categories"]
+            "categories" in df.columns
+            and df["categories"]
             .apply(lambda v: isinstance(v, (list, tuple)) and len(v) > 0)
             .any()
         ):
             cat_df = (
-                work_df[["_article_id", "categories"]]
+                df[["url", "categories"]]
                 .explode("categories")
                 .dropna(subset=["categories"])
             )
             cat_df["category_id"] = cat_df["categories"].map(category_map)
-            cat_df.rename(columns={"_article_id": "article_id"}, inplace=True)
-
             category_link_records = cat_df.dropna(subset=["category_id"])[
-                ["article_id", "category_id"]
+                ["url", "category_id"]
             ].to_dict(orient="records")
-            self._execute_upsert(
-                "article_categories", category_link_records, "category links"
-            )
+
+        # --- Execute RPC Transaction ---
+        try:
+            logger.info("Executing upsert_articles_transaction RPC...")
+            payload = {
+                "articles": article_records,
+                "embeddings": embedding_records,
+                "categories": category_link_records,
+            }
+            response = self.client.rpc("upsert_articles_transaction", payload).execute()
+            logger.info(f"✅ Successfully completed transaction for {len(article_records)} articles.")
+        except Exception as e:
+            logger.error(f"❌ Error during RPC transaction: {e}")
+            raise
 
     def _execute_upsert(self, table_name: str, records: List[Dict], record_type: str):
         """(Internal) Helper function to execute and log an upsert operation."""

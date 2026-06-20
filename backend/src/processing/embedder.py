@@ -48,13 +48,15 @@ def generate_embeddings(df: pd.DataFrame) -> pd.DataFrame:
     logger.info(f"🚀 Starting embedding generation for {len(df)} articles...")
 
     try:
-        # Get the list of texts to embed. Fill any missing content with an empty string.
-        texts_to_embed = df["raw_content"].fillna("").tolist()
+        # Get the list of texts to embed. Combine title and truncated raw_content.
+        title_series = df["title"].fillna("")
+        content_series = df["raw_content"].fillna("").str[:1500]
+        texts_to_embed = (title_series + " | " + content_series).tolist()
 
         # The .encode() method is highly optimized to process a batch of texts at once.
         # It will automatically use the GPU configured during model initialization.
         # Convert to float32 numpy arrays for consistency
-        embeddings = model.encode(texts_to_embed, show_progress_bar=True, convert_to_numpy=True)
+        embeddings = model.encode(texts_to_embed, batch_size=128, show_progress_bar=True, convert_to_numpy=True)
 
         # Add the generated embeddings as a new column to the DataFrame.
         # The column will contain lists (or numpy arrays) of numbers.

@@ -5,6 +5,7 @@ import multiprocessing
 if __name__ == '__main__':
     multiprocessing.set_start_method('spawn', force=True)
 
+import concurrent.futures
 from dotenv import load_dotenv
 from src.api_clients import fetch_gnews_metadata, fetch_rss_metadata
 from src.database import SupabaseManager
@@ -42,8 +43,15 @@ def run_pipeline_logic():
     # --- 1. DATA INGESTION ---
     logger.info("--- PHASE 1: DATA INGESTION ---")
     all_metadata = []
-    all_metadata.extend(fetch_gnews_metadata())
-    all_metadata.extend(fetch_rss_metadata())
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        future_gnews = executor.submit(fetch_gnews_metadata)
+        future_rss = executor.submit(fetch_rss_metadata)
+        
+        gnews_results = future_gnews.result()
+        rss_results = future_rss.result()
+        
+        all_metadata.extend(gnews_results)
+        all_metadata.extend(rss_results)
     if not all_metadata:
         logger.warning("No article metadata fetched. Exiting.")
         return None

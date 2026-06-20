@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import hdbscan
+from sklearn.decomposition import PCA
 from src import config as cfg
 from utils import get_logger
 
@@ -45,8 +46,16 @@ def cluster_and_deduplicate(df: pd.DataFrame) -> pd.DataFrame:
 
     # --- 1. Perform HDBSCAN Clustering ---
     embeddings = np.array(df["embedding"].tolist())
+    
+    # Dimensionality Reduction for faster, better clustering
+    n_samples = len(embeddings)
+    if n_samples > 1:
+        n_components = min(50, n_samples)
+        pca = PCA(n_components=n_components)
+        embeddings = pca.fit_transform(embeddings)
+
     clusterer = hdbscan.HDBSCAN(
-        min_cluster_size=2, metric="euclidean", cluster_selection_method="eom"
+        min_cluster_size=2, metric="euclidean", cluster_selection_method="eom", core_dist_n_jobs=-1
     )
     df["cluster_label"] = clusterer.fit_predict(embeddings)
 
